@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import WebflowScript from "@/components/WebflowScript";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -24,18 +25,11 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <head>
-        {/* Webflow CSS files */}
-        <link rel="stylesheet" type="text/css" href="/skill-trait-webflow/css/normalize.css" />
-        <link rel="stylesheet" type="text/css" href="/skill-trait-webflow/css/webflow.css" />
-        <link rel="stylesheet" type="text/css" href="/skill-trait-webflow/css/skill-trait.webflow.css" />
-      </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         {children}
-        {/* Webflow JS */}
-        <script src="/skill-trait-webflow/js/webflow.js"></script>
+        <WebflowScript />
       </body>
     </html>
   );

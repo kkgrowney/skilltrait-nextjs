@@ -1,6 +1,11 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 
+/* Webflow CSS imports */
+@import url("/skill-trait-webflow/css/normalize.css");
+@import url("/skill-trait-webflow/css/webflow.css");
+@import url("/skill-trait-webflow/css/skill-trait.webflow.css");
+
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
