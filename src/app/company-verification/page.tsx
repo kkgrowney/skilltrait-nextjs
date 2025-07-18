@@ -1,11 +1,10 @@
+import WebflowIframe from "@/components/WebflowIframe";
+
 export default function CompanyVerification() {
   return (
-    <div className="w-full h-screen">
-      <iframe 
-        src="/skill-trait-webflow/company-verification.html"
-        className="w-full h-full border-0"
-        title="SkillTrait Company Verification"
-      />
-    </div>
+    <WebflowIframe 
+      src="/skill-trait-webflow/company-verification.html"
+      title="SkillTrait Company Verification"
+    />
   );
 } 

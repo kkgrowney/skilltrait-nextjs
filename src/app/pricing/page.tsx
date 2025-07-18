@@ -1,11 +1,10 @@
+import WebflowIframe from "@/components/WebflowIframe";
+
 export default function Pricing() {
   return (
-    <div className="w-full h-screen">
-      <iframe 
-        src="/skill-trait-webflow/pricing.html"
-        className="w-full h-full border-0"
-        title="SkillTrait Pricing"
-      />
-    </div>
+    <WebflowIframe 
+      src="/skill-trait-webflow/pricing.html"
+      title="SkillTrait Pricing"
+    />
   );
 } 

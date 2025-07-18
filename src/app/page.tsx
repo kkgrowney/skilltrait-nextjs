@@ -1,11 +1,10 @@
+import WebflowIframe from "@/components/WebflowIframe";
+
 export default function Home() {
   return (
-    <div className="w-full h-screen">
-      <iframe 
-        src="/skill-trait-webflow/index.html"
-        className="w-full h-full border-0"
-        title="SkillTrait Home"
-      />
-    </div>
+    <WebflowIframe 
+      src="/skill-trait-webflow/index.html"
+      title="SkillTrait Home"
+    />
   );
 }
