@@ -1,21 +1,15 @@
 'use client';
 
-import { useState } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
 
-export default function Navigation() {
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
+export default function WebflowNavigation() {
   const { user } = useAuth();
 
-  const toggleMenu = () => {
-    setIsMenuOpen(!isMenuOpen);
-  };
-
   return (
-    <div className="navbar w-nav" role="banner">
+    <div data-animation="default" className="navbar w-nav" data-easing2="ease" fs-scrolldisable-element="smart-nav" data-easing="ease" data-collapse="medium" data-w-id="bb81c9fd-844d-e10d-c9f1-2f11ff3a4498" role="banner" data-duration="400">
       <div className="navbar1_container-2">
-        <Link href="/" className="navbar1_logo-link w-nav-brand">
+        <Link href="/" aria-current="page" className="navbar1_logo-link w-nav-brand w--current">
           <div className="navbar1_logo w-embed">
             <svg width="100%" height="100%" viewBox="0 0 141 28" fill="none" xmlns="http://www.w3.org/2000/svg">
               <path d="M33.2545 23.953H28.9072L23.0221 16.555H22.9629V23.953H19.5176V1.15759H22.9629V15.6077H23.0221L28.5819 8.55557H32.7074L26.4526 15.9836L33.2545 23.953Z" fill="currentColor"></path>
@@ -36,44 +30,20 @@ export default function Navigation() {
             </svg>
           </div>
         </Link>
-        
-        <nav role="navigation" className={`navbar1_menu-2 is-page-height-tablet w-nav-menu ${isMenuOpen ? 'is-open' : ''}`}>
-          <Link href="/" className="navbar-link is-alternate achievement w-nav-link">
-            Home
-          </Link>
-          <Link href="/achievements" className="navbar-link is-alternate w-nav-link">
-            Digital Awards
-          </Link>
-          <Link href="/award-templates" className="navbar-link is-alternate w-nav-link">
-            Templates
-          </Link>
-          <Link href="/pricing" className="navbar-link is-alternate w-nav-link">
-            Pricing
-          </Link>
-          <Link href="#help" className="navbar-link is-alternate w-nav-link">
-            Help
-          </Link>
-          
+        <nav role="navigation" className="navbar1_menu-2 is-page-height-tablet w-nav-menu">
+          <Link href="/" aria-current="page" className="navbar-link is-alternate achievement w-nav-link w--current">Home</Link>
+          <Link href="/achievements" className="navbar-link is-alternate w-nav-link">Digital Awards</Link>
+          <Link href="/award-templates" className="navbar-link is-alternate w-nav-link">Templates</Link>
+          <Link href="/pricing" className="navbar-link is-alternate w-nav-link">Pricing</Link>
+          <Link href="#help" className="navbar-link is-alternate w-nav-link">Help</Link>
           <div className="navbar1_menu-buttons">
-            <a href="#help" className="button-r_light is-small is-alternate round w-button">
-              Download app
-            </a>
-            {user ? (
-              <Link href="/dashboard" className="button-r is-secondary is-small is-alternate round w-button">
-                Dashboard
-              </Link>
-            ) : (
-              <Link href="/signin" className="button-r is-secondary is-small is-alternate round w-button">
-                Sign In
-              </Link>
-            )}
+            <Link href="/signin" className="button-r_light is-small is-alternate round w-button">Login</Link>
           </div>
         </nav>
-        
-        <div className="menu-btn w-nav-button" onClick={toggleMenu}>
-          <div className={`nav-span is-1 ${isMenuOpen ? 'is-active' : ''}`}></div>
-          <div className={`nav-span is-2 ${isMenuOpen ? 'is-active' : ''}`}></div>
-          <div className={`nav-span is-3 ${isMenuOpen ? 'is-active' : ''}`}></div>
+        <div className="menu-btn w-nav-button">
+          <div className="nav-span is-1"></div>
+          <div className="nav-span is-2"></div>
+          <div className="nav-span is-3"></div>
         </div>
       </div>
     </div>
