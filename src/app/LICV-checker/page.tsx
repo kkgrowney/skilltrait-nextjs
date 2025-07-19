@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import NavPrelogin from '@/components/nav_prelogin';
+import LICVChart from '@/components/LICVChart';
 
 export default function LICVCheckerPage() {
   const [linkedinUrl, setLinkedinUrl] = useState('');
@@ -126,7 +127,15 @@ export default function LICVCheckerPage() {
           
           {/* Right Container - Fixed, Full Height, Stacked above on mobile */}
           <div className="lg:col-span-8 order-1 lg:order-2 h-full">
-            <div className="h-full bg-center bg-cover bg-no-repeat" style={{backgroundImage: 'url(\'/LICV-visual.png\')', minHeight: '300px'}}>
+            <div className="h-full w-full flex flex-col" style={{backgroundColor: '#1B1D21'}}>
+              {/* Top Container - 50% height */}
+              <div className="h-1/2 w-full">
+                <LICVChart />
+              </div>
+              {/* Bottom Container - 50% height */}
+              <div className="h-1/2 w-full" style={{backgroundColor: '#1B1D21'}}>
+                {/* Bottom container content can be added here */}
+              </div>
             </div>
           </div>
         </div>
