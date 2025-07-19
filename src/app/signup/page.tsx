@@ -14,7 +14,6 @@ export default function SignUpPage() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [agreeToTerms, setAgreeToTerms] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
   const router = useRouter();
 
   useEffect(() => {
@@ -24,16 +23,15 @@ export default function SignUpPage() {
   const handleEmailSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    setError('');
 
     if (password !== confirmPassword) {
-      setError('Passwords do not match');
+      console.error('Passwords do not match');
       setLoading(false);
       return;
     }
 
     if (!agreeToTerms) {
-      setError('Please agree to the Terms of Service and Privacy Policy');
+      console.error('Please agree to the Terms of Service and Privacy Policy');
       setLoading(false);
       return;
     }
@@ -41,8 +39,9 @@ export default function SignUpPage() {
     try {
       await createUserWithEmailAndPassword(auth, email, password);
       router.push('/dashboard');
-    } catch (error: any) {
-      setError(error.message);
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'An error occurred';
+      console.error('Sign up error:', errorMessage);
     } finally {
       setLoading(false);
     }
@@ -50,14 +49,14 @@ export default function SignUpPage() {
 
   const handleGoogleSignUp = async () => {
     setLoading(true);
-    setError('');
 
     try {
       const provider = new GoogleAuthProvider();
       await signInWithPopup(auth, provider);
       router.push('/dashboard');
-    } catch (error: any) {
-      setError(error.message);
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'An error occurred';
+      console.error('Google sign up error:', errorMessage);
     } finally {
       setLoading(false);
     }
@@ -65,14 +64,14 @@ export default function SignUpPage() {
 
   const handleAppleSignUp = async () => {
     setLoading(true);
-    setError('');
 
     try {
       const provider = new OAuthProvider('apple.com');
       await signInWithPopup(auth, provider);
       router.push('/dashboard');
-    } catch (error: any) {
-      setError(error.message);
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'An error occurred';
+      console.error('Apple sign up error:', errorMessage);
     } finally {
       setLoading(false);
     }

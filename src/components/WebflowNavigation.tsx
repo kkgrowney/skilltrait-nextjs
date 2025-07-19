@@ -4,7 +4,6 @@ import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
 
 export default function WebflowNavigation() {
-  const { user } = useAuth();
 
   return (
     <div data-animation="default" className="navbar w-nav" data-easing2="ease" fs-scrolldisable-element="smart-nav" data-easing="ease" data-collapse="medium" data-w-id="bb81c9fd-844d-e10d-c9f1-2f11ff3a4498" role="banner" data-duration="400">

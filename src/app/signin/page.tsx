@@ -11,19 +11,18 @@ export default function SignInPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
   const router = useRouter();
 
   const handleEmailSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    setError('');
 
     try {
       await signInWithEmailAndPassword(auth, email, password);
       router.push('/dashboard');
-    } catch (error: any) {
-      setError(error.message);
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'An error occurred';
+      console.error('Sign in error:', errorMessage);
     } finally {
       setLoading(false);
     }
@@ -31,14 +30,14 @@ export default function SignInPage() {
 
   const handleGoogleSignIn = async () => {
     setLoading(true);
-    setError('');
 
     try {
       const provider = new GoogleAuthProvider();
       await signInWithPopup(auth, provider);
       router.push('/dashboard');
-    } catch (error: any) {
-      setError(error.message);
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'An error occurred';
+      console.error('Google sign in error:', errorMessage);
     } finally {
       setLoading(false);
     }
@@ -46,14 +45,14 @@ export default function SignInPage() {
 
   const handleAppleSignIn = async () => {
     setLoading(true);
-    setError('');
 
     try {
       const provider = new OAuthProvider('apple.com');
       await signInWithPopup(auth, provider);
       router.push('/dashboard');
-    } catch (error: any) {
-      setError(error.message);
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'An error occurred';
+      console.error('Apple sign in error:', errorMessage);
     } finally {
       setLoading(false);
     }
@@ -197,7 +196,7 @@ export default function SignInPage() {
                 
                 <div className="flex flex-row font-normal gap-1 items-start justify-center leading-[0] p-0 relative shrink-0 text-[14px] text-center text-nowrap w-full">
                   <div className="relative shrink-0 text-gray-400">
-                    <p className="block leading-[20px] text-nowrap whitespace-pre">Don't have an account?</p>
+                    <p className="block leading-[20px] text-nowrap whitespace-pre">Don&apos;t have an account?</p>
                   </div>
                   <a href="/signup" className="relative shrink-0 text-white underline hover:text-gray-300">
                     <p className="block leading-[20px] text-nowrap whitespace-pre">Sign up</p>
