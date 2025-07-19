@@ -25,17 +25,6 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-<<<<<<< Updated upstream
-    <html lang="en">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
-        {children}
-<<<<<<< HEAD
-=======
-        {/* Webflow JS */}
-        <script src="/skill-trait-webflow/js/webflow.js"></script>
-=======
     <html lang="en" className="dark">
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
@@ -44,8 +33,6 @@ export default function RootLayout({
           <NavigationWrapper />
           {children}
         </AuthProvider>
->>>>>>> Stashed changes
->>>>>>> dev
       </body>
     </html>
   );

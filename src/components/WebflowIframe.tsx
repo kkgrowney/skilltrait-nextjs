@@ -12,6 +12,8 @@ export default function WebflowIframe({ src, title }: WebflowIframeProps) {
         src={src}
         className="w-full h-full border-0"
         title={title}
+        loading="lazy"
+        sandbox="allow-same-origin allow-scripts allow-forms allow-popups"
       />
     </div>
   );
