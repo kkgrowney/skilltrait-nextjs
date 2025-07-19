@@ -11,11 +11,11 @@ export default function NavPrelogin() {
   };
 
   return (
-    <nav className="shadow-sm border-b" style={{backgroundColor: '#212327', borderColor: '#454446'}}>
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-16">
-          {/* Logo */}
-          <div className="flex-shrink-0 ml-4 sm:ml-6 lg:ml-8">
+    <nav className="shadow-sm border-b w-full" style={{backgroundColor: '#212327', borderColor: '#454446'}}>
+      <div className="w-full px-5">
+        <div className="flex items-center h-16">
+          {/* Logo - left justified with 20px margin to align with content */}
+          <div className="flex-shrink-0" style={{marginLeft: '20px'}}>
             <Link href="/" className="flex items-center">
               <img 
                 src="/skilltrait_dark.svg" 
@@ -25,36 +25,42 @@ export default function NavPrelogin() {
             </Link>
           </div>
 
-          {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center space-x-8">
-            <Link 
-              href="/achievements" 
-              className="text-gray-300 hover:text-white px-3 py-2 text-sm font-medium transition-colors"
-            >
-              Achievements
-            </Link>
-            <Link 
-              href="/award-templates" 
-              className="text-gray-300 hover:text-white px-3 py-2 text-sm font-medium transition-colors"
-            >
-              Award Templates
-            </Link>
-            <Link 
-              href="/pricing" 
-              className="text-gray-300 hover:text-white px-3 py-2 text-sm font-medium transition-colors"
-            >
-              Pricing
-            </Link>
+          {/* Desktop Navigation - left justified with 36px padding from logo */}
+          <div className="hidden md:flex items-center" style={{marginLeft: '36px'}}>
+            <div className="flex items-center space-x-8">
+              <Link 
+                href="/achievements" 
+                className="text-gray-300 hover:text-white px-3 py-2 text-sm font-medium transition-colors"
+              >
+                Achievements
+              </Link>
+              <Link 
+                href="/award-templates" 
+                className="text-gray-300 hover:text-white px-3 py-2 text-sm font-medium transition-colors"
+              >
+                Award Templates
+              </Link>
+              <Link 
+                href="/pricing" 
+                className="text-gray-300 hover:text-white px-3 py-2 text-sm font-medium transition-colors"
+              >
+                Pricing
+              </Link>
+            </div>
+          </div>
+
+          {/* Login button - right justified with 20px margin */}
+          <div className="hidden md:flex items-center ml-auto" style={{marginRight: '20px'}}>
             <Link 
               href="/signin" 
-              className="px-4 py-2 rounded-lg text-sm font-medium transition-colors bg-[var(--primary-dark)] text-[#212327] hover:bg-[#0AFB84]"
+              className="px-4 py-2 rounded text-sm font-medium transition-colors bg-[var(--primary-dark)] text-[#212327] hover:bg-[#0AFB84]"
             >
-              Login
+              Send free props
             </Link>
           </div>
 
           {/* Mobile menu button */}
-          <div className="md:hidden">
+          <div className="md:hidden ml-auto">
             <button
               onClick={toggleMenu}
               className="inline-flex items-center justify-center p-2 rounded-md text-gray-300 hover:text-white hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500 transition-colors"
@@ -124,10 +130,10 @@ export default function NavPrelogin() {
           </Link>
           <Link
             href="/signin"
-            className="block px-3 py-2 rounded-lg text-base font-medium transition-colors bg-[var(--primary-dark)] text-[#212327] hover:bg-[#0AFB84]"
+            className="block px-3 py-2 rounded text-base font-medium transition-colors bg-[var(--primary-dark)] text-[#212327] hover:bg-[#0AFB84]"
             onClick={() => setIsMenuOpen(false)}
           >
-            Login
+            Send free props
           </Link>
         </div>
       </div>
