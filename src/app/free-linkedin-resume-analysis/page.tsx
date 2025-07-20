@@ -2,14 +2,15 @@
 
 import { useState } from 'react';
 import NavPrelogin from '@/components/nav_prelogin';
-import LICVChart from '@/components/LICVChart';
+import LinkedComparisonChart from '@/components/LinkedComparisonChart';
 
-export default function LICVCheckerPage() {
+export default function LinkedCVComparisonPage() {
   const [linkedinUrl, setLinkedinUrl] = useState('');
   const [resumeText, setResumeText] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [results, setResults] = useState<string>('');
   const [showModal, setShowModal] = useState(false);
+  const [activeTab, setActiveTab] = useState<'candidates' | 'recruiters'>('candidates');
 
   const handleRunComparison = async () => {
     if (!linkedinUrl || !resumeText.trim()) {
@@ -58,24 +59,52 @@ export default function LICVCheckerPage() {
           <div className="lg:col-span-4 order-2 lg:order-1 h-full overflow-y-auto">
             <div className="h-full" style={{backgroundColor: '#212327', padding: '20px'}}>
               <div className="text-center mb-8">
-                <h1 className="text-4xl font-bold text-white mb-4">
-                  LICV Checker
+                <h1 className="text-[30px] font-bold text-white mb-4">
+                  LinkedIn and Resume Analysis
                 </h1>
-                <p className="text-lg text-gray-300">
+                <p className="text-md text-gray-300 mb-6">
                   Run a comparison check of a LinkedIn profile and resume to verify consistency and review expertise in skills.
                 </p>
+                
+                {/* Tab Component */}
+                <div className="bg-[#212327] rounded-[10px] p-1 mb-6">
+                  <div className="flex items-center">
+                    <button
+                      className={`flex-1 py-2 px-4 rounded-lg text-sm font-medium transition-all duration-200 ${
+                        activeTab === 'candidates' 
+                          ? 'bg-[#454446] text-white shadow-[0px_1px_3px_0px_rgba(0,0,0,0.1),0px_1px_2px_-1px_rgba(0,0,0,0.1)]' 
+                          : 'text-gray-400 hover:text-gray-300'
+                      }`}
+                      onClick={() => setActiveTab('candidates')}
+                    >
+                      For Candidates
+                    </button>
+                    <button
+                      className={`flex-1 py-2 px-4 rounded-lg text-sm font-medium transition-all duration-200 ${
+                        activeTab === 'recruiters' 
+                          ? 'bg-[#454446] text-white shadow-[0px_1px_3px_0px_rgba(0,0,0,0.1),0px_1px_2px_-1px_rgba(0,0,0,0.1)]' 
+                          : 'text-gray-400 hover:text-gray-300'
+                      }`}
+                      onClick={() => setActiveTab('recruiters')}
+                    >
+                      For Recruiters
+                    </button>
+                  </div>
+                </div>
               </div>
               
               <div className="space-y-4">
                 <div className="p-4 rounded-sm border" style={{backgroundColor: '#1B1D21', borderColor: '#454446'}}>
                   <h3 className="text-lg font-medium text-white mb-2">LinkedIn profile</h3>
-                  <input 
-                    type="text" 
-                    placeholder="Enter LinkedIn profile URL"
+                  <textarea 
+                    placeholder="Paste LinkedIn profile content here..."
                     value={linkedinUrl}
                     onChange={(e) => setLinkedinUrl(e.target.value)}
-                    className="w-full px-4 py-2 text-sm bg-[#1B1D21] border border-gray-600 rounded text-white placeholder-gray-400 focus:outline-none focus:border-[var(--primary-dark)]"
+                    className="w-full px-4 py-2 text-sm bg-[#1B1D21] border rounded text-white placeholder-gray-400 focus:outline-none focus:border-[var(--primary-dark)] resize-none"
+                    rows={8}
+                    style={{minHeight: '200px', maxHeight: '300px', borderColor: '#454446'}}
                   />
+                  <p className="text-gray-300 text-sm mt-2">Paste your LinkedIn profile content for comparison with your resume.</p>
                 </div>
                 <div className="p-4 rounded-sm border" style={{backgroundColor: '#1B1D21', borderColor: '#454446'}}>
                   <h3 className="text-lg font-medium text-white mb-2">Paste resume</h3>
@@ -83,9 +112,9 @@ export default function LICVCheckerPage() {
                     placeholder="Paste your resume text here..."
                     value={resumeText}
                     onChange={(e) => setResumeText(e.target.value)}
-                    className="w-full px-4 py-2 text-sm bg-[#1B1D21] border border-gray-600 rounded text-white placeholder-gray-400 focus:outline-none focus:border-[var(--primary-dark)] resize-none"
+                    className="w-full px-4 py-2 text-sm bg-[#1B1D21] border rounded text-white placeholder-gray-400 focus:outline-none focus:border-[var(--primary-dark)] resize-none"
                     rows={8}
-                    style={{minHeight: '200px', maxHeight: '300px'}}
+                    style={{minHeight: '200px', maxHeight: '300px', borderColor: '#454446'}}
                   />
                   <p className="text-gray-300 text-sm mt-2">Paste your resume content to verify consistency with your LinkedIn profile.</p>
                 </div>
@@ -130,7 +159,7 @@ export default function LICVCheckerPage() {
             <div className="h-full w-full flex flex-col" style={{backgroundColor: '#1B1D21'}}>
               {/* Top Container - 50% height */}
               <div className="h-1/2 w-full">
-                <LICVChart />
+                <LinkedComparisonChart />
               </div>
               {/* Bottom Container - 50% height */}
               <div className="h-1/2 w-full" style={{backgroundColor: '#1B1D21'}}>

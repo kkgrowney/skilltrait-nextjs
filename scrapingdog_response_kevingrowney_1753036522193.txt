@@ -1,0 +1,156 @@
+{
+  "timestamp": "2025-07-20T18:35:22.192Z",
+  "linkedinUrl": "https://www.linkedin.com/in/kevingrowney/",
+  "profileId": "kevingrowney",
+  "apiResponse": [
+    {
+      "fullName": "Kevin Growney",
+      "linkedin_internal_id": "16471141",
+      "first_name": "Kevin",
+      "last_name": "Growney",
+      "public_identifier": "kevingrowney",
+      "background_cover_image_url": "https://media.licdn.com/dms/image/v2/C5616AQE7fnen6ZVpJg/profile-displaybackgroundimage-shrink_200_800/profile-displaybackgroundimage-shrink_200_800/0/1586700093230?e=2147483647&v=beta&t=Q8pC7zf9VXW9NOTXsVKtH0unRQI4QPDMUzC1HyZTjAs",
+      "profile_photo": "https://media.licdn.com/dms/image/v2/D5603AQGM3cC5pBjY1g/profile-displayphoto-shrink_200_200/B56ZO2a.ewG4AY-/0/1733932345521?e=2147483647&v=beta&t=aXsv-mYPLtdtq2x5toT1q4WVpv2idRfoMh9YScoRQoY",
+      "headline": "",
+      "location": "San Francisco, California, United States",
+      "followers": "538 followers",
+      "connections": "500+ connections",
+      "about": "",
+      "experience": [
+        {
+          "company_name": "Stanford Continuing Studies",
+          "company_image": "https://media.licdn.com/dms/image/v2/C560BAQE6s2dCsoEtww/company-logo_100_100/company-logo_100_100/0/1630641291917/stanford_continuing_studies_logo?e=2147483647&v=beta&t=ZS4QxzDcpxL8KIPTx0iJXTvu0B_ft4d-ctfRFdPBKPg"
+        }
+      ],
+      "education": [],
+      "articles": [],
+      "description": {
+        "description1": "Stanford Continuing Studies",
+        "description1_link": "https://www.linkedin.com/school/stanford-continuing-studies/?trk=public_profile_topcard-school",
+        "description2": ""
+      },
+      "activities": [
+        {
+          "link": "https://www.linkedin.com/posts/karen-hofmann-1437151_superbowl-artcenteralumni-activity-7304913870597369856-X629",
+          "image": "https://media.licdn.com/dms/image/v2/D5610AQFfBc7_N7jNDw/ads-video-thumbnail_720_1280/B56ZWBEb6lGsAY-/0/1741627179793?e=2147483647&v=beta&t=AS7p_hWdEaLVUY13v9MwX115Y0h9BlT3w1yeLFzurGM",
+          "title": "In 2019, Mike Cessario (BFA 09 Advertising) launched Liquid Death, an ironically named canned water brand. Liquid Death's has seen a meteoric rise in…",
+          "activity": "Liked by Kevin Growney"
+        },
+        {
+          "link": "https://www.linkedin.com/posts/zeljkalemaster_mwc25-ai-network-activity-7300044043118354432-M-zo",
+          "image": "https://media.licdn.com/dms/image/v2/D5622AQHQbFwi6KXxtg/feedshare-shrink_2048_1536/B56ZU73XzlHoAs-/0/1740466127156?e=2147483647&v=beta&t=FAyPEnX8nD7joGnepIuCZ7_h8n1qw8nKwOBGOCCkAJ8",
+          "title": "Just a few days remain until my trip to #MWC25 in Barcelona. If you'll be there and are keen to explore Strategies for unlocking full AI potential in…",
+          "activity": "Liked by Kevin Growney"
+        },
+        {
+          "link": "https://www.linkedin.com/posts/yesterday-a-pm-friend-of-mine-mentioned-activity-7293713124732375040-NwfM",
+          "image": "https://static.licdn.com/aero-v1/sc/h/53n89ecoxpr1qrki1do3alazb",
+          "title": "Yesterday, a PM friend of mine mentioned he was working with UX Research for the first time at his company and was skeptical about its value. He…",
+          "activity": "Liked by Kevin Growney"
+        },
+        {
+          "link": "https://www.linkedin.com/posts/helloaudreyliu_price-lock-around-the-clock-lyfts-popular-activity-7292656234137104386-NxKH",
+          "image": "https://media.licdn.com/dms/image/sync/v2/D5627AQE-WjzVGgsAww/articleshare-shrink_1280_800/articleshare-shrink_1280_800/0/1738697865037?e=2147483647&v=beta&t=p8Kl8NGOKi_1HDElFiIQH2w2II1I3MCiGEVcU5SQDY0",
+          "title": "Last year, the Lyft team launched Price Lock, a first-of-its-kind product that caps the price of your daily commute. But we know that riders don’t…",
+          "activity": "Liked by Kevin Growney"
+        },
+        {
+          "link": "https://www.linkedin.com/posts/jglennturner_this-is-a-good-list-of-ai-tools-from-andreessen-activity-7281241141721628674-igSZ",
+          "image": "https://media.licdn.com/dms/image/v2/D4E22AQHWNOVO7r1aQw/feedshare-shrink_1280/B4EZQfZPEqGYAk-/0/1735693497044?e=2147483647&v=beta&t=NhnQH3Q-NQO5CY_ztiG61mMLYuBCq3baiVpUnIOaAEY",
+          "title": "This is a good list of AI tools from Andreessen Horowitz. \n\nAt Romeo Bravo Software we continue to balance pushing forward with our web Saas…",
+          "activity": "Liked by Kevin Growney"
+        },
+        {
+          "link": "https://www.linkedin.com/posts/seanshughes_modern-cyber-risk-program-with-snowflake-activity-7269737486854078464-1JN_",
+          "image": "https://static.licdn.com/aero-v1/sc/h/53n89ecoxpr1qrki1do3alazb",
+          "title": "Dive into the blog to see how Snowflake + Sigma can supercharge your security strategy and leave legacy BI behind. 🚀 \n\nRead now to transform your…",
+          "activity": "Liked by Kevin Growney"
+        },
+        {
+          "link": "https://www.linkedin.com/posts/seanshughes_at-sigma-computing-were-redefining-the-activity-7269766462976802817-aPkI",
+          "image": "https://media.licdn.com/dms/image/v2/D4E22AQG9wzE7uZxEuw/feedshare-shrink_2048_1536/feedshare-shrink_2048_1536/0/1733247388754?e=2147483647&v=beta&t=DSmdhTE0qeSwJ96dxFyXgTlJO-hNEJ-j179vKhZ5DzA",
+          "title": "At Sigma Computing, we're redefining the traditional Business Intelligence landscape. Our ongoing growth and success are driven by our world-class…",
+          "activity": "Liked by Kevin Growney"
+        },
+        {
+          "link": "https://www.linkedin.com/posts/shani-tal-knittel_ux-vpdirector-nng-training-course-activity-7271833159787335680-GgpT",
+          "image": "https://media.licdn.com/dms/image/sync/v2/D5627AQEOXuzeWRQZxA/articleshare-shrink_800/articleshare-shrink_800/0/1728508396150?e=2147483647&v=beta&t=nvYO-mkZcSjC8NhyH3Z3d9TpDfPkPB5OYzC97fgoQV8",
+          "title": "Excited to share that I’ve completed the Becoming a UX Executive course from Nielsen Norman Group!\n\nThis short yet impactful course deepened my…",
+          "activity": "Liked by Kevin Growney"
+        },
+        {
+          "link": "https://www.linkedin.com/posts/kevingrowney_if-you-are-a-parent-navigating-the-college-activity-7272322939822260226-eHjn",
+          "image": "https://media.licdn.com/dms/image/v2/D4E22AQFxIpiExsBIiw/feedshare-shrink_2048_1536/feedshare-shrink_2048_1536/0/1733856900716?e=2147483647&v=beta&t=TE1J-3c3LUB5FBQGAae55anS59dbz1R_BwAUDiWdPE4",
+          "title": "If you are a parent navigating the college application process, this free guide has a lot of helpful tips. \nhttps://lnkd.in/eKS564Nx",
+          "activity": "Shared by Kevin Growney"
+        },
+        {
+          "link": "https://www.linkedin.com/posts/jglennturner_vision-mission-core-values-where-are-activity-7265034926461267968-LAqF",
+          "image": "https://media.licdn.com/dms/image/v2/D4E22AQFWsNKjJEA_Jw/feedshare-shrink_2048_1536/feedshare-shrink_2048_1536/0/1731976628665?e=2147483647&v=beta&t=M35PkzcnJRpb5G0XIMVBo73lfzkk70Doblp_Ld3HfAU",
+          "title": "Vision\nMission\nCore Values\n\n... Where are we going\n\n... What do we do\n\n... Why do we do what we do\n\nIf you don't get your team bought into your…",
+          "activity": "Liked by Kevin Growney"
+        },
+        {
+          "link": "https://www.linkedin.com/posts/victoria-arrigoni-616bb4_congratulations-on-the-launch-of-this-innovative-activity-7241937648485900289-vEvM",
+          "image": "https://static.licdn.com/aero-v1/sc/h/53n89ecoxpr1qrki1do3alazb",
+          "title": "Congratulations on the launch of this innovative and impressive product Tobin Fisher !",
+          "activity": "Liked by Kevin Growney"
+        },
+        {
+          "link": "https://www.linkedin.com/posts/jasonrnadeau_companies-building-with-ai-are-facing-a-critical-activity-7245096515801661441-L9lF",
+          "image": "https://media.licdn.com/dms/image/v2/D5622AQHEYHZMnrifNQ/feedshare-shrink_2048_1536/feedshare-shrink_2048_1536/0/1727365094373?e=2147483647&v=beta&t=w4Eyurdg0EgTaNvrIyu7DOgQa2BssMBoGSm70Jsgpbg",
+          "title": "Companies building with AI are facing a critical need to make their data AI-ready, and it's gratifying to see Granica recognized for our unique…",
+          "activity": "Liked by Kevin Growney"
+        }
+      ],
+      "volunteering": [],
+      "certification": [],
+      "people_also_viewed": [],
+      "similar_profiles": [
+        {
+          "link": "https://www.linkedin.com/in/kevin-growney-a1860051?trk=public_profile_samename-profile",
+          "name": "Kevin Growney",
+          "summary": "Associate Vice Chancellor of Finance at University of Kansas Medical Center",
+          "location": "Kansas City, KS"
+        },
+        {
+          "link": "https://www.linkedin.com/in/kevin-growney-553674247?trk=public_profile_samename-profile",
+          "name": "Kevin Growney",
+          "summary": "Nuclear Engineering Student",
+          "location": "Garner, NC"
+        },
+        {
+          "link": "https://www.linkedin.com/in/kevin-growney-87100a38?trk=public_profile_samename-profile",
+          "name": "Kevin Growney",
+          "summary": "SMBC Nikko Seccurities",
+          "location": "New Canaan, CT"
+        },
+        {
+          "link": "https://www.linkedin.com/in/kevin-growney-75962711?trk=public_profile_samename-profile",
+          "name": "Kevin Growney",
+          "summary": "Director Sales BNP Fortis",
+          "location": "New Canaan, CT"
+        }
+      ],
+      "recommendations": [
+        {
+          "link": "https://www.linkedin.com/in/giurata?trk=public_profile_recommendations",
+          "name": "Paul Giurata",
+          "summary": "“Kevin made a great contribution to Catalyst UX coming on board as a lead UX designer and rising to VP of User Experience and responsible for delivery across all engagements. He's a very solid UX designer and an excellent product person and worked on many complex solutions.  He was a very thoughtful manager and was well liked by his staff.  Kevin has the ability to deal with details at the project level but also focus on the executive level regarding business strategy and execution.  I wish him all the best in his next role.”"
+        }
+      ],
+      "publications": [],
+      "courses": [],
+      "languages": [],
+      "organizations": [],
+      "projects": [
+        {
+          "title": "SkillTrait",
+          "duration": "Dec 2023"
+        }
+      ],
+      "awards": [],
+      "score": []
+    }
+  ]
+}

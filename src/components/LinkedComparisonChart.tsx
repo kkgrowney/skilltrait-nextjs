@@ -46,22 +46,22 @@ const chartConfig = {
   },
   linkedin: {
     label: "LinkedIn",
-    color: "var(--chart-1)",
+    color: "#0080FF",
   },
   cv: {
     label: "CV",
-    color: "var(--chart-2)",
+    color: "#00DF71",
   },
 } satisfies ChartConfig
 
-export default function LICVChart() {
+export default function LinkedComparisonChart() {
   // No filtering needed for keyword-based data
   const filteredData = chartData
 
   return (
     <div className="w-full h-full p-4">
-      <Card className="w-full h-full bg-[#1A1D21] border-gray-800">
-        <CardHeader className="flex items-center gap-2 space-y-0 border-b border-gray-800 py-5 sm:flex-row">
+      <Card className="w-full h-full bg-[#1A1D21]" style={{borderColor: '#454446'}}>
+        <CardHeader className="flex items-center gap-2 space-y-0 border-b py-5 sm:flex-row" style={{borderColor: '#454446'}}>
           <div className="grid flex-1 gap-1">
             <CardTitle className="text-gray-300">Expertise Comparison</CardTitle>
             <CardDescription className="text-gray-400">
@@ -79,29 +79,29 @@ export default function LICVChart() {
                 <linearGradient id="fillLinkedIn" x1="0" y1="0" x2="0" y2="1">
                   <stop
                     offset="5%"
-                    stopColor="var(--color-linkedin)"
+                    stopColor="#0080FF"
                     stopOpacity={0.8}
                   />
                   <stop
                     offset="95%"
-                    stopColor="var(--color-linkedin)"
+                    stopColor="#0080FF"
                     stopOpacity={0.1}
                   />
                 </linearGradient>
                 <linearGradient id="fillCV" x1="0" y1="0" x2="0" y2="1">
                   <stop
                     offset="5%"
-                    stopColor="var(--color-cv)"
+                    stopColor="#00DF71"
                     stopOpacity={0.8}
                   />
                   <stop
                     offset="95%"
-                    stopColor="var(--color-cv)"
+                    stopColor="#00DF71"
                     stopOpacity={0.1}
                   />
                 </linearGradient>
               </defs>
-              <CartesianGrid vertical={false} stroke="#374151" />
+              <CartesianGrid vertical={false} stroke="#454446" />
               <YAxis
                 tickLine={false}
                 axisLine={false}
@@ -136,15 +136,15 @@ export default function LICVChart() {
                 dataKey="cv"
                 type="natural"
                 fill="url(#fillCV)"
-                stroke="#454446"
-                stackId="a"
+                stroke="#00DF71"
+                strokeWidth={2}
               />
               <Area
                 dataKey="linkedin"
                 type="natural"
                 fill="url(#fillLinkedIn)"
-                stroke="#454446"
-                stackId="a"
+                stroke="#0080FF"
+                strokeWidth={2}
               />
               <ChartLegend content={<ChartLegendContent />} />
             </AreaChart>

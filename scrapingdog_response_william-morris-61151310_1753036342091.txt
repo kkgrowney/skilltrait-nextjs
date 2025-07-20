@@ -1,0 +1,26 @@
+{
+  "timestamp": "2025-07-20T18:32:22.090Z",
+  "linkedinUrl": "https://www.linkedin.com/in/william-morris-61151310/",
+  "profileId": "william-morris-61151310",
+  "apiResponse": [
+    {
+      "experience": [],
+      "education": [],
+      "articles": [],
+      "description": {},
+      "activities": [],
+      "volunteering": [],
+      "certification": [],
+      "people_also_viewed": [],
+      "similar_profiles": [],
+      "recommendations": [],
+      "publications": [],
+      "courses": [],
+      "languages": [],
+      "organizations": [],
+      "projects": [],
+      "awards": [],
+      "score": []
+    }
+  ]
+}

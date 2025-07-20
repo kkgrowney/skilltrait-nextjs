@@ -24,21 +24,26 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    console.log('Processing resume text...');
+    // Use pasted LinkedIn content directly (Scrapingdog API disabled)
+    console.log('Using pasted LinkedIn profile content...');
+    const linkedinProfileData = {
+      pastedContent: linkedinUrl,
+      source: 'user_pasted'
+    };
 
-    // Create the prompt for ChatGPT
-    const prompt = `Compare the resume text to the LinkedIn URL and provide me with comparison percentages. Review alignment across the following categories: work history, job titles, dates, accomplishments, skills, education and tone. Provide a consistency summary based on these criteria.
+    // Create the prompt for ChatGPT with LinkedIn profile data
+    const prompt = `Compare the resume text to the LinkedIn profile data and provide me with comparison percentages. Review alignment across the following categories: work history, job titles, dates, accomplishments, skills, education and tone. Provide a consistency summary based on these criteria.
 
-LinkedIn URL: ${linkedinUrl}
+LinkedIn Profile Data: ${JSON.stringify(linkedinProfileData, null, 2)}
 Resume Content: ${resumeText}
 
 Please provide a detailed analysis with percentages for each category and an overall consistency score.`;
 
-    console.log('Calling OpenAI...');
+    console.log('Calling OpenAI with LinkedIn profile data...');
     
     // Call ChatGPT
     const completion = await openai.chat.completions.create({
-      model: "gpt-3.5-turbo",
+      model: "gpt-4o",
       messages: [
         {
           role: "system",
