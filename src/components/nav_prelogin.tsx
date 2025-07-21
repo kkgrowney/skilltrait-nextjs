@@ -32,20 +32,20 @@ export default function NavPrelogin() {
             <div className="flex items-center space-x-8">
               <Link 
                 href="/linkedin-resume-analysis" 
-                className={`px-3 py-2 text-sm font-bold transition-colors border-b-2 ${
-                  pathname === '/linkedin-resume-analysis' 
-                    ? 'text-white border-b-[var(--primary-dark)]' 
-                    : 'text-gray-300 hover:text-white border-b-transparent'
+                className={`px-3 py-2 text-sm font-bold transition-colors relative ${
+                  pathname === '/linkedin-resume-analysis'
+                    ? 'text-white after:content-[""] after:absolute after:left-0 after:right-0 after:bottom-0 after:h-0.5 after:bg-[var(--primary-dark)] after:z-10'
+                    : 'text-gray-300 hover:text-white'
                 }`}
               >
                 Resume Analysis
               </Link>
               <Link 
                 href="/digital-awards-generator" 
-                className={`px-3 py-2 text-sm font-bold transition-colors border-b-2 ${
-                  pathname === '/digital-awards-generator' 
-                    ? 'text-white border-b-[var(--primary-dark)]' 
-                    : 'text-gray-300 hover:text-white border-b-transparent'
+                className={`px-3 py-2 text-sm font-bold transition-colors relative ${
+                  pathname === '/digital-awards-generator'
+                    ? 'text-white after:content-[""] after:absolute after:left-0 after:right-0 after:bottom-0 after:h-0.5 after:bg-[var(--primary-dark)] after:z-10'
+                    : 'text-gray-300 hover:text-white'
                 }`}
               >
                 Digital Awards
