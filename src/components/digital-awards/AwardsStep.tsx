@@ -3,11 +3,10 @@
 import { useState } from 'react';
 
 interface AwardsStepProps {
-  onNext: () => void;
   onTabChange: (tab: 'props' | 'achievements') => void;
 }
 
-export default function AwardsStep({ onNext, onTabChange }: AwardsStepProps) {
+export default function AwardsStep({ onTabChange }: AwardsStepProps) {
   const [awardType, setAwardType] = useState('');
   const [recipientName, setRecipientName] = useState('');
   const [achievement, setAchievement] = useState('');
@@ -21,11 +20,7 @@ export default function AwardsStep({ onNext, onTabChange }: AwardsStepProps) {
 
 
 
-  const handleNext = () => {
-    if (awardType.trim() && recipientName.trim() && achievement.trim()) {
-      onNext();
-    }
-  };
+
 
   const toggleFilter = (filterName: keyof typeof filters) => {
     setFilters(prev => ({
@@ -151,17 +146,7 @@ export default function AwardsStep({ onNext, onTabChange }: AwardsStepProps) {
         </div>
       </div>
       
-      <div className="space-y-4">
-        {/* Next button - right justified */}
-        <div className="flex justify-end mt-4">
-          <button 
-            onClick={handleNext}
-            className="px-6 py-3 text-sm font-medium transition-colors bg-[var(--primary-dark)] text-[#212327] rounded hover:bg-[#0AFB84]"
-          >
-            Next
-          </button>
-        </div>
-      </div>
+
     </div>
   );
 } 

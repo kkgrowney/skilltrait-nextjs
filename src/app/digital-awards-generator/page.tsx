@@ -44,7 +44,7 @@ export default function DigitalAwardsPage() {
   const renderCurrentStep = () => {
     switch (currentStep) {
       case 'awards':
-        return <AwardsStep onNext={handleNext} onTabChange={setActiveTab} />;
+        return <AwardsStep onTabChange={setActiveTab} />;
       case 'company':
         return <CompanyStep onNext={handleNext} onPrevious={handlePrevious} selectedTemplate={selectedTemplate} />;
       case 'background':
@@ -54,7 +54,7 @@ export default function DigitalAwardsPage() {
       case 'share':
         return <ShareStep onPrevious={handlePrevious} />;
       default:
-        return <AwardsStep onNext={handleNext} onTabChange={setActiveTab} />;
+        return <AwardsStep onTabChange={setActiveTab} />;
     }
   };
 
@@ -77,7 +77,7 @@ export default function DigitalAwardsPage() {
           {/* Left Container - Fixed Height (3 parts) */}
           <div className="w-3/12 h-full overflow-y-auto">
             <div className="h-full" style={{backgroundColor: '#212327', padding: '20px'}}>
-              {showTemplateDetail ? <AwardsStep onNext={handleNext} onTabChange={setActiveTab} /> : renderCurrentStep()}
+              {(showTemplateDetail && currentStep === 'awards') ? <AwardsStep onTabChange={setActiveTab} /> : renderCurrentStep()}
             </div>
           </div>
           
@@ -86,9 +86,9 @@ export default function DigitalAwardsPage() {
             {/* Fixed Header */}
             <div className="flex-shrink-0 px-6 pt-5" style={{backgroundColor: '#1B1D21'}}>
               <h1 className="text-[30px] font-bold text-white mb-4">
-                {showTemplateDetail ? 'Template Detail' : (activeTab === 'props' ? 'Props Templates' : 'Achievement Templates')}
+                {(showTemplateDetail || (currentStep === 'company' && selectedTemplate)) ? 'Template Detail' : (activeTab === 'props' ? 'Props Templates' : 'Achievement Templates')}
               </h1>
-              {!showTemplateDetail && (
+              {!(showTemplateDetail || (currentStep === 'company' && selectedTemplate)) && (
                 <p className="text-md text-gray-300 mb-6">
                   Choose a template for your achievement. You can update this later in saved awards.
                 </p>
@@ -97,7 +97,7 @@ export default function DigitalAwardsPage() {
             
             {/* Content Area */}
             <div className="flex-1 overflow-y-auto px-6" style={{backgroundColor: '#1B1D21'}}>
-              {showTemplateDetail ? (
+              {(showTemplateDetail || (currentStep === 'company' && selectedTemplate)) ? (
                 /* Template Detail View */
                 <div className="h-full flex flex-col items-center justify-start pt-6">
                   {/* Back Button */}
@@ -127,24 +127,41 @@ export default function DigitalAwardsPage() {
                   
                   {/* Action Buttons */}
                   <div className="w-full flex gap-4 justify-center" style={{marginTop: '24px'}}>
-                    <button
-                      onClick={handleBackToTemplates}
-                      className="px-6 py-3 text-sm font-medium transition-colors border rounded text-gray-300 hover:text-white whitespace-nowrap"
-                      style={{borderColor: '#454446', width: '150px'}}
-                    >
-                      Back
-                    </button>
-                    <button
-                      onClick={() => {
-                        // Handle template selection - move to Company step
-                        setCurrentStep('company');
-                        setShowTemplateDetail(false);
-                      }}
-                      className="px-6 py-3 text-sm font-medium transition-colors bg-[var(--primary-dark)] text-[#212327] rounded hover:bg-[#0AFB84] whitespace-nowrap"
-                      style={{width: '150px'}}
-                    >
-                      Select Template
-                    </button>
+                    {currentStep === 'awards' ? (
+                      <>
+                        <button
+                          onClick={handleBackToTemplates}
+                          className="px-6 py-3 text-sm font-medium transition-colors border rounded text-gray-300 hover:text-white whitespace-nowrap"
+                          style={{borderColor: '#454446', width: '150px'}}
+                        >
+                          Back
+                        </button>
+                        <button
+                          onClick={() => {
+                            // Handle template selection - move to Company step but keep template detail visible
+                            setCurrentStep('company');
+                            // Don't set showTemplateDetail to false - keep template visible in right container
+                          }}
+                          className="px-6 py-3 text-sm font-medium transition-colors bg-[var(--primary-dark)] text-[#212327] rounded hover:bg-[#0AFB84] whitespace-nowrap"
+                          style={{width: '150px'}}
+                        >
+                          Select Template
+                        </button>
+                      </>
+                    ) : (
+                      <button
+                        onClick={() => {
+                          // Return to template grid
+                          setShowTemplateDetail(false);
+                          setSelectedTemplate(null);
+                          setCurrentStep('awards');
+                        }}
+                        className="px-6 py-3 text-sm font-medium transition-colors border rounded text-gray-300 hover:text-white whitespace-nowrap"
+                        style={{borderColor: '#454446', width: '150px'}}
+                      >
+                        Change Template
+                      </button>
+                    )}
                   </div>
                 </div>
               ) : (
