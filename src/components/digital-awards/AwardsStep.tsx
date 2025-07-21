@@ -4,17 +4,32 @@ import { useState } from 'react';
 
 interface AwardsStepProps {
   onNext: () => void;
+  onTabChange: (tab: 'props' | 'achievements') => void;
 }
 
-export default function AwardsStep({ onNext }: AwardsStepProps) {
+export default function AwardsStep({ onNext, onTabChange }: AwardsStepProps) {
   const [awardType, setAwardType] = useState('');
   const [recipientName, setRecipientName] = useState('');
   const [achievement, setAchievement] = useState('');
+  const [activeTab, setActiveTab] = useState<'props' | 'achievements'>('props');
+  const [filters, setFilters] = useState({
+    anniversary: false,
+    leadership: false,
+    free: false,
+    company: false
+  });
 
   const handleNext = () => {
     if (awardType.trim() && recipientName.trim() && achievement.trim()) {
       onNext();
     }
+  };
+
+  const toggleFilter = (filterName: keyof typeof filters) => {
+    setFilters(prev => ({
+      ...prev,
+      [filterName]: !prev[filterName]
+    }));
   };
 
   return (
@@ -23,61 +38,127 @@ export default function AwardsStep({ onNext }: AwardsStepProps) {
         <h1 className="text-[30px] font-bold text-white mb-4">
           Awards
         </h1>
-        <p className="text-md text-gray-300 mb-6">
+        <p className="text-md text-gray-300 mb-0">
           Create professional digital awards and certificates to recognize achievements and milestones.
         </p>
       </div>
       
-      <div className="space-y-4 flex-1">
-        <div className="p-4 rounded-sm border" style={{backgroundColor: '#1B1D21', borderColor: '#454446'}}>
-          <h3 className="text-lg font-medium text-white mb-2">Award Type *</h3>
-          <input 
-            type="text"
-            placeholder="e.g., Employee of the Month, Project Excellence, Innovation Award"
-            value={awardType}
-            onChange={(e) => setAwardType(e.target.value)}
-            className="w-full px-4 py-2 text-sm bg-[#1B1D21] border rounded text-white placeholder-gray-400 focus:outline-none focus:border-[var(--primary-dark)]"
-            style={{borderColor: '#454446'}}
-          />
-          <p className="text-gray-300 text-sm mt-2">Enter the type of award or certificate you want to create.</p>
-        </div>
-        
-        <div className="p-4 rounded-sm border" style={{backgroundColor: '#1B1D21', borderColor: '#454446'}}>
-          <h3 className="text-lg font-medium text-white mb-2">Recipient Name *</h3>
-          <input 
-            type="text"
-            placeholder="Enter the recipient's full name"
-            value={recipientName}
-            onChange={(e) => setRecipientName(e.target.value)}
-            className="w-full px-4 py-2 text-sm bg-[#1B1D21] border rounded text-white placeholder-gray-400 focus:outline-none focus:border-[var(--primary-dark)]"
-            style={{borderColor: '#454446'}}
-          />
-          <p className="text-gray-300 text-sm mt-2">The name of the person receiving the award.</p>
-        </div>
-        
-        <div className="p-4 rounded-sm border" style={{backgroundColor: '#1B1D21', borderColor: '#454446'}}>
-          <h3 className="text-lg font-medium text-white mb-2">Achievement Description *</h3>
-          <textarea 
-            placeholder="Describe the achievement, milestone, or contribution being recognized..."
-            value={achievement}
-            onChange={(e) => setAchievement(e.target.value)}
-            className="w-full px-4 py-2 text-sm bg-[#1B1D21] border rounded text-white placeholder-gray-400 focus:outline-none focus:border-[var(--primary-dark)] resize-none"
-            rows={4}
-            style={{borderColor: '#454446'}}
-          />
-          <p className="text-gray-300 text-sm mt-2">Provide details about what the award is recognizing.</p>
+      {/* Tab Component */}
+      <div className="mb-6">
+        <div className="flex border-b" style={{borderColor: '#454446'}}>
+          <button
+            onClick={() => {
+              setActiveTab('props');
+              onTabChange('props');
+            }}
+            className={`px-4 py-2 text-sm font-medium transition-colors relative ${
+              activeTab === 'props'
+                ? 'text-white border-b-2' 
+                : 'text-gray-300 hover:text-white'
+            }`}
+            style={{
+              borderBottomColor: activeTab === 'props' ? 'var(--primary-dark)' : 'transparent'
+            }}
+          >
+            Props
+          </button>
+          <button
+            onClick={() => {
+              setActiveTab('achievements');
+              onTabChange('achievements');
+            }}
+            className={`px-4 py-2 text-sm font-medium transition-colors relative ${
+              activeTab === 'achievements'
+                ? 'text-white border-b-2' 
+                : 'text-gray-300 hover:text-white'
+            }`}
+            style={{
+              borderBottomColor: activeTab === 'achievements' ? 'var(--primary-dark)' : 'transparent'
+            }}
+          >
+            Achievements
+          </button>
         </div>
       </div>
       
-      {/* Next button */}
-      <div className="flex justify-end" style={{marginTop: '12px'}}>
-        <button 
-          onClick={handleNext}
-          disabled={!awardType.trim() || !recipientName.trim() || !achievement.trim()}
-          className="px-6 py-3 text-sm font-medium transition-colors bg-[var(--primary-dark)] text-[#212327] rounded hover:bg-[#0AFB84] disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          Next
-        </button>
+      {/* Search Box */}
+      <div className="mb-6">
+        <div className="relative">
+          <input
+            type="text"
+            placeholder="Search templates..."
+            className="w-full px-4 py-3 text-sm bg-[#1B1D21] border rounded text-white placeholder-gray-400 focus:outline-none focus:border-[var(--primary-dark)]"
+            style={{borderColor: '#454446'}}
+          />
+          <div className="absolute inset-y-0 right-0 flex items-center pr-3">
+            <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+          </div>
+        </div>
+      </div>
+      
+      {/* Filters */}
+      <div className="mb-6">
+        <h3 className="text-sm font-medium text-white mb-3">Filters</h3>
+        <div className="flex flex-wrap gap-2">
+          <button
+            onClick={() => toggleFilter('anniversary')}
+            className={`px-3 py-1.5 text-xs font-medium rounded transition-colors ${
+              filters.anniversary
+                ? 'bg-[var(--primary-dark)] text-[#212327]'
+                : 'bg-[#1B1D21] border text-gray-300 hover:text-white'
+            }`}
+            style={{borderColor: filters.anniversary ? 'transparent' : '#454446'}}
+          >
+            Anniversary
+          </button>
+          <button
+            onClick={() => toggleFilter('leadership')}
+            className={`px-3 py-1.5 text-xs font-medium rounded transition-colors ${
+              filters.leadership
+                ? 'bg-[var(--primary-dark)] text-[#212327]'
+                : 'bg-[#1B1D21] border text-gray-300 hover:text-white'
+            }`}
+            style={{borderColor: filters.leadership ? 'transparent' : '#454446'}}
+          >
+            Leadership
+          </button>
+          <button
+            onClick={() => toggleFilter('free')}
+            className={`px-3 py-1.5 text-xs font-medium rounded transition-colors ${
+              filters.free
+                ? 'bg-[var(--primary-dark)] text-[#212327]'
+                : 'bg-[#1B1D21] border text-gray-300 hover:text-white'
+            }`}
+            style={{borderColor: filters.free ? 'transparent' : '#454446'}}
+          >
+            Free
+          </button>
+          <button
+            onClick={() => toggleFilter('company')}
+            className={`px-3 py-1.5 text-xs font-medium rounded transition-colors ${
+              filters.company
+                ? 'bg-[var(--primary-dark)] text-[#212327]'
+                : 'bg-[#1B1D21] border text-gray-300 hover:text-white'
+            }`}
+            style={{borderColor: filters.company ? 'transparent' : '#454446'}}
+          >
+            Company
+          </button>
+        </div>
+      </div>
+      
+      <div className="space-y-4">
+        {/* Next button - right justified */}
+        <div className="flex justify-end mt-4">
+          <button 
+            onClick={handleNext}
+            className="px-6 py-3 text-sm font-medium transition-colors bg-[var(--primary-dark)] text-[#212327] rounded hover:bg-[#0AFB84]"
+          >
+            Next
+          </button>
+        </div>
       </div>
     </div>
   );

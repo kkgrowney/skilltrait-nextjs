@@ -6,6 +6,7 @@ import { AwardsStep, CompanyStep, BackgroundStep, DetailsStep, ShareStep } from 
 
 export default function DigitalAwardsPage() {
   const [currentStep, setCurrentStep] = useState<StepType>('awards');
+  const [activeTab, setActiveTab] = useState<'props' | 'achievements'>('props');
 
   const handleStepChange = (step: StepType) => {
     setCurrentStep(step);
@@ -30,7 +31,7 @@ export default function DigitalAwardsPage() {
   const renderCurrentStep = () => {
     switch (currentStep) {
       case 'awards':
-        return <AwardsStep onNext={handleNext} />;
+        return <AwardsStep onNext={handleNext} onTabChange={setActiveTab} />;
       case 'company':
         return <CompanyStep onNext={handleNext} onPrevious={handlePrevious} />;
       case 'background':
@@ -40,7 +41,7 @@ export default function DigitalAwardsPage() {
       case 'share':
         return <ShareStep onPrevious={handlePrevious} />;
       default:
-        return <AwardsStep onNext={handleNext} />;
+        return <AwardsStep onNext={handleNext} onTabChange={setActiveTab} />;
     }
   };
 
@@ -60,9 +61,9 @@ export default function DigitalAwardsPage() {
             {/* Fixed side nav is now positioned absolutely */}
           </div>
           
-          {/* Left Container - Scrollable, Full Height (3 parts) */}
+          {/* Left Container - Fixed Height (3 parts) */}
           <div className="w-3/12 h-full overflow-y-auto">
-            <div className="min-h-full" style={{backgroundColor: '#212327', padding: '20px'}}>
+            <div className="h-full" style={{backgroundColor: '#212327', padding: '20px'}}>
               {renderCurrentStep()}
             </div>
           </div>
@@ -72,7 +73,7 @@ export default function DigitalAwardsPage() {
             {/* Fixed Header */}
             <div className="flex-shrink-0 px-6 pt-5" style={{backgroundColor: '#1B1D21'}}>
               <h1 className="text-[30px] font-bold text-white mb-4">
-                Templates
+                {activeTab === 'props' ? 'Props Templates' : 'Achievement Templates'}
               </h1>
               <p className="text-md text-gray-300 mb-6">
                 Choose a template for your achievement. You can update this later in saved awards.
