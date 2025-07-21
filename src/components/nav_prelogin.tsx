@@ -13,7 +13,7 @@ export default function NavPrelogin() {
   };
 
   return (
-    <nav className="shadow-sm border-b w-full" style={{backgroundColor: '#212327', borderColor: '#454446'}}>
+    <nav className="sticky top-0 z-50 shadow-sm border-b w-full" style={{backgroundColor: '#212327', borderColor: '#454446'}}>
       <div className="w-full px-5">
         <div className="flex items-center h-16">
           {/* Logo - left justified with 20px margin to align with content */}

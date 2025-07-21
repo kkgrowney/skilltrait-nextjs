@@ -19,7 +19,7 @@ export default function DigitalAwardsSideNav({ currentStep, onStepChange }: Digi
   ];
 
   return (
-    <div className="bg-[#191d21] flex flex-col gap-2.5 items-center justify-start px-0 py-6 relative h-full w-[94px]">
+    <div className="fixed left-0 top-16 bg-[#191d21] flex flex-col gap-2.5 items-center justify-start px-0 py-6 h-full w-[94px]">
       <div className="flex flex-col gap-4">
         {steps.map((step, index) => (
           <div
