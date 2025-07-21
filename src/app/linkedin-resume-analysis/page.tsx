@@ -70,7 +70,7 @@ export default function LinkedCVComparisonPage() {
   return (
     <div className="min-h-screen" style={{backgroundColor: '#1B1D21'}}>
       {/* Main Content with Fixed Nav Offset */}
-      <div className="pt-16 h-screen">
+      <div className="h-screen">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-0 h-full">
           {/* Left Container - Scrollable, Full Height */}
           <div className="lg:col-span-4 order-2 lg:order-1 h-full overflow-y-auto">
