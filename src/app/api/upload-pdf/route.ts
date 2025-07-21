@@ -33,7 +33,7 @@ export async function POST(request: NextRequest) {
     // Try to extract text from PDF
     try {
       // Dynamic import to avoid initialization issues
-      // @ts-ignore - pdf-parse doesn't have proper TypeScript definitions
+      // @ts-expect-error - pdf-parse doesn't have proper TypeScript definitions
       const pdfParse = (await import('pdf-parse')).default;
       const data = await pdfParse(buffer);
       const extractedText = data.text;
