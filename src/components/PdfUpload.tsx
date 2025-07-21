@@ -6,7 +6,7 @@ import { useDropzone } from 'react-dropzone';
 interface PdfUploadProps {
   onTextExtracted: (text: string) => void;
   onError: (error: string) => void;
-  onFileUploaded: (file: File) => void;
+  onFileUploaded: (file: File | null) => void;
 }
 
 export default function PdfUpload({ onTextExtracted, onError, onFileUploaded }: PdfUploadProps) {
@@ -70,7 +70,7 @@ export default function PdfUpload({ onTextExtracted, onError, onFileUploaded }: 
     setUploadedFileName(null);
     setExtractionSuccess(false);
     onTextExtracted('');
-    onFileUploaded(null as any);
+    onFileUploaded(null);
   };
 
   return (

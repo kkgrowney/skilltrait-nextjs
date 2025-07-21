@@ -1,4 +1,5 @@
 import React from 'react';
+import type { TooltipProps } from 'recharts';
 import {
   LineChart,
   Line,
@@ -22,7 +23,7 @@ const skillData = [
   { skill: 'Data Analysis', cv: 9, linkedin: 8 },
 ];
 
-const CustomTooltip = ({ active, payload, label }: any) => {
+const CustomTooltip = ({ active, payload, label }: TooltipProps<number, string>) => {
   if (active && payload && payload.length) {
     return (
       <div className="bg-[#1B1D21] border border-[#454446] rounded-lg p-3 shadow-lg">
