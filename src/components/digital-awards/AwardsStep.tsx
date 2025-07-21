@@ -19,6 +19,8 @@ export default function AwardsStep({ onNext, onTabChange }: AwardsStepProps) {
     company: false
   });
 
+
+
   const handleNext = () => {
     if (awardType.trim() && recipientName.trim() && achievement.trim()) {
       onNext();

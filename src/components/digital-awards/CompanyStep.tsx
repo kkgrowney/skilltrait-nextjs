@@ -5,9 +5,10 @@ import { useState } from 'react';
 interface CompanyStepProps {
   onNext: () => void;
   onPrevious: () => void;
+  selectedTemplate?: string | null;
 }
 
-export default function CompanyStep({ onNext, onPrevious }: CompanyStepProps) {
+export default function CompanyStep({ onNext, onPrevious, selectedTemplate }: CompanyStepProps) {
   const [companyName, setCompanyName] = useState('');
   const [companyLogo, setCompanyLogo] = useState('');
   const [companyWebsite, setCompanyWebsite] = useState('');
@@ -28,6 +29,8 @@ export default function CompanyStep({ onNext, onPrevious }: CompanyStepProps) {
           Add company information to personalize your digital award.
         </p>
       </div>
+      
+
       
       <div className="space-y-4 flex-1">
         <div className="p-4 rounded-sm border" style={{backgroundColor: '#1B1D21', borderColor: '#454446'}}>
