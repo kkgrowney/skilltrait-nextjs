@@ -34,8 +34,8 @@ export default function NavPrelogin() {
                 href="/linkedin-resume-analysis" 
                 className={`px-2 py-2 text-sm font-bold transition-colors relative ${
                   pathname === '/linkedin-resume-analysis'
-                    ? 'text-white after:content-[""] after:absolute after:left-0 after:right-0 after:bottom-[-13px] after:h-0.5 after:bg-[var(--primary-dark)] after:z-10'
-                    : 'text-gray-300 hover:text-white hover:after:content-[""] hover:after:absolute hover:after:left-0 hover:after:right-0 hover:after:bottom-[-13px] hover:after:h-0.5 hover:after:bg-[var(--primary-dark)] hover:after:opacity-50 hover:after:z-10'
+                    ? 'text-white after:content-[""] after:absolute after:left-0 after:right-0 after:bottom-[-14px] after:h-0.5 after:bg-[var(--primary-dark)] after:z-10'
+                    : 'text-gray-300 hover:text-white hover:after:content-[""] hover:after:absolute hover:after:left-0 hover:after:right-0 hover:after:bottom-[-14px] hover:after:h-0.5 hover:after:bg-[var(--primary-dark)] hover:after:opacity-50 hover:after:z-10'
                 }`}
               >
                 Resume Analysis
@@ -44,27 +44,27 @@ export default function NavPrelogin() {
                 href="/digital-awards-generator" 
                 className={`px-2 py-2 text-sm transition-colors relative ${
                   pathname === '/digital-awards-generator'
-                    ? 'text-white font-bold after:content-[""] after:absolute after:left-0 after:right-0 after:bottom-[-13px] after:h-0.5 after:bg-[var(--primary-dark)] after:z-10'
-                    : 'text-gray-300 hover:text-white hover:after:content-[""] hover:after:absolute hover:after:left-0 hover:after:right-0 hover:after:bottom-[-13px] hover:after:h-0.5 hover:after:bg-[var(--primary-dark)] hover:after:opacity-50 hover:after:z-10 font-medium'
+                    ? 'text-white font-bold after:content-[""] after:absolute after:left-0 after:right-0 after:bottom-[-14px] after:h-0.5 after:bg-[var(--primary-dark)] after:z-10'
+                    : 'text-gray-300 hover:text-white hover:after:content-[""] hover:after:absolute hover:after:left-0 hover:after:right-0 hover:after:bottom-[-14px] hover:after:h-0.5 hover:after:bg-[var(--primary-dark)] hover:after:opacity-50 hover:after:z-10 font-medium'
                 }`}
               >
                 Digital Awards
               </Link>
               <Link 
                 href="/achievements" 
-                className="text-gray-300 hover:text-white px-2 py-2 text-sm font-medium transition-colors relative hover:after:content-[''] hover:after:absolute hover:after:left-0 hover:after:right-0 hover:after:bottom-[-13px] hover:after:h-0.5 hover:after:bg-[var(--primary-dark)] hover:after:opacity-50 hover:after:z-10"
+                className="text-gray-300 hover:text-white px-2 py-2 text-sm font-medium transition-colors relative hover:after:content-[''] hover:after:absolute hover:after:left-0 hover:after:right-0 hover:after:bottom-[-14px] hover:after:h-0.5 hover:after:bg-[var(--primary-dark)] hover:after:opacity-50 hover:after:z-10"
               >
                 Achievements
               </Link>
               <Link 
                 href="/award-templates" 
-                className="text-gray-300 hover:text-white px-2 py-2 text-sm font-medium transition-colors relative hover:after:content-[''] hover:after:absolute hover:after:left-0 hover:after:right-0 hover:after:bottom-[-13px] hover:after:h-0.5 hover:after:bg-[var(--primary-dark)] hover:after:opacity-50 hover:after:z-10"
+                className="text-gray-300 hover:text-white px-2 py-2 text-sm font-medium transition-colors relative hover:after:content-[''] hover:after:absolute hover:after:left-0 hover:after:right-0 hover:after:bottom-[-14px] hover:after:h-0.5 hover:after:bg-[var(--primary-dark)] hover:after:opacity-50 hover:after:z-10"
               >
                 Award Templates
               </Link>
               <Link 
                 href="/pricing" 
-                className="text-gray-300 hover:text-white px-2 py-2 text-sm font-medium transition-colors relative hover:after:content-[''] hover:after:absolute hover:after:left-0 hover:after:right-0 hover:after:bottom-[-13px] hover:after:h-0.5 hover:after:bg-[var(--primary-dark)] hover:after:opacity-50 hover:after:z-10"
+                className="text-gray-300 hover:text-white px-2 py-2 text-sm font-medium transition-colors relative hover:after:content-[''] hover:after:absolute hover:after:left-0 hover:after:right-0 hover:after:bottom-[-14px] hover:after:h-0.5 hover:after:bg-[var(--primary-dark)] hover:after:opacity-50 hover:after:z-10"
               >
                 Pricing
               </Link>
@@ -75,7 +75,7 @@ export default function NavPrelogin() {
           <div className="hidden md:flex items-center ml-auto" style={{marginRight: '20px'}}>
             <Link 
               href="/signin" 
-              className="text-gray-300 hover:text-white px-2 py-2 text-sm font-medium transition-colors mr-4 relative hover:after:content-[''] hover:after:absolute hover:after:left-0 hover:after:right-0 hover:after:bottom-[-13px] hover:after:h-0.5 hover:after:bg-[var(--primary-dark)] hover:after:opacity-50 hover:after:z-10"
+              className="text-gray-300 hover:text-white px-2 py-2 text-sm font-medium transition-colors mr-4 relative hover:after:content-[''] hover:after:absolute hover:after:left-0 hover:after:right-0 hover:after:bottom-[-14px] hover:after:h-0.5 hover:after:bg-[var(--primary-dark)] hover:after:opacity-50 hover:after:z-10"
             >
               Sign In
             </Link>
