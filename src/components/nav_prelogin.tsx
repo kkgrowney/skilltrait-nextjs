@@ -2,9 +2,11 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 
 export default function NavPrelogin() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const pathname = usePathname();
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
@@ -29,6 +31,26 @@ export default function NavPrelogin() {
           <div className="hidden md:flex items-center" style={{marginLeft: '36px'}}>
             <div className="flex items-center space-x-8">
               <Link 
+                href="/linkedin-resume-analysis" 
+                className={`px-3 py-2 text-sm font-bold transition-colors ${
+                  pathname === '/linkedin-resume-analysis' 
+                    ? 'text-white' 
+                    : 'text-gray-300 hover:text-white'
+                }`}
+              >
+                Resume Analysis
+              </Link>
+              <Link 
+                href="/digital-awards-generator" 
+                className={`px-3 py-2 text-sm font-medium transition-colors ${
+                  pathname === '/digital-awards-generator' 
+                    ? 'text-white font-bold' 
+                    : 'text-gray-300 hover:text-white'
+                }`}
+              >
+                Digital Awards
+              </Link>
+              <Link 
                 href="/achievements" 
                 className="text-gray-300 hover:text-white px-3 py-2 text-sm font-medium transition-colors"
               >
@@ -51,6 +73,12 @@ export default function NavPrelogin() {
 
           {/* Login button - right justified with 20px margin */}
           <div className="hidden md:flex items-center ml-auto" style={{marginRight: '20px'}}>
+            <Link 
+              href="/signin" 
+              className="text-gray-300 hover:text-white px-3 py-2 text-sm font-medium transition-colors mr-4"
+            >
+              Sign In
+            </Link>
             <Link 
               href="/signin" 
               className="px-4 py-2 rounded text-sm font-medium transition-colors bg-[var(--primary-dark)] text-[#212327] hover:bg-[#0AFB84]"
@@ -108,6 +136,28 @@ export default function NavPrelogin() {
       <div className={`${isMenuOpen ? 'block' : 'hidden'} md:hidden`}>
         <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3 border-t" style={{backgroundColor: '#212327', borderColor: '#454446'}}>
           <Link
+            href="/linkedin-resume-analysis"
+            className={`block px-3 py-2 text-base font-bold transition-colors ${
+              pathname === '/linkedin-resume-analysis' 
+                ? 'text-white' 
+                : 'text-gray-300 hover:text-white'
+            }`}
+            onClick={() => setIsMenuOpen(false)}
+          >
+            Resume Analysis
+          </Link>
+          <Link
+            href="/digital-awards-generator"
+            className={`block px-3 py-2 text-base font-medium transition-colors ${
+              pathname === '/digital-awards-generator' 
+                ? 'text-white font-bold' 
+                : 'text-gray-300 hover:text-white'
+            }`}
+            onClick={() => setIsMenuOpen(false)}
+          >
+            Digital Awards
+          </Link>
+          <Link
             href="/achievements"
             className="text-gray-300 hover:text-white block px-3 py-2 text-base font-medium transition-colors"
             onClick={() => setIsMenuOpen(false)}
@@ -127,6 +177,13 @@ export default function NavPrelogin() {
             onClick={() => setIsMenuOpen(false)}
           >
             Pricing
+          </Link>
+          <Link
+            href="/signin"
+            className="text-gray-300 hover:text-white block px-3 py-2 text-base font-medium transition-colors"
+            onClick={() => setIsMenuOpen(false)}
+          >
+            Sign In
           </Link>
           <Link
             href="/signin"

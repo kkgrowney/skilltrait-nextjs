@@ -1,57 +1,74 @@
 'use client';
 
 import { useState } from 'react';
-import NavPrelogin from '@/components/nav_prelogin';
 import LinkedComparisonChart from '@/components/LinkedComparisonChart';
+import ConsistencyAnalysisChart from '@/components/ConsistencyAnalysisChart';
+import SkillComparisonChart from '@/components/SkillComparisonChart';
 
 export default function LinkedCVComparisonPage() {
-  const [linkedinUrl, setLinkedinUrl] = useState('');
+  const [linkedinContent, setLinkedinContent] = useState('');
   const [resumeText, setResumeText] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [results, setResults] = useState<string>('');
+  const [results, setResults] = useState('');
   const [showModal, setShowModal] = useState(false);
-  const [activeTab, setActiveTab] = useState<'candidates' | 'recruiters'>('candidates');
+  const [activeTab, setActiveTab] = useState('candidates');
 
   const handleRunComparison = async () => {
-    if (!linkedinUrl || !resumeText.trim()) {
-      alert('Please enter a LinkedIn URL and paste your resume text');
+    console.log('handleRunComparison called');
+    console.log('linkedinContent length:', linkedinContent.length);
+    console.log('resumeText length:', resumeText.length);
+    
+    if (!linkedinContent.trim()) {
+      console.log('No LinkedIn content');
+      setResults('Please paste your LinkedIn profile content.');
       return;
     }
 
+    if (!resumeText.trim()) {
+      console.log('No resume content');
+      setResults('Please paste your resume text.');
+      return;
+    }
+
+    console.log('Starting comparison...');
     setIsLoading(true);
     setResults('');
 
     try {
       const formData = new FormData();
-      formData.append('linkedinUrl', linkedinUrl);
+      formData.append('linkedinContent', linkedinContent);
       formData.append('resumeText', resumeText);
 
+      console.log('Sending request to API...');
       const response = await fetch('/api/compare-licv', {
         method: 'POST',
         body: formData,
       });
 
+      console.log('Response status:', response.status);
+      const data = await response.json();
+      console.log('Response data:', data);
+
       if (response.ok) {
-        const data = await response.json();
+        console.log('Setting results:', data.result);
         setResults(data.result);
       } else {
-        throw new Error('Failed to run comparison');
+        // Use the specific error message from the API
+        const errorMessage = data.error || 'Failed to run comparison';
+        console.log('Setting error:', errorMessage);
+        setResults(`Error: ${errorMessage}`);
       }
     } catch (error) {
       console.error('Error running comparison:', error);
       setResults('Error running comparison. Please try again.');
     } finally {
+      console.log('Setting loading to false');
       setIsLoading(false);
     }
   };
 
   return (
     <div className="min-h-screen" style={{backgroundColor: '#1B1D21'}}>
-      {/* Fixed Navigation */}
-      <div className="fixed top-0 left-0 right-0 z-50">
-        <NavPrelogin />
-      </div>
-      
       {/* Main Content with Fixed Nav Offset */}
       <div className="pt-16 h-screen">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-0 h-full">
@@ -95,28 +112,31 @@ export default function LinkedCVComparisonPage() {
               
               <div className="space-y-4">
                 <div className="p-4 rounded-sm border" style={{backgroundColor: '#1B1D21', borderColor: '#454446'}}>
-                  <h3 className="text-lg font-medium text-white mb-2">LinkedIn profile</h3>
+                  <h3 className="text-lg font-medium text-white mb-2">LinkedIn profile *</h3>
                   <textarea 
-                    placeholder="Paste LinkedIn profile content here..."
-                    value={linkedinUrl}
-                    onChange={(e) => setLinkedinUrl(e.target.value)}
+                    placeholder="Paste LinkedIn profile content here... (Required)"
+                    value={linkedinContent}
+                    onChange={(e) => setLinkedinContent(e.target.value)}
                     className="w-full px-4 py-2 text-sm bg-[#1B1D21] border rounded text-white placeholder-gray-400 focus:outline-none focus:border-[var(--primary-dark)] resize-none"
                     rows={8}
-                    style={{minHeight: '200px', maxHeight: '300px', borderColor: '#454446'}}
+                    style={{minHeight: '160px', maxHeight: '240px', borderColor: '#454446'}}
                   />
-                  <p className="text-gray-300 text-sm mt-2">Paste your LinkedIn profile content for comparison with your resume.</p>
+                  <p className="text-gray-300 text-sm mt-2">Copy and paste your LinkedIn profile content for comparison with your resume.</p>
                 </div>
+                
                 <div className="p-4 rounded-sm border" style={{backgroundColor: '#1B1D21', borderColor: '#454446'}}>
-                  <h3 className="text-lg font-medium text-white mb-2">Paste resume</h3>
+                  <h3 className="text-lg font-medium text-white mb-2">Resume *</h3>
                   <textarea 
-                    placeholder="Paste your resume text here..."
+                    placeholder="Paste your resume text here... (Required)"
                     value={resumeText}
                     onChange={(e) => setResumeText(e.target.value)}
                     className="w-full px-4 py-2 text-sm bg-[#1B1D21] border rounded text-white placeholder-gray-400 focus:outline-none focus:border-[var(--primary-dark)] resize-none"
                     rows={8}
-                    style={{minHeight: '200px', maxHeight: '300px', borderColor: '#454446'}}
+                    style={{minHeight: '160px', maxHeight: '240px', borderColor: '#454446'}}
                   />
-                  <p className="text-gray-300 text-sm mt-2">Paste your resume content to verify consistency with your LinkedIn profile.</p>
+                  <p className="text-gray-300 text-sm mt-2">
+                    Copy and paste your resume text here. If you have a PDF, open it and copy the text content manually.
+                  </p>
                 </div>
               </div>
               
@@ -135,18 +155,26 @@ export default function LinkedCVComparisonPage() {
               {results && (
                 <div className="mt-6 p-4 rounded-sm border" style={{backgroundColor: '#1B1D21', borderColor: '#454446'}}>
                   <div className="flex justify-between items-center mb-3">
-                    <h3 className="text-lg font-medium text-white">Comparison Results</h3>
-                    <button 
-                      onClick={() => setShowModal(true)}
-                      className="text-gray-400 hover:text-white transition-colors"
-                      title="View in modal"
-                    >
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
-                      </svg>
-                    </button>
+                    <h3 className="text-lg font-medium text-white">
+                      {results.startsWith('Error:') ? 'Error' : 'Comparison Results'}
+                    </h3>
+                    {!results.startsWith('Error:') && (
+                      <button 
+                        onClick={() => setShowModal(true)}
+                        className="text-gray-400 hover:text-white transition-colors"
+                        title="View in modal"
+                      >
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
+                        </svg>
+                      </button>
+                    )}
                   </div>
-                  <div className="text-gray-300 text-sm">
+                  <div className={`text-sm ${
+                    results.startsWith('Error:') 
+                      ? 'text-red-300 bg-red-900/20 border border-red-500/30 p-3 rounded' 
+                      : 'text-gray-300'
+                  }`}>
                     <pre className="whitespace-pre-wrap font-sans">{results}</pre>
                   </div>
                 </div>
@@ -161,9 +189,16 @@ export default function LinkedCVComparisonPage() {
               <div className="h-1/2 w-full">
                 <LinkedComparisonChart />
               </div>
-              {/* Bottom Container - 50% height */}
-              <div className="h-1/2 w-full" style={{backgroundColor: '#1B1D21'}}>
-                {/* Bottom container content can be added here */}
+              {/* Bottom Container - 50% height with 6:12 responsive layout */}
+              <div className="h-1/2 w-full flex gap-4 p-4">
+                {/* Left Chart - 6 columns */}
+                <div className="w-1/2 h-full">
+                  <ConsistencyAnalysisChart />
+                </div>
+                {/* Right Chart - Skill Comparison */}
+                <div className="w-1/2 h-full">
+                  <SkillComparisonChart />
+                </div>
               </div>
             </div>
           </div>

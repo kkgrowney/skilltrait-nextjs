@@ -63,8 +63,8 @@ export default function SignInPage() {
       {/* Desktop View */}
       <div className="hidden md:flex basis-0 grow h-full min-h-screen min-w-px relative shrink-0 justify-center items-center" style={{backgroundColor: '#1B1D21'}}>
         <div className="flex flex-col items-center relative size-full max-w-md">
-          <div className="flex flex-col items-center justify-center px-6 py-24 relative w-full" style={{marginTop: '96px', marginBottom: '80px'}}>
-            <div className="flex flex-col gap-6 items-start justify-start max-w-[360px] p-0 relative shrink-0 w-full" style={{marginTop: '80px'}}>
+          <div className="flex flex-col items-center justify-center px-6 py-24 relative w-full">
+            <div className="flex flex-col gap-6 items-start justify-start max-w-[360px] p-0 relative shrink-0 w-full">
               <div className="flex flex-col gap-2 items-start justify-start leading-[0] p-0 relative shrink-0 text-center w-full">
                 <div className="font-bold relative shrink-0 text-[30px] text-white w-full">
                   <p className="block leading-[36px]">Sign in</p>
@@ -204,12 +204,6 @@ export default function SignInPage() {
                 </div>
               </form>
             </div>
-            
-            <div className="absolute box-border flex flex-row gap-2 items-center justify-center left-1/2 transform -translate-x-1/2 p-0 top-4">
-              <div className="overflow-clip relative shrink-0" style={{width: '136px', height: '136px'}}>
-                <img alt="SkillTrait Logo" src="/skilltrait_dark.svg" className="block max-w-none size-full" />
-              </div>
-            </div>
           </div>
         </div>
       </div>
@@ -217,8 +211,8 @@ export default function SignInPage() {
       {/* Mobile View */}
       <div className="md:hidden relative size-full min-h-screen" style={{backgroundColor: '#1B1D21'}}>
         <div className="flex flex-col items-center justify-center relative size-full">
-          <div className="flex flex-col gap-2.5 items-center justify-center px-6 py-24 relative size-full" style={{marginTop: '96px', marginBottom: '80px'}}>
-            <div className="flex flex-col gap-6 items-start justify-start p-0 relative shrink-0 w-full" style={{marginTop: '80px'}}>
+          <div className="flex flex-col gap-2.5 items-center justify-center px-6 py-24 relative size-full">
+            <div className="flex flex-col gap-6 items-start justify-start p-0 relative shrink-0 w-full">
               <div className="flex flex-col gap-2 items-start justify-start leading-[0] p-0 relative shrink-0 text-center w-full">
                 <div className="font-bold relative shrink-0 text-[24px] text-white w-full">
                   <p className="block leading-[32px]">Sign in</p>
@@ -357,12 +351,6 @@ export default function SignInPage() {
                   </a>
                 </div>
               </form>
-            </div>
-            
-            <div className="absolute box-border flex flex-row gap-2 items-center justify-center left-1/2 transform -translate-x-1/2 p-0 top-4">
-              <div className="overflow-clip relative shrink-0" style={{width: '136px', height: '136px'}}>
-                <img alt="SkillTrait Logo" src="/skilltrait_dark.svg" className="block max-w-none size-full" />
-              </div>
             </div>
           </div>
         </div>

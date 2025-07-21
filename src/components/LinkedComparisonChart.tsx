@@ -63,13 +63,13 @@ export default function LinkedComparisonChart() {
       <Card className="w-full h-full bg-[#1A1D21]" style={{borderColor: '#454446'}}>
         <CardHeader className="flex items-center gap-2 space-y-0 border-b py-5 sm:flex-row" style={{borderColor: '#454446'}}>
           <div className="grid flex-1 gap-1">
-            <CardTitle className="text-gray-300">Expertise Comparison</CardTitle>
+            <CardTitle className="text-gray-300">LinkedIn Profile</CardTitle>
             <CardDescription className="text-gray-400">
               LinkedIn vs CV expertise levels by keyword
             </CardDescription>
           </div>
         </CardHeader>
-        <CardContent className="px-2 pt-4 sm:px-6 sm:pt-6">
+        <CardContent className="px-2 pt-2 sm:px-6 sm:pt-2">
           <ChartContainer
             config={chartConfig}
             className="aspect-auto h-[250px] w-full"

@@ -10,24 +10,32 @@ export async function POST(request: NextRequest) {
     console.log('API route called');
     
     const formData = await request.formData();
-    const linkedinUrl = formData.get('linkedinUrl') as string;
+    const linkedinContent = formData.get('linkedinContent') as string;
     const resumeText = formData.get('resumeText') as string;
 
-    console.log('LinkedIn URL:', linkedinUrl);
+    console.log('LinkedIn Content length:', linkedinContent?.length);
     console.log('Resume text length:', resumeText?.length);
 
-    if (!linkedinUrl || !resumeText) {
-      console.log('Missing required fields');
+    if (!linkedinContent) {
+      console.log('Missing LinkedIn content');
       return NextResponse.json(
-        { error: 'LinkedIn URL and resume text are required' },
+        { error: 'LinkedIn profile content is required' },
         { status: 400 }
       );
     }
 
-    // Use pasted LinkedIn content directly (Scrapingdog API disabled)
-    console.log('Using pasted LinkedIn profile content...');
+    if (!resumeText) {
+      console.log('Missing resume content');
+      return NextResponse.json(
+        { error: 'Resume text is required. Please copy and paste the text from your PDF manually.' },
+        { status: 400 }
+      );
+    }
+
+    // Use text-based comparison
+    console.log('Using text-based comparison...');
     const linkedinProfileData = {
-      pastedContent: linkedinUrl,
+      pastedContent: linkedinContent,
       source: 'user_pasted'
     };
 
