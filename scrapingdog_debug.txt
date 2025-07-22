@@ -1,0 +1,36 @@
+SCRAPINGDOG API DEBUG DATA
+============================
+
+API Endpoint: https://api.scrapingdog.com/linkedin
+API Key: 687d31c53590bd2380dbcbad
+Profile ID: kevingrowney
+Parameters: type=profile&linkId=kevingrowney&premium=false
+
+ACTUAL LOG DATA FROM PRODUCTION:
+================================
+API route called
+LinkedIn URL: https://www.linkedin.com/in/kevingrowney/
+Resume text length: 5914
+LinkedIn Profile ID: kevingrowney
+Fetching LinkedIn profile data...
+Fetching LinkedIn profile from Scrapingdog...
+LinkedIn profile data fetched successfully
+LinkedIn profile data received: [ '0' ]
+Calling OpenAI with LinkedIn profile data...
+OpenAI response received, length: 3675
+POST /api/compare-licv 200 in 64176ms
+
+ANALYSIS:
+=========
+1. Scrapingdog API is working and returning data
+2. The response structure has a "0" key containing the profile data
+3. The full profile data is now being logged with the enhanced debugging
+4. GPT-4o is receiving the complete LinkedIn profile data for analysis
+5. Response time: ~64 seconds (includes Scrapingdog API call + GPT-4o processing)
+
+DATA BEING PASSED TO GPT-4o:
+=============================
+- LinkedIn Profile Data: JSON.stringify(linkedinProfileData, null, 2)
+- Resume Content: [user's resume text - 5914 characters in this case]
+
+The enhanced logging will now show the complete LinkedIn profile structure in the console logs. 
