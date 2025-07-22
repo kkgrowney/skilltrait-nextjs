@@ -197,8 +197,9 @@ export default function DigitalAwardsPage() {
                 </div>
               ) : (
                 /* Template Grid View */
-                activeTab === 'props' ? (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 justify-start pb-6 h-full">
+                <>
+                  {activeTab === 'props' && (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 justify-start pb-6 h-full">
                     {/* Props Template 1 */}
                     <div className="w-full flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity bg-white rounded" style={{borderRadius: '4px', aspectRatio: '600/400'}}>
                       <img 
@@ -331,9 +332,9 @@ export default function DigitalAwardsPage() {
                       />
                     </div>
                   </div>
-                ) : (
-                  /* Achievements Templates */
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 justify-start pb-6 h-full">
+                )}
+                {activeTab === 'achievements' && (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 justify-start pb-6 h-full">
                     {/* Achievement Template 1 */}
                     <div className="w-full flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity bg-white rounded" style={{borderRadius: '4px', aspectRatio: '600/447'}}>
                       <img 
@@ -466,7 +467,8 @@ export default function DigitalAwardsPage() {
                       />
                     </div>
                   </div>
-                )
+                )}
+                </>
               )}
             </div>
           </div>
