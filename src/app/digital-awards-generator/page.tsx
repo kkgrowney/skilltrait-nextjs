@@ -9,8 +9,39 @@ export default function DigitalAwardsPage() {
   const [activeTab, setActiveTab] = useState<'props' | 'achievements'>('props');
   const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null);
   const [showTemplateDetail, setShowTemplateDetail] = useState(false);
+  const [showAlert, setShowAlert] = useState(false);
+  const [alertMessage, setAlertMessage] = useState('');
 
   const handleStepChange = (step: StepType) => {
+    // Check if user can navigate to this step
+    if (step === 'company' && !selectedTemplate) {
+      setAlertMessage('You must first select an award template in order to proceed.');
+      setShowAlert(true);
+      setTimeout(() => setShowAlert(false), 4000); // Hide after 4 seconds
+      return;
+    }
+    
+    if (step === 'background' && !selectedTemplate) {
+      setAlertMessage('You must first select an award template in order to proceed.');
+      setShowAlert(true);
+      setTimeout(() => setShowAlert(false), 4000);
+      return;
+    }
+    
+    if (step === 'details' && !selectedTemplate) {
+      setAlertMessage('You must first select an award template in order to proceed.');
+      setShowAlert(true);
+      setTimeout(() => setShowAlert(false), 4000);
+      return;
+    }
+    
+    if (step === 'share' && !selectedTemplate) {
+      setAlertMessage('You must first select an award template in order to proceed.');
+      setShowAlert(true);
+      setTimeout(() => setShowAlert(false), 4000);
+      return;
+    }
+    
     setCurrentStep(step);
   };
 
@@ -304,6 +335,18 @@ export default function DigitalAwardsPage() {
           </div>
         </div>
       </div>
+      
+      {/* Alert Message */}
+      {showAlert && (
+        <div className="fixed bottom-4 left-0 right-0 flex justify-center z-50">
+          <div className="text-white px-6 py-3 rounded-lg shadow-lg flex items-center space-x-2 animate-slide-up" style={{backgroundColor: '#ED6568'}}>
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+            </svg>
+            <span className="font-medium">{alertMessage}</span>
+          </div>
+        </div>
+      )}
     </div>
   );
 } 
