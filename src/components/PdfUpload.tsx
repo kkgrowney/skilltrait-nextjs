@@ -115,40 +115,40 @@ export default function PdfUpload({ onTextExtracted, onError, onFileUploaded }: 
         </div>
       ) : (
         <div className="space-y-3">
-          <div className="flex items-center justify-between p-3 bg-[#1B1D21] border border-[#454446] rounded-lg">
-            <div className="flex items-center space-x-3">
-              <svg 
-                className="h-5 w-5 text-green-400" 
-                fill="none" 
-                stroke="currentColor" 
-                viewBox="0 0 24 24"
-              >
-                <path 
-                  strokeLinecap="round" 
-                  strokeLinejoin="round" 
-                  strokeWidth={2} 
-                  d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" 
-                />
-              </svg>
-              <span className="text-sm text-white">{uploadedFileName}</span>
-              {isUploading && (
-                <div className="flex items-center space-x-2">
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-[var(--primary-dark)]"></div>
+        <div className="flex items-center justify-between p-3 bg-[#1B1D21] border border-[#454446] rounded-lg">
+          <div className="flex items-center space-x-3">
+            <svg 
+              className="h-5 w-5 text-green-400" 
+              fill="none" 
+              stroke="currentColor" 
+              viewBox="0 0 24 24"
+            >
+              <path 
+                strokeLinecap="round" 
+                strokeLinejoin="round" 
+                strokeWidth={2} 
+                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" 
+              />
+            </svg>
+            <span className="text-sm text-white">{uploadedFileName}</span>
+            {isUploading && (
+              <div className="flex items-center space-x-2">
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-[var(--primary-dark)]"></div>
                   <span className="text-xs text-gray-400">
                     {extractionSuccess ? 'Processing...' : 'Extracting text...'}
                   </span>
-                </div>
-              )}
-            </div>
-            <button
-              onClick={handleRemoveFile}
-              className="text-gray-400 hover:text-white transition-colors"
-              title="Remove file"
-            >
-              <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
+              </div>
+            )}
+          </div>
+          <button
+            onClick={handleRemoveFile}
+            className="text-gray-400 hover:text-white transition-colors"
+            title="Remove file"
+          >
+            <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
           </div>
           
           {extractionSuccess && (

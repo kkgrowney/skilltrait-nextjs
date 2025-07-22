@@ -11,7 +11,6 @@ export default function LinkedCVComparisonPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [results, setResults] = useState('');
   const [showModal, setShowModal] = useState(false);
-  const [activeTab, setActiveTab] = useState('candidates');
 
   const handleRunComparison = async () => {
     console.log('handleRunComparison called');
@@ -82,32 +81,6 @@ export default function LinkedCVComparisonPage() {
                 <p className="text-md text-gray-300 mb-6">
                   Run a comparison check of a LinkedIn profile and resume to verify consistency and review expertise in skills.
                 </p>
-                
-                {/* Tab Component */}
-                <div className="bg-[#212327] rounded-[10px] p-1 mb-6">
-                  <div className="flex items-center">
-                    <button
-                      className={`flex-1 py-2 px-4 rounded-lg text-sm font-medium transition-all duration-200 ${
-                        activeTab === 'candidates' 
-                          ? 'bg-[#454446] text-white shadow-[0px_1px_3px_0px_rgba(0,0,0,0.1),0px_1px_2px_-1px_rgba(0,0,0,0.1)]' 
-                          : 'text-gray-400 hover:text-gray-300'
-                      }`}
-                      onClick={() => setActiveTab('candidates')}
-                    >
-                      For Candidates
-                    </button>
-                    <button
-                      className={`flex-1 py-2 px-4 rounded-lg text-sm font-medium transition-all duration-200 ${
-                        activeTab === 'recruiters' 
-                          ? 'bg-[#454446] text-white shadow-[0px_1px_3px_0px_rgba(0,0,0,0.1),0px_1px_2px_-1px_rgba(0,0,0,0.1)]' 
-                          : 'text-gray-400 hover:text-gray-300'
-                      }`}
-                      onClick={() => setActiveTab('recruiters')}
-                    >
-                      For Recruiters
-                    </button>
-                  </div>
-                </div>
               </div>
               
               <div className="space-y-4">

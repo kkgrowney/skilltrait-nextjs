@@ -49,10 +49,10 @@ export async function POST(request: NextRequest) {
         });
       }
 
-      return NextResponse.json({ 
-        success: true, 
+    return NextResponse.json({ 
+      success: true, 
         message: 'PDF text extracted successfully!',
-        fileName: file.name,
+      fileName: file.name,
         fileSize: file.size,
         extractedText: extractedText.trim()
       });
