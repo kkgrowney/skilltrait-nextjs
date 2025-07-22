@@ -11,7 +11,7 @@ import {
   DetailsStep,
   ShareStep,
 } from "@/components/digital-awards";
-import { collection, getDocs, query, where } from "firebase/firestore";
+import { collection, getDocs, query } from "firebase/firestore";
 import { db } from "../../lib/firebase"; // adjust path if needed
 
 export default function DigitalAwardsPage() {
@@ -22,8 +22,7 @@ export default function DigitalAwardsPage() {
   const [showAlert, setShowAlert] = useState(false);
   const [alertMessage, setAlertMessage] = useState("");
 
-  const [propsTemplates, setPropsTemplates] = useState<any[]>([]);
-  const [achievementTemplates, setAchievementTemplates] = useState<any[]>([]);
+  const [propsTemplates, setPropsTemplates] = useState<string[]>([]);
   const [loadingTemplates, setLoadingTemplates] = useState(true);
 
   const handleStepChange = (step: StepType) => {
@@ -143,8 +142,6 @@ export default function DigitalAwardsPage() {
           templates.push(data);
         });
 
-        console.log({ templates });
-
         // Filter templates that have 'achievement.props'
         const templatesWithProps = templates.filter(
           (t) => t.achievement && t.achievement.props
@@ -153,17 +150,9 @@ export default function DigitalAwardsPage() {
         // Extract props image URLs
         const propsImages = templatesWithProps.map((t) => t.achievement.props);
 
-        // Optional: templates without 'achievement.props'
-        const templatesWithoutProps = templates.filter(
-          (t) => !(t.achievement && t.achievement.props)
-        );
-
         setPropsTemplates(propsImages);
-        setAchievementTemplates(templatesWithoutProps);
         // You may also want to store propsImages in a separate state:
         // setPropsImages(propsImages);
-
-        console.log({ propsImages });
       } catch (error) {
         console.error("Error fetching templates:", error);
       } finally {
