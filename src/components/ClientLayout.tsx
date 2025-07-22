@@ -15,6 +15,7 @@ const IFRAME_ROUTES = [
   "/email-verification",
   "/not-found",
   "/unauthorized",
+  "/employees",
 ];
 
 export default function ClientLayout({ children }: { children: React.ReactNode }) {
