@@ -197,140 +197,277 @@ export default function DigitalAwardsPage() {
                 </div>
               ) : (
                 /* Template Grid View */
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 justify-start pb-6 h-full">
-                {/* Template A */}
-                <div className="w-full flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity">
-                  <img 
-                    src="https://picsum.photos/600/400?random=1" 
-                    alt="Template A"
-                    className="w-full h-auto max-h-full object-contain"
-                    style={{width: '600px', maxWidth: '100%', borderRadius: '4px'}}
-                    onClick={() => handleTemplateSelect("https://picsum.photos/600/400?random=1")}
-                  />
-                </div>
-                
-                {/* Template B */}
-                <div className="w-full flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity">
-                  <img 
-                    src="https://picsum.photos/600/400?random=2" 
-                    alt="Template B"
-                    className="w-full h-auto max-h-full object-contain"
-                    style={{width: '600px', maxWidth: '100%', borderRadius: '4px'}}
-                    onClick={() => handleTemplateSelect("https://picsum.photos/600/400?random=2")}
-                  />
-                </div>
-                
-                {/* Template C */}
-                <div className="w-full flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity">
-                  <img 
-                    src="https://picsum.photos/600/400?random=3" 
-                    alt="Template C"
-                    className="w-full h-auto max-h-full object-contain"
-                    style={{width: '600px', maxWidth: '100%', borderRadius: '4px'}}
-                    onClick={() => handleTemplateSelect("https://picsum.photos/600/400?random=3")}
-                  />
-                </div>
-                
-                {/* Template D */}
-                <div className="w-full flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity">
-                  <img 
-                    src="https://picsum.photos/600/400?random=4" 
-                    alt="Template D"
-                    className="w-full h-auto max-h-full object-contain"
-                    style={{width: '600px', maxWidth: '100%', borderRadius: '4px'}}
-                    onClick={() => handleTemplateSelect("https://picsum.photos/600/400?random=4")}
-                  />
-                </div>
-                
-                {/* Template E */}
-                <div className="w-full flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity">
-                  <img 
-                    src="https://picsum.photos/600/400?random=5" 
-                    alt="Template E"
-                    className="w-full h-auto max-h-full object-contain"
-                    style={{width: '600px', maxWidth: '100%', borderRadius: '4px'}}
-                    onClick={() => handleTemplateSelect("https://picsum.photos/600/400?random=5")}
-                  />
-                </div>
-                
-                {/* Template F */}
-                <div className="w-full flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity">
-                  <img 
-                    src="https://picsum.photos/600/400?random=6" 
-                    alt="Template F"
-                    className="w-full h-auto max-h-full object-contain"
-                    style={{width: '600px', maxWidth: '100%', borderRadius: '4px'}}
-                    onClick={() => handleTemplateSelect("https://picsum.photos/600/400?random=6")}
-                  />
-                </div>
-                
-                {/* Template G */}
-                <div className="w-full flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity">
-                  <img 
-                    src="https://picsum.photos/600/400?random=7" 
-                    alt="Template G"
-                    className="w-full h-auto max-h-full object-contain"
-                    style={{width: '600px', maxWidth: '100%', borderRadius: '4px'}}
-                    onClick={() => handleTemplateSelect("https://picsum.photos/600/400?random=7")}
-                  />
-                </div>
-                
-                {/* Template H */}
-                <div className="w-full flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity">
-                  <img 
-                    src="https://picsum.photos/600/400?random=8" 
-                    alt="Template H"
-                    className="w-full h-auto max-h-full object-contain"
-                    style={{width: '600px', maxWidth: '100%', borderRadius: '4px'}}
-                    onClick={() => handleTemplateSelect("https://picsum.photos/600/400?random=8")}
-                  />
-                </div>
-                
-                {/* Template I */}
-                <div className="w-full flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity">
-                  <img 
-                    src="https://picsum.photos/600/400?random=9" 
-                    alt="Template I"
-                    className="w-full h-auto max-h-full object-contain"
-                    style={{width: '600px', maxWidth: '100%', borderRadius: '4px'}}
-                    onClick={() => handleTemplateSelect("https://picsum.photos/600/400?random=9")}
-                  />
-                </div>
-                
-                {/* Template J */}
-                <div className="w-full flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity">
-                  <img 
-                    src="https://picsum.photos/600/400?random=10" 
-                    alt="Template J"
-                    className="w-full h-auto max-h-full object-contain"
-                    style={{width: '600px', maxWidth: '100%', borderRadius: '4px'}}
-                    onClick={() => handleTemplateSelect("https://picsum.photos/600/400?random=10")}
-                  />
-                </div>
-                
-                {/* Template K */}
-                <div className="w-full flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity">
-                  <img 
-                    src="https://picsum.photos/600/400?random=11" 
-                    alt="Template K"
-                    className="w-full h-auto max-h-full object-contain"
-                    style={{width: '600px', maxWidth: '100%', borderRadius: '4px'}}
-                    onClick={() => handleTemplateSelect("https://picsum.photos/600/400?random=11")}
-                  />
-                </div>
-                
-                {/* Template L */}
-                <div className="w-full flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity">
-                  <img 
-                    src="https://picsum.photos/600/400?random=12" 
-                    alt="Template L"
-                    className="w-full h-auto max-h-full object-contain"
-                    style={{width: '600px', maxWidth: '100%', borderRadius: '4px'}}
-                    onClick={() => handleTemplateSelect("https://picsum.photos/600/400?random=12")}
-                  />
-                </div>
-              </div>
-            )}
+                activeTab === 'props' ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 justify-start pb-6 h-full">
+                    {/* Props Template 1 */}
+                    <div className="w-full flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity bg-white rounded" style={{borderRadius: '4px', aspectRatio: '600/400'}}>
+                      <img 
+                        src="/templates/props/props-1.png" 
+                        alt="Props Template 1"
+                        className="w-full h-full object-contain"
+                        style={{borderRadius: '4px'}}
+                        onClick={() => handleTemplateSelect("/templates/props/props-1.png")}
+                      />
+                    </div>
+                    
+                    {/* Props Template 2 */}
+                    <div className="w-full flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity bg-white rounded" style={{borderRadius: '4px', aspectRatio: '600/400'}}>
+                      <img 
+                        src="/templates/props/props-2.png" 
+                        alt="Props Template 2"
+                        className="w-full h-full object-contain"
+                        style={{borderRadius: '4px'}}
+                        onClick={() => handleTemplateSelect("/templates/props/props-2.png")}
+                      />
+                    </div>
+                    
+                    {/* Props Template 3 */}
+                    <div className="w-full flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity bg-white rounded" style={{borderRadius: '4px', aspectRatio: '600/400'}}>
+                      <img 
+                        src="/templates/props/props-3.png" 
+                        alt="Props Template 3"
+                        className="w-full h-full object-contain"
+                        style={{borderRadius: '4px'}}
+                        onClick={() => handleTemplateSelect("/templates/props/props-3.png")}
+                      />
+                    </div>
+                    
+                    {/* Props Template 4 */}
+                    <div className="w-full flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity bg-white rounded" style={{borderRadius: '4px', aspectRatio: '600/400'}}>
+                      <img 
+                        src="/templates/props/props-4.png" 
+                        alt="Props Template 4"
+                        className="w-full h-full object-contain"
+                        style={{borderRadius: '4px'}}
+                        onClick={() => handleTemplateSelect("/templates/props/props-4.png")}
+                      />
+                    </div>
+                    
+                    {/* Props Template 5 */}
+                    <div className="w-full flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity bg-white rounded" style={{borderRadius: '4px', aspectRatio: '600/400'}}>
+                      <img 
+                        src="/templates/props/props-5.png" 
+                        alt="Props Template 5"
+                        className="w-full h-full object-contain"
+                        style={{borderRadius: '4px'}}
+                        onClick={() => handleTemplateSelect("/templates/props/props-5.png")}
+                      />
+                    </div>
+                    
+                    {/* Props Template 6 */}
+                    <div className="w-full flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity bg-white rounded" style={{borderRadius: '4px', aspectRatio: '600/400'}}>
+                      <img 
+                        src="/templates/props/props-6.png" 
+                        alt="Props Template 6"
+                        className="w-full h-full object-contain"
+                        style={{borderRadius: '4px'}}
+                        onClick={() => handleTemplateSelect("/templates/props/props-6.png")}
+                      />
+                    </div>
+                    
+                    {/* Props Template 7 */}
+                    <div className="w-full flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity bg-white rounded" style={{borderRadius: '4px', aspectRatio: '600/400'}}>
+                      <img 
+                        src="/templates/props/props-7.png" 
+                        alt="Props Template 7"
+                        className="w-full h-full object-contain"
+                        style={{borderRadius: '4px'}}
+                        onClick={() => handleTemplateSelect("/templates/props/props-7.png")}
+                      />
+                    </div>
+                    
+                    {/* Props Template 8 */}
+                    <div className="w-full flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity bg-white rounded" style={{borderRadius: '4px', aspectRatio: '600/400'}}>
+                      <img 
+                        src="/templates/props/props-8.png" 
+                        alt="Props Template 8"
+                        className="w-full h-full object-contain"
+                        style={{borderRadius: '4px'}}
+                        onClick={() => handleTemplateSelect("/templates/props/props-8.png")}
+                      />
+                    </div>
+                    
+                    {/* Props Template 9 */}
+                    <div className="w-full flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity bg-white rounded" style={{borderRadius: '4px', aspectRatio: '600/400'}}>
+                      <img 
+                        src="/templates/props/props-9.png" 
+                        alt="Props Template 9"
+                        className="w-full h-full object-contain"
+                        style={{borderRadius: '4px'}}
+                        onClick={() => handleTemplateSelect("/templates/props/props-9.png")}
+                      />
+                    </div>
+                    
+                    {/* Props Template 10 */}
+                    <div className="w-full flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity bg-white rounded" style={{borderRadius: '4px', aspectRatio: '600/400'}}>
+                      <img 
+                        src="/templates/props/props-10.png" 
+                        alt="Props Template 10"
+                        className="w-full h-full object-contain"
+                        style={{borderRadius: '4px'}}
+                        onClick={() => handleTemplateSelect("/templates/props/props-10.png")}
+                      />
+                    </div>
+                    
+                    {/* Props Template 11 */}
+                    <div className="w-full flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity bg-white rounded" style={{borderRadius: '4px', aspectRatio: '600/400'}}>
+                      <img 
+                        src="/templates/props/props-11.png" 
+                        alt="Props Template 11"
+                        className="w-full h-full object-contain"
+                        style={{borderRadius: '4px'}}
+                        onClick={() => handleTemplateSelect("/templates/props/props-11.png")}
+                      />
+                    </div>
+                    
+                    {/* Props Template 12 */}
+                    <div className="w-full flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity bg-white rounded" style={{borderRadius: '4px', aspectRatio: '600/400'}}>
+                      <img 
+                        src="/templates/props/props-12.png" 
+                        alt="Props Template 12"
+                        className="w-full h-full object-contain"
+                        style={{borderRadius: '4px'}}
+                        onClick={() => handleTemplateSelect("/templates/props/props-12.png")}
+                      />
+                    </div>
+                  </div>
+                ) : (
+                  /* Achievements Templates */
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 justify-start pb-6 h-full">
+                    {/* Achievement Template 1 */}
+                    <div className="w-full flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity bg-white rounded" style={{borderRadius: '4px', aspectRatio: '600/447'}}>
+                      <img 
+                        src="/templates/achievements/achievements-1.png" 
+                        alt="Achievement Template 1"
+                        className="w-full h-full object-contain"
+                        style={{borderRadius: '4px'}}
+                        onClick={() => handleTemplateSelect("/templates/achievements/achievements-1.png")}
+                      />
+                    </div>
+                    
+                    {/* Achievement Template 2 */}
+                    <div className="w-full flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity bg-white rounded" style={{borderRadius: '4px', aspectRatio: '600/447'}}>
+                      <img 
+                        src="/templates/achievements/achievements-2.png" 
+                        alt="Achievement Template 2"
+                        className="w-full h-full object-contain"
+                        style={{borderRadius: '4px'}}
+                        onClick={() => handleTemplateSelect("/templates/achievements/achievements-2.png")}
+                      />
+                    </div>
+                    
+                    {/* Achievement Template 3 */}
+                    <div className="w-full flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity bg-white rounded" style={{borderRadius: '4px', aspectRatio: '600/447'}}>
+                      <img 
+                        src="/templates/achievements/achievements-3.png" 
+                        alt="Achievement Template 3"
+                        className="w-full h-full object-contain"
+                        style={{borderRadius: '4px'}}
+                        onClick={() => handleTemplateSelect("/templates/achievements/achievements-3.png")}
+                      />
+                    </div>
+                    
+                    {/* Achievement Template 4 */}
+                    <div className="w-full flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity bg-white rounded" style={{borderRadius: '4px', aspectRatio: '600/447'}}>
+                      <img 
+                        src="/templates/achievements/achievements-4.png" 
+                        alt="Achievement Template 4"
+                        className="w-full h-full object-contain"
+                        style={{borderRadius: '4px'}}
+                        onClick={() => handleTemplateSelect("/templates/achievements/achievements-4.png")}
+                      />
+                    </div>
+                    
+                    {/* Achievement Template 5 */}
+                    <div className="w-full flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity bg-white rounded" style={{borderRadius: '4px', aspectRatio: '600/447'}}>
+                      <img 
+                        src="/templates/achievements/achievements-5.png" 
+                        alt="Achievement Template 5"
+                        className="w-full h-full object-contain"
+                        style={{borderRadius: '4px'}}
+                        onClick={() => handleTemplateSelect("/templates/achievements/achievements-5.png")}
+                      />
+                    </div>
+                    
+                    {/* Achievement Template 6 */}
+                    <div className="w-full flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity bg-white rounded" style={{borderRadius: '4px', aspectRatio: '600/447'}}>
+                      <img 
+                        src="/templates/achievements/achievements-6.png" 
+                        alt="Achievement Template 6"
+                        className="w-full h-full object-contain"
+                        style={{borderRadius: '4px'}}
+                        onClick={() => handleTemplateSelect("/templates/achievements/achievements-6.png")}
+                      />
+                    </div>
+                    
+                    {/* Achievement Template 7 */}
+                    <div className="w-full flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity bg-white rounded" style={{borderRadius: '4px', aspectRatio: '600/447'}}>
+                      <img 
+                        src="/templates/achievements/achievements-7.png" 
+                        alt="Achievement Template 7"
+                        className="w-full h-full object-contain"
+                        style={{borderRadius: '4px'}}
+                        onClick={() => handleTemplateSelect("/templates/achievements/achievements-7.png")}
+                      />
+                    </div>
+                    
+                    {/* Achievement Template 8 */}
+                    <div className="w-full flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity bg-white rounded" style={{borderRadius: '4px', aspectRatio: '600/447'}}>
+                      <img 
+                        src="/templates/achievements/achievements-8.png" 
+                        alt="Achievement Template 8"
+                        className="w-full h-full object-contain"
+                        style={{borderRadius: '4px'}}
+                        onClick={() => handleTemplateSelect("/templates/achievements/achievements-8.png")}
+                      />
+                    </div>
+                    
+                    {/* Achievement Template 9 */}
+                    <div className="w-full flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity bg-white rounded" style={{borderRadius: '4px', aspectRatio: '600/447'}}>
+                      <img 
+                        src="/templates/achievements/achievements-9.png" 
+                        alt="Achievement Template 9"
+                        className="w-full h-full object-contain"
+                        style={{borderRadius: '4px'}}
+                        onClick={() => handleTemplateSelect("/templates/achievements/achievements-9.png")}
+                      />
+                    </div>
+                    
+                    {/* Achievement Template 10 */}
+                    <div className="w-full flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity bg-white rounded" style={{borderRadius: '4px', aspectRatio: '600/447'}}>
+                      <img 
+                        src="/templates/achievements/achievements-10.png" 
+                        alt="Achievement Template 10"
+                        className="w-full h-full object-contain"
+                        style={{borderRadius: '4px'}}
+                        onClick={() => handleTemplateSelect("/templates/achievements/achievements-10.png")}
+                      />
+                    </div>
+                    
+                    {/* Achievement Template 11 */}
+                    <div className="w-full flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity bg-white rounded" style={{borderRadius: '4px', aspectRatio: '600/447'}}>
+                      <img 
+                        src="/templates/achievements/achievements-11.png" 
+                        alt="Achievement Template 11"
+                        className="w-full h-full object-contain"
+                        style={{borderRadius: '4px'}}
+                        onClick={() => handleTemplateSelect("/templates/achievements/achievements-11.png")}
+                      />
+                    </div>
+                    
+                    {/* Achievement Template 12 */}
+                    <div className="w-full flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity bg-white rounded" style={{borderRadius: '4px', aspectRatio: '600/447'}}>
+                      <img 
+                        src="/templates/achievements/achievements-12.png" 
+                        alt="Achievement Template 12"
+                        className="w-full h-full object-contain"
+                        style={{borderRadius: '4px'}}
+                        onClick={() => handleTemplateSelect("/templates/achievements/achievements-12.png")}
+                      />
+                    </div>
+                  </div>
+                )
+              )}
             </div>
           </div>
         </div>
