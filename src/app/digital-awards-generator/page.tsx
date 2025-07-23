@@ -4,6 +4,7 @@ import { useState } from 'react';
 import DigitalAwardsSideNav, { StepType } from '@/components/DigitalAwardsSideNav';
 import { AwardsStep, CompanyStep, BackgroundStep, DetailsStep, ShareStep } from '@/components/digital-awards';
 import CompanyButtonOverlay from '@/components/CompanyButtonOverlay';
+import { companyNames } from '@/lib/companyNames';
 
 export default function DigitalAwardsPage() {
   const [currentStep, setCurrentStep] = useState<StepType>('awards');
@@ -148,12 +149,30 @@ export default function DigitalAwardsPage() {
                   {/* Selected Template Display */}
                   {selectedTemplate && (
                     <div className="w-full flex justify-center">
-                      <img 
-                        src={selectedTemplate}
-                        alt="Selected Template"
-                        className="max-w-full max-h-auto object-contain rounded"
-                        style={{borderRadius: '4px'}}
-                      />
+                      <div className="relative">
+                        <img 
+                          src={selectedTemplate}
+                          alt="Selected Template"
+                          className="max-w-full max-h-auto object-contain rounded"
+                          style={{borderRadius: '4px'}}
+                        />
+                        {/* Button Overlay */}
+                        <div className="absolute inset-0 flex items-end justify-start pb-4" style={{ paddingLeft: '24px' }}>
+                          <div
+                            className="bg-black border border-white rounded-full px-3 py-1 flex items-center justify-center"
+                            style={{ 
+                              fontSize: '14px',
+                              lineHeight: '1.5',
+                              minHeight: '29px',
+                              backgroundColor: 'rgba(0, 0, 0, 0.5)'
+                            }}
+                          >
+                            <span className="font-semibold text-white text-center whitespace-nowrap">
+                              {companyNames[Math.floor(Math.random() * companyNames.length)]}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
                     </div>
                   )}
                   
