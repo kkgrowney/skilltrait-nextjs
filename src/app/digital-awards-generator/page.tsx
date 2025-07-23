@@ -32,6 +32,8 @@ export default function DigitalAwardsPage() {
   const [propsTemplates, setPropsTemplates] = useState<string>();
   const [loadingTemplates, setLoadingTemplates] = useState<boolean>(false);
   const [companyNameText, setCompanyNameText] = useState<string>("");
+  const [filters, setFilters] = useState<{ [tag: string]: boolean }>({});
+  const [filteredTemplates, setFilteredTemplates] = useState<any[]>([]);
 
   const handleStepChange = (step: StepType) => {
     // Check if user can navigate to this step
@@ -119,7 +121,13 @@ export default function DigitalAwardsPage() {
   const renderCurrentStep = () => {
     switch (currentStep) {
       case "awards":
-        return <AwardsStep onTabChange={setActiveTab} />;
+        return (
+          <AwardsStep
+            setFilters={setFilters}
+            filters={filters}
+            onTabChange={setActiveTab}
+          />
+        );
       case "company":
         return (
           <CompanyStep
@@ -144,7 +152,13 @@ export default function DigitalAwardsPage() {
       case "share":
         return <ShareStep onPrevious={handlePrevious} />;
       default:
-        return <AwardsStep onTabChange={setActiveTab} />;
+        return (
+          <AwardsStep
+            setFilters={setFilters}
+            filters={filters}
+            onTabChange={setActiveTab}
+          />
+        );
     }
   };
 
@@ -160,16 +174,12 @@ export default function DigitalAwardsPage() {
           templates.push(data);
         });
 
-        // Filter templates that have 'achievement.props'
         const templatesWithProps = templates.filter(
           (t) => t.achievement && t.achievement.props
         );
 
-        // Extract props image URLs
-
         setPropsTemplates(templatesWithProps);
-        // You may also want to store propsImages in a separate state:
-        // setPropsImages(propsImages);
+        setFilteredTemplates(templatesWithProps); // initialize with all
       } catch (error) {
         console.error("Error fetching templates:", error);
       } finally {
@@ -179,6 +189,24 @@ export default function DigitalAwardsPage() {
 
     fetchTemplates();
   }, []);
+
+  useEffect(() => {
+    const activeTags = Object.entries(filters)
+      .filter(([_, isActive]) => isActive)
+      .map(([tag]) => tag);
+
+    if (activeTags.length === 0) {
+      // No filters selected — show all
+      setFilteredTemplates(propsTemplates);
+    } else {
+      // Filter by matching tags
+      const filtered = propsTemplates.filter((template) => {
+        const tags = template.achievement?.tags || [];
+        return tags.some((tag: string) => activeTags.includes(tag));
+      });
+      setFilteredTemplates(filtered);
+    }
+  }, [filters, propsTemplates]);
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: "#1B1D21" }}>
@@ -401,11 +429,10 @@ export default function DigitalAwardsPage() {
               ) : (
                 /* Template Grid View */
                 <>
-                  {console.log({ propsTemplates })}
                   {activeTab === "props" && (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 justify-start pb-6 h-full">
                       {/* Props Template 1 */}
-                      {propsTemplates?.map((temp) => (
+                      {filteredTemplates?.map((temp) => (
                         <div
                           className="w-full cursor-pointer hover:opacity-80 transition-opacity bg-white rounded"
                           style={{
