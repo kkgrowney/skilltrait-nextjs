@@ -11,13 +11,17 @@ interface CompanyStepProps {
   setLogoVisible?: (visible: boolean) => void;
   uploadedLogoFile?: File | null;
   setUploadedLogoFile?: (file: File | null) => void;
+  companyNameText?: string;
+  setCompanyNameText?: (text: string) => void;
 }
 
-export default function CompanyStep({ onNext, onPrevious, selectedTemplate, templateType, logoVisible, setLogoVisible, uploadedLogoFile, setUploadedLogoFile }: CompanyStepProps) {
+export default function CompanyStep({ onNext, onPrevious, selectedTemplate, templateType, logoVisible, setLogoVisible, uploadedLogoFile, setUploadedLogoFile, companyNameText, setCompanyNameText }: CompanyStepProps) {
   const [companyName, setCompanyName] = useState('');
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [isDragOver, setIsDragOver] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [showCompanyNameInput, setShowCompanyNameInput] = useState(false);
+  const [modalTrigger, setModalTrigger] = useState<'logo' | 'company' | null>(null);
 
   // Auto-set Instagram logo for Props templates
   useEffect(() => {
@@ -80,17 +84,29 @@ export default function CompanyStep({ onNext, onPrevious, selectedTemplate, temp
   };
 
   const handleDeleteLogo = () => {
-    setUploadedFile(null);
+    if (modalTrigger === 'logo') {
+      setUploadedFile(null);
+      if (setLogoVisible) {
+        setLogoVisible(false);
+      }
+      if (setUploadedLogoFile) {
+        setUploadedLogoFile(null);
+      }
+    } else if (modalTrigger === 'company') {
+      setShowCompanyNameInput(true);
+      if (setLogoVisible) {
+        setLogoVisible(false);
+      }
+      if (setUploadedLogoFile) {
+        setUploadedLogoFile(null);
+      }
+    }
     setShowDeleteModal(false);
-    if (setLogoVisible) {
-      setLogoVisible(false);
-    }
-    if (setUploadedLogoFile) {
-      setUploadedLogoFile(null);
-    }
+    setModalTrigger(null);
   };
 
-  const handleShowDeleteModal = () => {
+  const handleShowDeleteModal = (trigger: 'logo' | 'company') => {
+    setModalTrigger(trigger);
     setShowDeleteModal(true);
   };
 
@@ -129,7 +145,7 @@ export default function CompanyStep({ onNext, onPrevious, selectedTemplate, temp
                   className="max-w-[250px] max-h-[40px] w-auto h-auto object-contain mr-6"
                 />
                 <button
-                  onClick={handleShowDeleteModal}
+                  onClick={() => handleShowDeleteModal('logo')}
                   className="absolute -top-2 -right-2 w-4 h-4 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center text-xs font-bold transition-colors"
                 >
                   ×
@@ -176,14 +192,43 @@ export default function CompanyStep({ onNext, onPrevious, selectedTemplate, temp
         {/* Enter name section */}
         <div className="p-4 rounded-sm border" style={{backgroundColor: '#1B1D21', borderColor: '#454446'}}>
           <h3 className="text-lg font-medium text-white mb-2">Company Name *</h3>
-          <input 
-            type="text"
-            placeholder="Enter company name"
-            value={companyName}
-            onChange={(e) => setCompanyName(e.target.value)}
-            className="w-full px-4 py-2 text-sm bg-[#1B1D21] border rounded text-white placeholder-gray-400 focus:outline-none focus:border-[var(--primary-dark)]"
-            style={{borderColor: '#454446'}}
-          />
+          {showCompanyNameInput ? (
+            <div className="flex items-center space-x-2">
+              <input 
+                type="text"
+                placeholder="Enter company name"
+                value={companyName}
+                onChange={(e) => setCompanyName(e.target.value)}
+                maxLength={18}
+                className="flex-1 px-4 py-2 text-sm bg-[#1B1D21] border rounded text-white placeholder-gray-400 focus:outline-none focus:border-[var(--primary-dark)]"
+                style={{
+                  borderColor: '#454446',
+                  fontFamily: 'Poppins',
+                  fontSize: '14px',
+                  color: 'white'
+                }}
+              />
+              <button
+                onClick={() => {
+                  if (setCompanyNameText) {
+                    console.log('Setting company name text:', companyName);
+                    setCompanyNameText(companyName);
+                  }
+                }}
+                className="px-4 py-2 text-sm font-medium transition-colors bg-[var(--primary-dark)] text-[#212327] rounded hover:bg-[#0AFB84]"
+              >
+                Add
+              </button>
+            </div>
+          ) : (
+            <div 
+              onClick={() => handleShowDeleteModal('company')}
+              className="w-full px-4 py-2 text-sm bg-[#1B1D21] border rounded text-white placeholder-gray-400 cursor-pointer hover:border-[var(--primary-dark)] transition-colors"
+              style={{borderColor: '#454446'}}
+            >
+              <span className="text-gray-400">Click to enter company name</span>
+            </div>
+          )}
           <p className="text-gray-300 text-sm mt-2">The name of the company issuing the award.</p>
         </div>
       </div>

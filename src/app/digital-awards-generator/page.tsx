@@ -19,6 +19,7 @@ export default function DigitalAwardsPage() {
   const [alertMessage, setAlertMessage] = useState('');
   const [logoVisible, setLogoVisible] = useState(true);
   const [uploadedLogoFile, setUploadedLogoFile] = useState<File | null>(null);
+  const [companyNameText, setCompanyNameText] = useState<string>('');
 
   const handleStepChange = (step: StepType) => {
     // Check if user can navigate to this step
@@ -74,6 +75,7 @@ export default function DigitalAwardsPage() {
     setShowTemplateDetail(true);
     setLogoVisible(true); // Reset logo visibility for new template
     setUploadedLogoFile(null); // Reset uploaded logo for new template
+    setCompanyNameText(''); // Reset company name for new template
     // Don't change the current step - stay on Awards
   };
 
@@ -87,7 +89,7 @@ export default function DigitalAwardsPage() {
       case 'awards':
         return <AwardsStep onTabChange={setActiveTab} />;
       case 'company':
-        return <CompanyStep onNext={handleNext} onPrevious={handlePrevious} selectedTemplate={selectedTemplate} templateType={activeTab} logoVisible={logoVisible} setLogoVisible={setLogoVisible} uploadedLogoFile={uploadedLogoFile} setUploadedLogoFile={setUploadedLogoFile} />;
+        return <CompanyStep onNext={handleNext} onPrevious={handlePrevious} selectedTemplate={selectedTemplate} templateType={activeTab} logoVisible={logoVisible} setLogoVisible={setLogoVisible} uploadedLogoFile={uploadedLogoFile} setUploadedLogoFile={setUploadedLogoFile} companyNameText={companyNameText} setCompanyNameText={setCompanyNameText} />;
       case 'background':
         return <BackgroundStep onNext={handleNext} onPrevious={handlePrevious} />;
       case 'details':
@@ -168,7 +170,7 @@ export default function DigitalAwardsPage() {
                           }}
                         >
                           {/* Logo Container */}
-                          {logoVisible && (
+                          {(logoVisible || companyNameText) && (
                             <div 
                               className="absolute flex items-center"
                               style={{ 
@@ -180,12 +182,26 @@ export default function DigitalAwardsPage() {
                                 transform: 'translateY(-50%)'
                               }}
                             >
-                              <img 
-                                src={uploadedLogoFile ? URL.createObjectURL(uploadedLogoFile) : "/instagram_placeholder.png"}
-                                alt="Logo"
-                                className="h-full max-h-[40px] w-auto object-contain"
-                                style={{ maxHeight: '40px' }}
-                              />
+                              {companyNameText ? (
+                                <div 
+                                  className="text-black font-poppins"
+                                  style={{
+                                    fontFamily: 'Poppins',
+                                    fontSize: '25px',
+                                    maxWidth: '250px',
+                                    color: 'black'
+                                  }}
+                                >
+                                  {companyNameText}
+                                </div>
+                              ) : (
+                                <img 
+                                  src={uploadedLogoFile ? URL.createObjectURL(uploadedLogoFile) : "/instagram_placeholder.png"}
+                                  alt="Logo"
+                                  className="h-full max-h-[40px] w-auto object-contain"
+                                  style={{ maxHeight: '40px' }}
+                                />
+                              )}
                             </div>
                           )}
                         </div>
