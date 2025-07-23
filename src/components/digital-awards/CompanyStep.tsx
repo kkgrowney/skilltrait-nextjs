@@ -7,9 +7,13 @@ interface CompanyStepProps {
   onPrevious: () => void;
   selectedTemplate?: string | null;
   templateType?: 'props' | 'achievements';
+  logoVisible?: boolean;
+  setLogoVisible?: (visible: boolean) => void;
+  uploadedLogoFile?: File | null;
+  setUploadedLogoFile?: (file: File | null) => void;
 }
 
-export default function CompanyStep({ onNext, onPrevious, selectedTemplate, templateType }: CompanyStepProps) {
+export default function CompanyStep({ onNext, onPrevious, selectedTemplate, templateType, logoVisible, setLogoVisible, uploadedLogoFile, setUploadedLogoFile }: CompanyStepProps) {
   const [companyName, setCompanyName] = useState('');
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [isDragOver, setIsDragOver] = useState(false);
@@ -53,6 +57,12 @@ export default function CompanyStep({ onNext, onPrevious, selectedTemplate, temp
     const files = e.dataTransfer.files;
     if (files.length > 0) {
       setUploadedFile(files[0]);
+      if (setLogoVisible) {
+        setLogoVisible(true);
+      }
+      if (setUploadedLogoFile) {
+        setUploadedLogoFile(files[0]);
+      }
     }
   };
 
@@ -60,12 +70,28 @@ export default function CompanyStep({ onNext, onPrevious, selectedTemplate, temp
     const files = e.target.files;
     if (files && files.length > 0) {
       setUploadedFile(files[0]);
+      if (setLogoVisible) {
+        setLogoVisible(true);
+      }
+      if (setUploadedLogoFile) {
+        setUploadedLogoFile(files[0]);
+      }
     }
   };
 
   const handleDeleteLogo = () => {
     setUploadedFile(null);
     setShowDeleteModal(false);
+    if (setLogoVisible) {
+      setLogoVisible(false);
+    }
+    if (setUploadedLogoFile) {
+      setUploadedLogoFile(null);
+    }
+  };
+
+  const handleShowDeleteModal = () => {
+    setShowDeleteModal(true);
   };
 
   return (
@@ -103,7 +129,7 @@ export default function CompanyStep({ onNext, onPrevious, selectedTemplate, temp
                   className="max-w-[250px] max-h-[40px] w-auto h-auto object-contain mr-6"
                 />
                 <button
-                  onClick={() => setShowDeleteModal(true)}
+                  onClick={handleShowDeleteModal}
                   className="absolute -top-2 -right-2 w-4 h-4 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center text-xs font-bold transition-colors"
                 >
                   ×
@@ -183,8 +209,8 @@ export default function CompanyStep({ onNext, onPrevious, selectedTemplate, temp
       {showDeleteModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-[#212327] border border-gray-600 rounded-lg p-6 max-w-sm w-full mx-4">
-            <h3 className="text-lg font-medium text-white mb-4">Delete Logo</h3>
-            <p className="text-gray-300 mb-6">Are you sure you want to delete the uploaded logo?</p>
+            <h3 className="text-lg font-medium text-white mb-4">Remove Logo</h3>
+            <p className="text-gray-300 mb-6">Are you sure you want to remove the logo?</p>
             <div className="flex space-x-3">
               <button
                 onClick={() => setShowDeleteModal(false)}
@@ -197,12 +223,13 @@ export default function CompanyStep({ onNext, onPrevious, selectedTemplate, temp
                 onClick={handleDeleteLogo}
                 className="flex-1 px-4 py-2 text-sm font-medium transition-colors bg-red-500 text-white rounded hover:bg-red-600"
               >
-                Delete
+                Remove
               </button>
             </div>
           </div>
         </div>
       )}
+
     </div>
   );
 } 

@@ -17,6 +17,8 @@ export default function DigitalAwardsPage() {
   const [showTemplateDetail, setShowTemplateDetail] = useState(false);
   const [showAlert, setShowAlert] = useState(false);
   const [alertMessage, setAlertMessage] = useState('');
+  const [logoVisible, setLogoVisible] = useState(true);
+  const [uploadedLogoFile, setUploadedLogoFile] = useState<File | null>(null);
 
   const handleStepChange = (step: StepType) => {
     // Check if user can navigate to this step
@@ -70,6 +72,8 @@ export default function DigitalAwardsPage() {
   const handleTemplateSelect = (templateSrc: string) => {
     setSelectedTemplate(templateSrc);
     setShowTemplateDetail(true);
+    setLogoVisible(true); // Reset logo visibility for new template
+    setUploadedLogoFile(null); // Reset uploaded logo for new template
     // Don't change the current step - stay on Awards
   };
 
@@ -83,7 +87,7 @@ export default function DigitalAwardsPage() {
       case 'awards':
         return <AwardsStep onTabChange={setActiveTab} />;
       case 'company':
-        return <CompanyStep onNext={handleNext} onPrevious={handlePrevious} selectedTemplate={selectedTemplate} templateType={activeTab} />;
+        return <CompanyStep onNext={handleNext} onPrevious={handlePrevious} selectedTemplate={selectedTemplate} templateType={activeTab} logoVisible={logoVisible} setLogoVisible={setLogoVisible} uploadedLogoFile={uploadedLogoFile} setUploadedLogoFile={setUploadedLogoFile} />;
       case 'background':
         return <BackgroundStep onNext={handleNext} onPrevious={handlePrevious} />;
       case 'details':
@@ -164,24 +168,26 @@ export default function DigitalAwardsPage() {
                           }}
                         >
                           {/* Logo Container */}
-                          <div 
-                            className="absolute flex items-center"
-                            style={{ 
-                              height: '40px',
-                              width: '250px',
-                              maxWidth: '250px',
-                              left: '20px',
-                              top: '50%',
-                              transform: 'translateY(-50%)'
-                            }}
-                          >
-                            <img 
-                              src="/instagram_placeholder.png"
-                              alt="Instagram Logo"
-                              className="h-full max-h-[40px] w-auto object-contain"
-                              style={{ maxHeight: '40px' }}
-                            />
-                          </div>
+                          {logoVisible && (
+                            <div 
+                              className="absolute flex items-center"
+                              style={{ 
+                                height: '40px',
+                                width: '250px',
+                                maxWidth: '250px',
+                                left: '20px',
+                                top: '50%',
+                                transform: 'translateY(-50%)'
+                              }}
+                            >
+                              <img 
+                                src={uploadedLogoFile ? URL.createObjectURL(uploadedLogoFile) : "/instagram_placeholder.png"}
+                                alt="Logo"
+                                className="h-full max-h-[40px] w-auto object-contain"
+                                style={{ maxHeight: '40px' }}
+                              />
+                            </div>
+                          )}
                         </div>
                         <img 
                           src={selectedTemplate}
