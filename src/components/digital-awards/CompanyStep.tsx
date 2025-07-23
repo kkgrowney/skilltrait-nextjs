@@ -207,7 +207,7 @@ export default function CompanyStep({ onNext, onPrevious, selectedTemplate, temp
 
       {/* Delete Confirmation Modal */}
       {showDeleteModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-black bg-opacity-25 flex items-center justify-center z-50">
           <div className="bg-[#212327] border border-gray-600 rounded-lg p-6 max-w-sm w-full mx-4">
             <h3 className="text-lg font-medium text-white mb-4">Remove Logo</h3>
             <p className="text-gray-300 mb-6">Are you sure you want to remove the logo?</p>
