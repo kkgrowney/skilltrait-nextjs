@@ -7,6 +7,10 @@ import CompanyButtonOverlay from '@/components/CompanyButtonOverlay';
 import { companyNames } from '@/lib/companyNames';
 
 export default function DigitalAwardsPage() {
+  // Function to get consistent company name based on template index
+  const getCompanyName = (templateIndex: number) => {
+    return companyNames[templateIndex % companyNames.length];
+  };
   const [currentStep, setCurrentStep] = useState<StepType>('awards');
   const [activeTab, setActiveTab] = useState<'props' | 'achievements'>('props');
   const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null);
@@ -197,7 +201,7 @@ export default function DigitalAwardsPage() {
                             }}
                           >
                             <span className="font-semibold text-white text-center whitespace-nowrap">
-                              {companyNames[Math.floor(Math.random() * companyNames.length)]}
+                              {getCompanyName(0)}
                             </span>
                           </div>
                         </div>
@@ -298,7 +302,7 @@ export default function DigitalAwardsPage() {
                             }}
                           >
                             <span className="font-semibold text-white text-center whitespace-nowrap">
-                              {companyNames[Math.floor(Math.random() * companyNames.length)]}
+                              {getCompanyName(1)}
                             </span>
                           </div>
                         </div>
@@ -354,7 +358,7 @@ export default function DigitalAwardsPage() {
                             }}
                           >
                             <span className="font-semibold text-white text-center whitespace-nowrap">
-                              {companyNames[Math.floor(Math.random() * companyNames.length)]}
+                              {getCompanyName(2)}
                             </span>
                           </div>
                         </div>
@@ -410,7 +414,7 @@ export default function DigitalAwardsPage() {
                             }}
                           >
                             <span className="font-semibold text-white text-center whitespace-nowrap">
-                              {companyNames[Math.floor(Math.random() * companyNames.length)]}
+                              {getCompanyName(3)}
                             </span>
                           </div>
                         </div>
@@ -466,7 +470,7 @@ export default function DigitalAwardsPage() {
                             }}
                           >
                             <span className="font-semibold text-white text-center whitespace-nowrap">
-                              {companyNames[Math.floor(Math.random() * companyNames.length)]}
+                              {getCompanyName(4)}
                             </span>
                           </div>
                         </div>
@@ -522,7 +526,7 @@ export default function DigitalAwardsPage() {
                             }}
                           >
                             <span className="font-semibold text-white text-center whitespace-nowrap">
-                              {companyNames[Math.floor(Math.random() * companyNames.length)]}
+                              {getCompanyName(5)}
                             </span>
                           </div>
                         </div>
@@ -578,7 +582,7 @@ export default function DigitalAwardsPage() {
                             }}
                           >
                             <span className="font-semibold text-white text-center whitespace-nowrap">
-                              {companyNames[Math.floor(Math.random() * companyNames.length)]}
+                              {getCompanyName(6)}
                             </span>
                           </div>
                         </div>
@@ -634,7 +638,7 @@ export default function DigitalAwardsPage() {
                             }}
                           >
                             <span className="font-semibold text-white text-center whitespace-nowrap">
-                              {companyNames[Math.floor(Math.random() * companyNames.length)]}
+                              {getCompanyName(7)}
                             </span>
                           </div>
                         </div>
@@ -690,7 +694,7 @@ export default function DigitalAwardsPage() {
                             }}
                           >
                             <span className="font-semibold text-white text-center whitespace-nowrap">
-                              {companyNames[Math.floor(Math.random() * companyNames.length)]}
+                              {getCompanyName(8)}
                             </span>
                           </div>
                         </div>
@@ -746,7 +750,7 @@ export default function DigitalAwardsPage() {
                             }}
                           >
                             <span className="font-semibold text-white text-center whitespace-nowrap">
-                              {companyNames[Math.floor(Math.random() * companyNames.length)]}
+                              {getCompanyName(9)}
                             </span>
                           </div>
                         </div>
@@ -802,7 +806,7 @@ export default function DigitalAwardsPage() {
                             }}
                           >
                             <span className="font-semibold text-white text-center whitespace-nowrap">
-                              {companyNames[Math.floor(Math.random() * companyNames.length)]}
+                              {getCompanyName(10)}
                             </span>
                           </div>
                         </div>
@@ -858,7 +862,7 @@ export default function DigitalAwardsPage() {
                             }}
                           >
                             <span className="font-semibold text-white text-center whitespace-nowrap">
-                              {companyNames[Math.floor(Math.random() * companyNames.length)]}
+                              {getCompanyName(11)}
                             </span>
                           </div>
                         </div>
@@ -914,7 +918,7 @@ export default function DigitalAwardsPage() {
                             }}
                           >
                             <span className="font-semibold text-white text-center whitespace-nowrap">
-                              {companyNames[Math.floor(Math.random() * companyNames.length)]}
+                              {getCompanyName(12)}
                             </span>
                           </div>
                         </div>
