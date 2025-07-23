@@ -83,7 +83,7 @@ export default function DigitalAwardsPage() {
       case 'awards':
         return <AwardsStep onTabChange={setActiveTab} />;
       case 'company':
-        return <CompanyStep onNext={handleNext} onPrevious={handlePrevious} selectedTemplate={selectedTemplate} />;
+        return <CompanyStep onNext={handleNext} onPrevious={handlePrevious} selectedTemplate={selectedTemplate} templateType={activeTab} />;
       case 'background':
         return <BackgroundStep onNext={handleNext} onPrevious={handlePrevious} />;
       case 'details':

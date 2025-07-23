@@ -1,18 +1,35 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 interface CompanyStepProps {
   onNext: () => void;
   onPrevious: () => void;
   selectedTemplate?: string | null;
+  templateType?: 'props' | 'achievements';
 }
 
-export default function CompanyStep({ onNext, onPrevious, selectedTemplate }: CompanyStepProps) {
+export default function CompanyStep({ onNext, onPrevious, selectedTemplate, templateType }: CompanyStepProps) {
   const [companyName, setCompanyName] = useState('');
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [isDragOver, setIsDragOver] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+
+  // Auto-set Instagram logo for Props templates
+  useEffect(() => {
+    if (templateType === 'props' && selectedTemplate) {
+      // Create a file object from the Instagram logo URL
+      fetch('/instagram_placeholder.png')
+        .then(response => response.blob())
+        .then(blob => {
+          const file = new File([blob], 'instagram_logo.png', { type: 'image/png' });
+          setUploadedFile(file);
+        })
+        .catch(error => {
+          console.error('Error loading Instagram logo:', error);
+        });
+    }
+  }, [templateType, selectedTemplate]);
 
   const handleNext = () => {
     if (companyName.trim()) {
@@ -79,11 +96,11 @@ export default function CompanyStep({ onNext, onPrevious, selectedTemplate }: Co
             onDrop={handleDrop}
           >
             {uploadedFile ? (
-              <div className="relative w-[250px] h-[40px] rounded-none flex items-center justify-center">
+              <div className="relative w-[250px] h-[40px] rounded-none flex items-center justify-start">
                 <img 
                   src={URL.createObjectURL(uploadedFile)} 
                   alt="Uploaded logo" 
-                  className="max-w-[250px] max-h-[40px] w-auto h-auto object-contain"
+                  className="max-w-[250px] max-h-[40px] w-auto h-auto object-contain mr-6"
                 />
                 <button
                   onClick={() => setShowDeleteModal(true)}
