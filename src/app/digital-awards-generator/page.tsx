@@ -202,25 +202,7 @@ export default function DigitalAwardsPage() {
   useEffect(() => {
     const activeTags = Object.entries(filters)
       .filter(([_, isActive]) => isActive)
-      .map(([tag]) => tag);
-
-    if (activeTags.length === 0) {
-      // No filters selected — show all
-      setFilteredTemplates(propsTemplates);
-    } else {
-      // Filter by matching tags
-      const filtered = propsTemplates.filter((template) => {
-        const tags = template.achievement?.tags || [];
-        return tags.some((tag: string) => activeTags.includes(tag));
-      });
-      setFilteredTemplates(filtered);
-    }
-  }, [filters, propsTemplates]);
-
-  useEffect(() => {
-    const activeTags = Object.entries(filters)
-      .filter(([_, isActive]) => isActive)
-      .map(([tag]) => tag);
+      .map(([tag]) => tag.toLowerCase());
 
     const filtered = propsTemplates?.filter((template) => {
       const tags = (template.achievement?.tags || []).map((tag: string) =>
