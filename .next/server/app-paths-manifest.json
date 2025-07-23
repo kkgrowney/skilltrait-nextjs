@@ -1,4 +1,6 @@
 {
+  "/favicon.ico/route": "app/favicon.ico/route.js",
+  "/digital-awards-generator/page": "app/digital-awards-generator/page.js",
   "/page": "app/page.js",
-  "/digital-awards-generator/page": "app/digital-awards-generator/page.js"
+  "/signin/page": "app/signin/page.js"
 }

@@ -34,6 +34,7 @@ export default function DigitalAwardsPage() {
   const [companyNameText, setCompanyNameText] = useState<string>("");
   const [filters, setFilters] = useState<{ [tag: string]: boolean }>({});
   const [filteredTemplates, setFilteredTemplates] = useState<any[]>([]);
+  const [searchQuery, setSearchQuery] = useState("");
 
   const handleStepChange = (step: StepType) => {
     // Check if user can navigate to this step
@@ -118,11 +119,17 @@ export default function DigitalAwardsPage() {
     setSelectedTemplate(null);
   };
 
+  const handleChangeSearch = (e) => {
+    setSearchQuery(e.target.value.toLowerCase());
+  };
+
   const renderCurrentStep = () => {
     switch (currentStep) {
       case "awards":
         return (
           <AwardsStep
+            searchQuery={searchQuery}
+            handleChangeSearch={handleChangeSearch}
             setFilters={setFilters}
             filters={filters}
             onTabChange={setActiveTab}
@@ -154,6 +161,8 @@ export default function DigitalAwardsPage() {
       default:
         return (
           <AwardsStep
+            searchQuery={searchQuery}
+            handleChangeSearch={handleChangeSearch}
             setFilters={setFilters}
             filters={filters}
             onTabChange={setActiveTab}
@@ -207,6 +216,28 @@ export default function DigitalAwardsPage() {
       setFilteredTemplates(filtered);
     }
   }, [filters, propsTemplates]);
+
+  useEffect(() => {
+    const activeTags = Object.entries(filters)
+      .filter(([_, isActive]) => isActive)
+      .map(([tag]) => tag);
+
+    const filtered = propsTemplates?.filter((template) => {
+      const tags = (template.achievement?.tags || []).map((tag: string) =>
+        tag.toLowerCase()
+      );
+
+      const matchesSelectedFilters =
+        activeTags.length === 0 || tags.some((tag) => activeTags.includes(tag));
+
+      const matchesSearchQuery =
+        searchQuery === "" || tags.some((tag) => tag.includes(searchQuery));
+
+      return matchesSelectedFilters && matchesSearchQuery;
+    });
+
+    setFilteredTemplates(filtered);
+  }, [filters, propsTemplates, searchQuery]);
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: "#1B1D21" }}>

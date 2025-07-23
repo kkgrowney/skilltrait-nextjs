@@ -7,13 +7,17 @@ import { useEffect, useState } from "react";
 interface AwardsStepProps {
   onTabChange: (tab: "props" | "achievements") => void;
   setFilters: (tab: "props" | "achievements") => void;
+  handleChangeSearch: (tab: "props" | "achievements") => void;
   filters: any;
+  searchQuery: any;
 }
 
 export default function AwardsStep({
   onTabChange,
   filters,
   setFilters,
+  handleChangeSearch,
+  searchQuery,
 }: AwardsStepProps) {
   const [awardType, setAwardType] = useState("");
   const [recipientName, setRecipientName] = useState("");
@@ -125,6 +129,8 @@ export default function AwardsStep({
         <div className="relative">
           <input
             type="text"
+            value={searchQuery}
+            onChange={handleChangeSearch}
             placeholder="Search templates..."
             className="w-full px-4 py-3 text-sm bg-[#1B1D21] border rounded text-white placeholder-gray-400 focus:outline-none focus:border-[var(--primary-dark)]"
             style={{ borderColor: "#454446" }}
