@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import DigitalAwardsSideNav, { StepType } from '@/components/DigitalAwardsSideNav';
 import { AwardsStep, CompanyStep, BackgroundStep, DetailsStep, ShareStep } from '@/components/digital-awards';
+import CompanyButtonOverlay from '@/components/CompanyButtonOverlay';
 
 export default function DigitalAwardsPage() {
   const [currentStep, setCurrentStep] = useState<StepType>('awards');
@@ -201,135 +202,135 @@ export default function DigitalAwardsPage() {
                   {activeTab === 'props' && (
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 justify-start pb-6 h-full">
                     {/* Props Template 1 */}
-                    <div className="w-full flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity bg-white rounded" style={{borderRadius: '4px', aspectRatio: '600/400'}}>
-                      <img 
-                        src="/templates/props/props-1.png" 
-                        alt="Props Template 1"
-                        className="w-full h-full object-contain"
-                        style={{borderRadius: '4px'}}
-                        onClick={() => handleTemplateSelect("/templates/props/props-1.png")}
-                      />
+                    <div className="w-full cursor-pointer hover:opacity-80 transition-opacity bg-white rounded" style={{borderRadius: '4px', aspectRatio: '600/400'}}>
+                      <div onClick={() => handleTemplateSelect("/templates/props/props-1.png")}>
+                        <CompanyButtonOverlay 
+                          imageUrl="/templates/props/props-1.png"
+                          altText="Props Template 1"
+                          className="w-full h-full"
+                        />
+                      </div>
                     </div>
                     
                     {/* Props Template 2 */}
-                    <div className="w-full flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity bg-white rounded" style={{borderRadius: '4px', aspectRatio: '600/400'}}>
-                      <img 
-                        src="/templates/props/props-2.png" 
-                        alt="Props Template 2"
-                        className="w-full h-full object-contain"
-                        style={{borderRadius: '4px'}}
-                        onClick={() => handleTemplateSelect("/templates/props/props-2.png")}
-                      />
+                    <div className="w-full cursor-pointer hover:opacity-80 transition-opacity bg-white rounded" style={{borderRadius: '4px', aspectRatio: '600/400'}}>
+                      <div onClick={() => handleTemplateSelect("/templates/props/props-2.png")}>
+                        <CompanyButtonOverlay 
+                          imageUrl="/templates/props/props-2.png"
+                          altText="Props Template 2"
+                          className="w-full h-full"
+                        />
+                      </div>
                     </div>
                     
                     {/* Props Template 3 */}
-                    <div className="w-full flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity bg-white rounded" style={{borderRadius: '4px', aspectRatio: '600/400'}}>
-                      <img 
-                        src="/templates/props/props-3.png" 
-                        alt="Props Template 3"
-                        className="w-full h-full object-contain"
-                        style={{borderRadius: '4px'}}
-                        onClick={() => handleTemplateSelect("/templates/props/props-3.png")}
-                      />
+                    <div className="w-full cursor-pointer hover:opacity-80 transition-opacity bg-white rounded" style={{borderRadius: '4px', aspectRatio: '600/400'}}>
+                      <div onClick={() => handleTemplateSelect("/templates/props/props-3.png")}>
+                        <CompanyButtonOverlay 
+                          imageUrl="/templates/props/props-3.png"
+                          altText="Props Template 3"
+                          className="w-full h-full"
+                        />
+                      </div>
                     </div>
                     
                     {/* Props Template 4 */}
-                    <div className="w-full flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity bg-white rounded" style={{borderRadius: '4px', aspectRatio: '600/400'}}>
-                      <img 
-                        src="/templates/props/props-4.png" 
-                        alt="Props Template 4"
-                        className="w-full h-full object-contain"
-                        style={{borderRadius: '4px'}}
-                        onClick={() => handleTemplateSelect("/templates/props/props-4.png")}
-                      />
+                    <div className="w-full cursor-pointer hover:opacity-80 transition-opacity bg-white rounded" style={{borderRadius: '4px', aspectRatio: '600/400'}}>
+                      <div onClick={() => handleTemplateSelect("/templates/props/props-4.png")}>
+                        <CompanyButtonOverlay 
+                          imageUrl="/templates/props/props-4.png"
+                          altText="Props Template 4"
+                          className="w-full h-full"
+                        />
+                      </div>
                     </div>
                     
                     {/* Props Template 5 */}
-                    <div className="w-full flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity bg-white rounded" style={{borderRadius: '4px', aspectRatio: '600/400'}}>
-                      <img 
-                        src="/templates/props/props-5.png" 
-                        alt="Props Template 5"
-                        className="w-full h-full object-contain"
-                        style={{borderRadius: '4px'}}
-                        onClick={() => handleTemplateSelect("/templates/props/props-5.png")}
-                      />
+                    <div className="w-full cursor-pointer hover:opacity-80 transition-opacity bg-white rounded" style={{borderRadius: '4px', aspectRatio: '600/400'}}>
+                      <div onClick={() => handleTemplateSelect("/templates/props/props-5.png")}>
+                        <CompanyButtonOverlay 
+                          imageUrl="/templates/props/props-5.png"
+                          altText="Props Template 5"
+                          className="w-full h-full"
+                        />
+                      </div>
                     </div>
                     
                     {/* Props Template 6 */}
-                    <div className="w-full flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity bg-white rounded" style={{borderRadius: '4px', aspectRatio: '600/400'}}>
-                      <img 
-                        src="/templates/props/props-6.png" 
-                        alt="Props Template 6"
-                        className="w-full h-full object-contain"
-                        style={{borderRadius: '4px'}}
-                        onClick={() => handleTemplateSelect("/templates/props/props-6.png")}
-                      />
+                    <div className="w-full cursor-pointer hover:opacity-80 transition-opacity bg-white rounded" style={{borderRadius: '4px', aspectRatio: '600/400'}}>
+                      <div onClick={() => handleTemplateSelect("/templates/props/props-6.png")}>
+                        <CompanyButtonOverlay 
+                          imageUrl="/templates/props/props-6.png"
+                          altText="Props Template 6"
+                          className="w-full h-full"
+                        />
+                      </div>
                     </div>
                     
                     {/* Props Template 7 */}
-                    <div className="w-full flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity bg-white rounded" style={{borderRadius: '4px', aspectRatio: '600/400'}}>
-                      <img 
-                        src="/templates/props/props-7.png" 
-                        alt="Props Template 7"
-                        className="w-full h-full object-contain"
-                        style={{borderRadius: '4px'}}
-                        onClick={() => handleTemplateSelect("/templates/props/props-7.png")}
-                      />
+                    <div className="w-full cursor-pointer hover:opacity-80 transition-opacity bg-white rounded" style={{borderRadius: '4px', aspectRatio: '600/400'}}>
+                      <div onClick={() => handleTemplateSelect("/templates/props/props-7.png")}>
+                        <CompanyButtonOverlay 
+                          imageUrl="/templates/props/props-7.png"
+                          altText="Props Template 7"
+                          className="w-full h-full"
+                        />
+                      </div>
                     </div>
                     
                     {/* Props Template 8 */}
-                    <div className="w-full flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity bg-white rounded" style={{borderRadius: '4px', aspectRatio: '600/400'}}>
-                      <img 
-                        src="/templates/props/props-8.png" 
-                        alt="Props Template 8"
-                        className="w-full h-full object-contain"
-                        style={{borderRadius: '4px'}}
-                        onClick={() => handleTemplateSelect("/templates/props/props-8.png")}
-                      />
+                    <div className="w-full cursor-pointer hover:opacity-80 transition-opacity bg-white rounded" style={{borderRadius: '4px', aspectRatio: '600/400'}}>
+                      <div onClick={() => handleTemplateSelect("/templates/props/props-8.png")}>
+                        <CompanyButtonOverlay 
+                          imageUrl="/templates/props/props-8.png"
+                          altText="Props Template 8"
+                          className="w-full h-full"
+                        />
+                      </div>
                     </div>
                     
                     {/* Props Template 9 */}
-                    <div className="w-full flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity bg-white rounded" style={{borderRadius: '4px', aspectRatio: '600/400'}}>
-                      <img 
-                        src="/templates/props/props-9.png" 
-                        alt="Props Template 9"
-                        className="w-full h-full object-contain"
-                        style={{borderRadius: '4px'}}
-                        onClick={() => handleTemplateSelect("/templates/props/props-9.png")}
-                      />
+                    <div className="w-full cursor-pointer hover:opacity-80 transition-opacity bg-white rounded" style={{borderRadius: '4px', aspectRatio: '600/400'}}>
+                      <div onClick={() => handleTemplateSelect("/templates/props/props-9.png")}>
+                        <CompanyButtonOverlay 
+                          imageUrl="/templates/props/props-9.png"
+                          altText="Props Template 9"
+                          className="w-full h-full"
+                        />
+                      </div>
                     </div>
                     
                     {/* Props Template 10 */}
-                    <div className="w-full flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity bg-white rounded" style={{borderRadius: '4px', aspectRatio: '600/400'}}>
-                      <img 
-                        src="/templates/props/props-10.png" 
-                        alt="Props Template 10"
-                        className="w-full h-full object-contain"
-                        style={{borderRadius: '4px'}}
-                        onClick={() => handleTemplateSelect("/templates/props/props-10.png")}
-                      />
+                    <div className="w-full cursor-pointer hover:opacity-80 transition-opacity bg-white rounded" style={{borderRadius: '4px', aspectRatio: '600/400'}}>
+                      <div onClick={() => handleTemplateSelect("/templates/props/props-10.png")}>
+                        <CompanyButtonOverlay 
+                          imageUrl="/templates/props/props-10.png"
+                          altText="Props Template 10"
+                          className="w-full h-full"
+                        />
+                      </div>
                     </div>
                     
                     {/* Props Template 11 */}
-                    <div className="w-full flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity bg-white rounded" style={{borderRadius: '4px', aspectRatio: '600/400'}}>
-                      <img 
-                        src="/templates/props/props-11.png" 
-                        alt="Props Template 11"
-                        className="w-full h-full object-contain"
-                        style={{borderRadius: '4px'}}
-                        onClick={() => handleTemplateSelect("/templates/props/props-11.png")}
-                      />
+                    <div className="w-full cursor-pointer hover:opacity-80 transition-opacity bg-white rounded" style={{borderRadius: '4px', aspectRatio: '600/400'}}>
+                      <div onClick={() => handleTemplateSelect("/templates/props/props-11.png")}>
+                        <CompanyButtonOverlay 
+                          imageUrl="/templates/props/props-11.png"
+                          altText="Props Template 11"
+                          className="w-full h-full"
+                        />
+                      </div>
                     </div>
                     
                     {/* Props Template 12 */}
-                    <div className="w-full flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity bg-white rounded" style={{borderRadius: '4px', aspectRatio: '600/400'}}>
-                      <img 
-                        src="/templates/props/props-12.png" 
-                        alt="Props Template 12"
-                        className="w-full h-full object-contain"
-                        style={{borderRadius: '4px'}}
-                        onClick={() => handleTemplateSelect("/templates/props/props-12.png")}
-                      />
+                    <div className="w-full cursor-pointer hover:opacity-80 transition-opacity bg-white rounded" style={{borderRadius: '4px', aspectRatio: '600/400'}}>
+                      <div onClick={() => handleTemplateSelect("/templates/props/props-12.png")}>
+                        <CompanyButtonOverlay 
+                          imageUrl="/templates/props/props-12.png"
+                          altText="Props Template 12"
+                          className="w-full h-full"
+                        />
+                      </div>
                     </div>
                   </div>
                 )}
