@@ -11,19 +11,27 @@ import {
   DetailsStep,
   ShareStep,
 } from "@/components/digital-awards";
+import CompanyButtonOverlay from "@/components/CompanyButtonOverlay";
+import { companyNames } from "@/lib/companyNames";
 import { collection, getDocs, query } from "firebase/firestore";
-import { db } from "../../lib/firebase"; // adjust path if needed
+import { db } from "@/lib/firebase";
 
 export default function DigitalAwardsPage() {
+  // Function to get consistent company name based on template index
+  const getCompanyName = (templateIndex: number) => {
+    return companyNames[templateIndex % companyNames.length];
+  };
   const [currentStep, setCurrentStep] = useState<StepType>("awards");
   const [activeTab, setActiveTab] = useState<"props" | "achievements">("props");
   const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null);
   const [showTemplateDetail, setShowTemplateDetail] = useState(false);
   const [showAlert, setShowAlert] = useState(false);
   const [alertMessage, setAlertMessage] = useState("");
-
-  const [propsTemplates, setPropsTemplates] = useState<string[]>([]);
-  const [loadingTemplates, setLoadingTemplates] = useState(true);
+  const [logoVisible, setLogoVisible] = useState(true);
+  const [uploadedLogoFile, setUploadedLogoFile] = useState<File | null>(null);
+  const [propsTemplates, setPropsTemplates] = useState<string>();
+  const [loadingTemplates, setLoadingTemplates] = useState<boolean>(false);
+  const [companyNameText, setCompanyNameText] = useState<string>("");
 
   const handleStepChange = (step: StepType) => {
     // Check if user can navigate to this step
@@ -97,6 +105,9 @@ export default function DigitalAwardsPage() {
   const handleTemplateSelect = (templateSrc: string) => {
     setSelectedTemplate(templateSrc);
     setShowTemplateDetail(true);
+    setLogoVisible(true); // Reset logo visibility for new template
+    setUploadedLogoFile(null); // Reset uploaded logo for new template
+    setCompanyNameText(""); // Reset company name for new template
     // Don't change the current step - stay on Awards
   };
 
@@ -115,6 +126,13 @@ export default function DigitalAwardsPage() {
             onNext={handleNext}
             onPrevious={handlePrevious}
             selectedTemplate={selectedTemplate}
+            templateType={activeTab}
+            logoVisible={logoVisible}
+            setLogoVisible={setLogoVisible}
+            uploadedLogoFile={uploadedLogoFile}
+            setUploadedLogoFile={setUploadedLogoFile}
+            companyNameText={companyNameText}
+            setCompanyNameText={setCompanyNameText}
           />
         );
       case "background":
@@ -202,7 +220,8 @@ export default function DigitalAwardsPage() {
             >
               <h1 className="text-[30px] font-bold text-white mb-4">
                 {showTemplateDetail ||
-                (currentStep === "company" && selectedTemplate)
+                (currentStep === "company" && selectedTemplate) ||
+                (currentStep === "background" && selectedTemplate)
                   ? "Template Detail"
                   : activeTab === "props"
                   ? "Props Templates"
@@ -210,7 +229,8 @@ export default function DigitalAwardsPage() {
               </h1>
               {!(
                 showTemplateDetail ||
-                (currentStep === "company" && selectedTemplate)
+                (currentStep === "company" && selectedTemplate) ||
+                (currentStep === "background" && selectedTemplate)
               ) && (
                 <p className="text-md text-gray-300 mb-6">
                   Choose a template for your achievement. You can update this
@@ -225,7 +245,8 @@ export default function DigitalAwardsPage() {
               style={{ backgroundColor: "#1B1D21" }}
             >
               {showTemplateDetail ||
-              (currentStep === "company" && selectedTemplate) ? (
+              (currentStep === "company" && selectedTemplate) ||
+              (currentStep === "background" && selectedTemplate) ? (
                 /* Template Detail View */
                 <div className="h-full flex flex-col items-center justify-start pt-6">
                   {/* Back Button */}
@@ -254,12 +275,85 @@ export default function DigitalAwardsPage() {
                   {/* Selected Template Display */}
                   {selectedTemplate && (
                     <div className="w-full flex justify-center">
-                      <img
-                        src={selectedTemplate}
-                        alt="Selected Template"
-                        className="max-w-full max-h-auto object-contain rounded"
+                      <div
+                        className="relative bg-white rounded"
                         style={{ borderRadius: "4px" }}
-                      />
+                      >
+                        {/* White Overlay with Stroke Line */}
+                        <div
+                          className="absolute top-0 left-0 right-0 bg-white border-b-2 border-gray-200"
+                          style={{
+                            height: "80px",
+                            zIndex: 50,
+                            borderRadius: "8px 8px 0 0",
+                          }}
+                        >
+                          {/* Logo Container */}
+                          {(logoVisible || companyNameText) && (
+                            <div
+                              className="absolute flex items-center"
+                              style={{
+                                height: "40px",
+                                width: "250px",
+                                maxWidth: "250px",
+                                left: "20px",
+                                top: "50%",
+                                transform: "translateY(-50%)",
+                              }}
+                            >
+                              {companyNameText ? (
+                                <div
+                                  className="text-black font-poppins"
+                                  style={{
+                                    fontFamily: "Poppins",
+                                    fontSize: "25px",
+                                    maxWidth: "250px",
+                                    color: "black",
+                                  }}
+                                >
+                                  {companyNameText}
+                                </div>
+                              ) : (
+                                <img
+                                  src={
+                                    uploadedLogoFile
+                                      ? URL.createObjectURL(uploadedLogoFile)
+                                      : "/instagram_placeholder.png"
+                                  }
+                                  alt="Logo"
+                                  className="h-full max-h-[40px] w-auto object-contain"
+                                  style={{ maxHeight: "40px" }}
+                                />
+                              )}
+                            </div>
+                          )}
+                        </div>
+                        <img
+                          src={selectedTemplate}
+                          alt="Selected Template"
+                          className="max-w-full max-h-auto object-contain rounded"
+                          style={{ borderRadius: "4px" }}
+                        />
+                        {/* Button Overlay */}
+                        <div
+                          className="absolute inset-0 flex items-end justify-start pb-4"
+                          style={{ paddingLeft: "24px" }}
+                        >
+                          <div
+                            className="bg-black border border-white rounded-full px-3 py-1 flex items-center justify-center"
+                            style={{
+                              fontSize: "14px",
+                              lineHeight: "1.5",
+                              minHeight: "29px",
+                              backgroundColor: "rgba(0, 0, 0, 0.5)",
+                            }}
+                          >
+                            <span className="font-semibold text-white text-center whitespace-nowrap">
+                              {getCompanyName(0)}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
                     </div>
                   )}
 
@@ -310,31 +404,817 @@ export default function DigitalAwardsPage() {
                 <>
                   {activeTab === "props" && (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 justify-start pb-6 h-full">
-                      {loadingTemplates ? (
-                        <p className="text-white">Loading templates...</p>
-                      ) : (
-                        propsTemplates.map((template, index) => (
+                      {/* Props Template 1 */}
+                      <div
+                        className="w-full cursor-pointer hover:opacity-80 transition-opacity bg-white rounded"
+                        style={{ borderRadius: "4px", aspectRatio: "600/400" }}
+                      >
+                        <div
+                          onClick={() =>
+                            handleTemplateSelect("/templates/props/props-1.png")
+                          }
+                          className="relative w-full h-full"
+                        >
+                          <img
+                            src="/templates/props/props-1.png"
+                            alt="Props Template 1"
+                            className="w-full h-full object-cover"
+                            style={{ borderRadius: "4px" }}
+                          />
+                          {/* White Overlay with Stroke Line */}
                           <div
-                            key={index}
-                            className="w-full flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity bg-white rounded"
+                            className="absolute top-0 left-0 right-0 bg-white border-b-2 border-gray-400"
                             style={{
-                              borderRadius: "4px",
-                              aspectRatio: "600/400",
+                              height: "20%",
+                              zIndex: 50,
+                              borderRadius: "4px 4px 0 0",
                             }}
-                            onClick={() => handleTemplateSelect(template)}
                           >
-                            <img
-                              src={template}
-                              alt={`Props Template ${index + 1}`}
-                              className="w-full h-full object-contain"
-                              style={{ borderRadius: "4px" }}
-                            />
+                            {/* Logo Container */}
+                            <div
+                              className="absolute flex items-center"
+                              style={{
+                                height: "60%",
+                                width: "60%",
+                                maxWidth: "60%",
+                                left: "clamp(8px, 2vw, 20px)",
+                                top: "50%",
+                                transform: "translateY(-50%)",
+                              }}
+                            >
+                              <img
+                                src="/instagram_placeholder.png"
+                                alt="Instagram Logo"
+                                className="h-full max-h-full w-auto object-contain"
+                              />
+                            </div>
                           </div>
-                        ))
-                      )}
+                          {/* Button Overlay */}
+                          <div
+                            className="absolute inset-0 flex items-end justify-start pb-4"
+                            style={{ paddingLeft: "24px" }}
+                          >
+                            <div
+                              className="bg-black border border-white rounded-full px-3 py-1 flex items-center justify-center"
+                              style={{
+                                fontSize: "14px",
+                                lineHeight: "1.5",
+                                minHeight: "29px",
+                                backgroundColor: "rgba(0, 0, 0, 0.5)",
+                              }}
+                            >
+                              <span className="font-semibold text-white text-center whitespace-nowrap">
+                                {getCompanyName(1)}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Props Template 2 */}
+                      <div
+                        className="w-full cursor-pointer hover:opacity-80 transition-opacity bg-white rounded"
+                        style={{ borderRadius: "4px", aspectRatio: "600/400" }}
+                      >
+                        <div
+                          onClick={() =>
+                            handleTemplateSelect("/templates/props/props-2.png")
+                          }
+                          className="relative w-full h-full"
+                        >
+                          <img
+                            src="/templates/props/props-2.png"
+                            alt="Props Template 2"
+                            className="w-full h-full object-cover"
+                            style={{ borderRadius: "4px" }}
+                          />
+                          {/* White Overlay with Stroke Line */}
+                          <div
+                            className="absolute top-0 left-0 right-0 bg-white border-b-2 border-gray-400"
+                            style={{
+                              height: "20%",
+                              zIndex: 50,
+                              borderRadius: "4px 4px 0 0",
+                            }}
+                          >
+                            {/* Logo Container */}
+                            <div
+                              className="absolute flex items-center"
+                              style={{
+                                height: "60%",
+                                width: "60%",
+                                maxWidth: "60%",
+                                left: "clamp(8px, 2vw, 20px)",
+                                top: "50%",
+                                transform: "translateY(-50%)",
+                              }}
+                            >
+                              <img
+                                src="/instagram_placeholder.png"
+                                alt="Instagram Logo"
+                                className="h-full max-h-full w-auto object-contain"
+                              />
+                            </div>
+                          </div>
+                          {/* Button Overlay */}
+                          <div
+                            className="absolute inset-0 flex items-end justify-start pb-4"
+                            style={{ paddingLeft: "24px" }}
+                          >
+                            <div
+                              className="bg-black border border-white rounded-full px-3 py-1 flex items-center justify-center"
+                              style={{
+                                fontSize: "14px",
+                                lineHeight: "1.5",
+                                minHeight: "29px",
+                                backgroundColor: "rgba(0, 0, 0, 0.5)",
+                              }}
+                            >
+                              <span className="font-semibold text-white text-center whitespace-nowrap">
+                                {getCompanyName(2)}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Props Template 3 */}
+                      <div
+                        className="w-full cursor-pointer hover:opacity-80 transition-opacity bg-white rounded"
+                        style={{ borderRadius: "4px", aspectRatio: "600/400" }}
+                      >
+                        <div
+                          onClick={() =>
+                            handleTemplateSelect("/templates/props/props-3.png")
+                          }
+                          className="relative w-full h-full"
+                        >
+                          <img
+                            src="/templates/props/props-3.png"
+                            alt="Props Template 3"
+                            className="w-full h-full object-cover"
+                            style={{ borderRadius: "4px" }}
+                          />
+                          {/* White Overlay with Stroke Line */}
+                          <div
+                            className="absolute top-0 left-0 right-0 bg-white border-b-2 border-gray-400"
+                            style={{
+                              height: "20%",
+                              zIndex: 50,
+                              borderRadius: "4px 4px 0 0",
+                            }}
+                          >
+                            {/* Logo Container */}
+                            <div
+                              className="absolute flex items-center"
+                              style={{
+                                height: "60%",
+                                width: "60%",
+                                maxWidth: "60%",
+                                left: "clamp(8px, 2vw, 20px)",
+                                top: "50%",
+                                transform: "translateY(-50%)",
+                              }}
+                            >
+                              <img
+                                src="/instagram_placeholder.png"
+                                alt="Instagram Logo"
+                                className="h-full max-h-full w-auto object-contain"
+                              />
+                            </div>
+                          </div>
+                          {/* Button Overlay */}
+                          <div
+                            className="absolute inset-0 flex items-end justify-start pb-4"
+                            style={{ paddingLeft: "24px" }}
+                          >
+                            <div
+                              className="bg-black border border-white rounded-full px-3 py-1 flex items-center justify-center"
+                              style={{
+                                fontSize: "14px",
+                                lineHeight: "1.5",
+                                minHeight: "29px",
+                                backgroundColor: "rgba(0, 0, 0, 0.5)",
+                              }}
+                            >
+                              <span className="font-semibold text-white text-center whitespace-nowrap">
+                                {getCompanyName(3)}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Props Template 4 */}
+                      <div
+                        className="w-full cursor-pointer hover:opacity-80 transition-opacity bg-white rounded"
+                        style={{ borderRadius: "4px", aspectRatio: "600/400" }}
+                      >
+                        <div
+                          onClick={() =>
+                            handleTemplateSelect("/templates/props/props-4.png")
+                          }
+                          className="relative w-full h-full"
+                        >
+                          <img
+                            src="/templates/props/props-4.png"
+                            alt="Props Template 4"
+                            className="w-full h-full object-cover"
+                            style={{ borderRadius: "4px" }}
+                          />
+                          {/* White Overlay with Stroke Line */}
+                          <div
+                            className="absolute top-0 left-0 right-0 bg-white border-b-2 border-gray-400"
+                            style={{
+                              height: "20%",
+                              zIndex: 50,
+                              borderRadius: "4px 4px 0 0",
+                            }}
+                          >
+                            {/* Logo Container */}
+                            <div
+                              className="absolute flex items-center"
+                              style={{
+                                height: "60%",
+                                width: "60%",
+                                maxWidth: "60%",
+                                left: "clamp(8px, 2vw, 20px)",
+                                top: "50%",
+                                transform: "translateY(-50%)",
+                              }}
+                            >
+                              <img
+                                src="/instagram_placeholder.png"
+                                alt="Instagram Logo"
+                                className="h-full max-h-full w-auto object-contain"
+                              />
+                            </div>
+                          </div>
+                          {/* Button Overlay */}
+                          <div
+                            className="absolute inset-0 flex items-end justify-start pb-4"
+                            style={{ paddingLeft: "24px" }}
+                          >
+                            <div
+                              className="bg-black border border-white rounded-full px-3 py-1 flex items-center justify-center"
+                              style={{
+                                fontSize: "14px",
+                                lineHeight: "1.5",
+                                minHeight: "29px",
+                                backgroundColor: "rgba(0, 0, 0, 0.5)",
+                              }}
+                            >
+                              <span className="font-semibold text-white text-center whitespace-nowrap">
+                                {getCompanyName(4)}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Props Template 5 */}
+                      <div
+                        className="w-full cursor-pointer hover:opacity-80 transition-opacity bg-white rounded"
+                        style={{ borderRadius: "4px", aspectRatio: "600/400" }}
+                      >
+                        <div
+                          onClick={() =>
+                            handleTemplateSelect("/templates/props/props-5.png")
+                          }
+                          className="relative w-full h-full"
+                        >
+                          <img
+                            src="/templates/props/props-5.png"
+                            alt="Props Template 5"
+                            className="w-full h-full object-cover"
+                            style={{ borderRadius: "4px" }}
+                          />
+                          {/* White Overlay with Stroke Line */}
+                          <div
+                            className="absolute top-0 left-0 right-0 bg-white border-b-2 border-gray-400"
+                            style={{
+                              height: "20%",
+                              zIndex: 50,
+                              borderRadius: "4px 4px 0 0",
+                            }}
+                          >
+                            {/* Logo Container */}
+                            <div
+                              className="absolute flex items-center"
+                              style={{
+                                height: "60%",
+                                width: "60%",
+                                maxWidth: "60%",
+                                left: "clamp(8px, 2vw, 20px)",
+                                top: "50%",
+                                transform: "translateY(-50%)",
+                              }}
+                            >
+                              <img
+                                src="/instagram_placeholder.png"
+                                alt="Instagram Logo"
+                                className="h-full max-h-full w-auto object-contain"
+                              />
+                            </div>
+                          </div>
+                          {/* Button Overlay */}
+                          <div
+                            className="absolute inset-0 flex items-end justify-start pb-4"
+                            style={{ paddingLeft: "24px" }}
+                          >
+                            <div
+                              className="bg-black border border-white rounded-full px-3 py-1 flex items-center justify-center"
+                              style={{
+                                fontSize: "14px",
+                                lineHeight: "1.5",
+                                minHeight: "29px",
+                                backgroundColor: "rgba(0, 0, 0, 0.5)",
+                              }}
+                            >
+                              <span className="font-semibold text-white text-center whitespace-nowrap">
+                                {getCompanyName(5)}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Props Template 6 */}
+                      <div
+                        className="w-full cursor-pointer hover:opacity-80 transition-opacity bg-white rounded"
+                        style={{ borderRadius: "4px", aspectRatio: "600/400" }}
+                      >
+                        <div
+                          onClick={() =>
+                            handleTemplateSelect("/templates/props/props-6.png")
+                          }
+                          className="relative w-full h-full"
+                        >
+                          <img
+                            src="/templates/props/props-6.png"
+                            alt="Props Template 6"
+                            className="w-full h-full object-cover"
+                            style={{ borderRadius: "4px" }}
+                          />
+                          {/* White Overlay with Stroke Line */}
+                          <div
+                            className="absolute top-0 left-0 right-0 bg-white border-b-2 border-gray-400"
+                            style={{
+                              height: "20%",
+                              zIndex: 50,
+                              borderRadius: "4px 4px 0 0",
+                            }}
+                          >
+                            {/* Logo Container */}
+                            <div
+                              className="absolute flex items-center"
+                              style={{
+                                height: "60%",
+                                width: "60%",
+                                maxWidth: "60%",
+                                left: "clamp(8px, 2vw, 20px)",
+                                top: "50%",
+                                transform: "translateY(-50%)",
+                              }}
+                            >
+                              <img
+                                src="/instagram_placeholder.png"
+                                alt="Instagram Logo"
+                                className="h-full max-h-full w-auto object-contain"
+                              />
+                            </div>
+                          </div>
+                          {/* Button Overlay */}
+                          <div
+                            className="absolute inset-0 flex items-end justify-start pb-4"
+                            style={{ paddingLeft: "24px" }}
+                          >
+                            <div
+                              className="bg-black border border-white rounded-full px-3 py-1 flex items-center justify-center"
+                              style={{
+                                fontSize: "14px",
+                                lineHeight: "1.5",
+                                minHeight: "29px",
+                                backgroundColor: "rgba(0, 0, 0, 0.5)",
+                              }}
+                            >
+                              <span className="font-semibold text-white text-center whitespace-nowrap">
+                                {getCompanyName(6)}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Props Template 7 */}
+                      <div
+                        className="w-full cursor-pointer hover:opacity-80 transition-opacity bg-white rounded"
+                        style={{ borderRadius: "4px", aspectRatio: "600/400" }}
+                      >
+                        <div
+                          onClick={() =>
+                            handleTemplateSelect("/templates/props/props-7.png")
+                          }
+                          className="relative w-full h-full"
+                        >
+                          <img
+                            src="/templates/props/props-7.png"
+                            alt="Props Template 7"
+                            className="w-full h-full object-cover"
+                            style={{ borderRadius: "4px" }}
+                          />
+                          {/* White Overlay with Stroke Line */}
+                          <div
+                            className="absolute top-0 left-0 right-0 bg-white border-b-2 border-gray-400"
+                            style={{
+                              height: "20%",
+                              zIndex: 50,
+                              borderRadius: "4px 4px 0 0",
+                            }}
+                          >
+                            {/* Logo Container */}
+                            <div
+                              className="absolute flex items-center"
+                              style={{
+                                height: "60%",
+                                width: "60%",
+                                maxWidth: "60%",
+                                left: "clamp(8px, 2vw, 20px)",
+                                top: "50%",
+                                transform: "translateY(-50%)",
+                              }}
+                            >
+                              <img
+                                src="/instagram_placeholder.png"
+                                alt="Instagram Logo"
+                                className="h-full max-h-full w-auto object-contain"
+                              />
+                            </div>
+                          </div>
+                          {/* Button Overlay */}
+                          <div
+                            className="absolute inset-0 flex items-end justify-start pb-4"
+                            style={{ paddingLeft: "24px" }}
+                          >
+                            <div
+                              className="bg-black border border-white rounded-full px-3 py-1 flex items-center justify-center"
+                              style={{
+                                fontSize: "14px",
+                                lineHeight: "1.5",
+                                minHeight: "29px",
+                                backgroundColor: "rgba(0, 0, 0, 0.5)",
+                              }}
+                            >
+                              <span className="font-semibold text-white text-center whitespace-nowrap">
+                                {getCompanyName(7)}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Props Template 8 */}
+                      <div
+                        className="w-full cursor-pointer hover:opacity-80 transition-opacity bg-white rounded"
+                        style={{ borderRadius: "4px", aspectRatio: "600/400" }}
+                      >
+                        <div
+                          onClick={() =>
+                            handleTemplateSelect("/templates/props/props-8.png")
+                          }
+                          className="relative w-full h-full"
+                        >
+                          <img
+                            src="/templates/props/props-8.png"
+                            alt="Props Template 8"
+                            className="w-full h-full object-cover"
+                            style={{ borderRadius: "4px" }}
+                          />
+                          {/* White Overlay with Stroke Line */}
+                          <div
+                            className="absolute top-0 left-0 right-0 bg-white border-b-2 border-gray-400"
+                            style={{
+                              height: "20%",
+                              zIndex: 50,
+                              borderRadius: "4px 4px 0 0",
+                            }}
+                          >
+                            {/* Logo Container */}
+                            <div
+                              className="absolute flex items-center"
+                              style={{
+                                height: "60%",
+                                width: "60%",
+                                maxWidth: "60%",
+                                left: "20px",
+                                top: "50%",
+                                transform: "translateY(-50%)",
+                              }}
+                            >
+                              <img
+                                src="/instagram_placeholder.png"
+                                alt="Instagram Logo"
+                                className="h-full max-h-full w-auto object-contain"
+                              />
+                            </div>
+                          </div>
+                          {/* Button Overlay */}
+                          <div
+                            className="absolute inset-0 flex items-end justify-start pb-4"
+                            style={{ paddingLeft: "24px" }}
+                          >
+                            <div
+                              className="bg-black border border-white rounded-full px-3 py-1 flex items-center justify-center"
+                              style={{
+                                fontSize: "14px",
+                                lineHeight: "1.5",
+                                minHeight: "29px",
+                                backgroundColor: "rgba(0, 0, 0, 0.5)",
+                              }}
+                            >
+                              <span className="font-semibold text-white text-center whitespace-nowrap">
+                                {getCompanyName(8)}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Props Template 9 */}
+                      <div
+                        className="w-full cursor-pointer hover:opacity-80 transition-opacity bg-white rounded"
+                        style={{ borderRadius: "4px", aspectRatio: "600/400" }}
+                      >
+                        <div
+                          onClick={() =>
+                            handleTemplateSelect("/templates/props/props-9.png")
+                          }
+                          className="relative w-full h-full"
+                        >
+                          <img
+                            src="/templates/props/props-9.png"
+                            alt="Props Template 9"
+                            className="w-full h-full object-cover"
+                            style={{ borderRadius: "4px" }}
+                          />
+                          {/* White Overlay with Stroke Line */}
+                          <div
+                            className="absolute top-0 left-0 right-0 bg-white border-b-2 border-gray-400"
+                            style={{
+                              height: "20%",
+                              zIndex: 50,
+                              borderRadius: "4px 4px 0 0",
+                            }}
+                          >
+                            {/* Logo Container */}
+                            <div
+                              className="absolute flex items-center"
+                              style={{
+                                height: "60%",
+                                width: "60%",
+                                maxWidth: "60%",
+                                left: "20px",
+                                top: "50%",
+                                transform: "translateY(-50%)",
+                              }}
+                            >
+                              <img
+                                src="/instagram_placeholder.png"
+                                alt="Instagram Logo"
+                                className="h-full max-h-full w-auto object-contain"
+                              />
+                            </div>
+                          </div>
+                          {/* Button Overlay */}
+                          <div
+                            className="absolute inset-0 flex items-end justify-start pb-4"
+                            style={{ paddingLeft: "24px" }}
+                          >
+                            <div
+                              className="bg-black border border-white rounded-full px-3 py-1 flex items-center justify-center"
+                              style={{
+                                fontSize: "14px",
+                                lineHeight: "1.5",
+                                minHeight: "29px",
+                                backgroundColor: "rgba(0, 0, 0, 0.5)",
+                              }}
+                            >
+                              <span className="font-semibold text-white text-center whitespace-nowrap">
+                                {getCompanyName(9)}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Props Template 10 */}
+                      <div
+                        className="w-full cursor-pointer hover:opacity-80 transition-opacity bg-white rounded"
+                        style={{ borderRadius: "4px", aspectRatio: "600/400" }}
+                      >
+                        <div
+                          onClick={() =>
+                            handleTemplateSelect(
+                              "/templates/props/props-10.png"
+                            )
+                          }
+                          className="relative w-full h-full"
+                        >
+                          <img
+                            src="/templates/props/props-10.png"
+                            alt="Props Template 10"
+                            className="w-full h-full object-cover"
+                            style={{ borderRadius: "4px" }}
+                          />
+                          {/* White Overlay with Stroke Line */}
+                          <div
+                            className="absolute top-0 left-0 right-0 bg-white border-b-2 border-gray-400"
+                            style={{
+                              height: "20%",
+                              zIndex: 50,
+                              borderRadius: "4px 4px 0 0",
+                            }}
+                          >
+                            {/* Logo Container */}
+                            <div
+                              className="absolute flex items-center"
+                              style={{
+                                height: "60%",
+                                width: "60%",
+                                maxWidth: "60%",
+                                left: "20px",
+                                top: "50%",
+                                transform: "translateY(-50%)",
+                              }}
+                            >
+                              <img
+                                src="/instagram_placeholder.png"
+                                alt="Instagram Logo"
+                                className="h-full max-h-full w-auto object-contain"
+                              />
+                            </div>
+                          </div>
+                          {/* Button Overlay */}
+                          <div
+                            className="absolute inset-0 flex items-end justify-start pb-4"
+                            style={{ paddingLeft: "24px" }}
+                          >
+                            <div
+                              className="bg-black border border-white rounded-full px-3 py-1 flex items-center justify-center"
+                              style={{
+                                fontSize: "14px",
+                                lineHeight: "1.5",
+                                minHeight: "29px",
+                                backgroundColor: "rgba(0, 0, 0, 0.5)",
+                              }}
+                            >
+                              <span className="font-semibold text-white text-center whitespace-nowrap">
+                                {getCompanyName(10)}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Props Template 11 */}
+                      <div
+                        className="w-full cursor-pointer hover:opacity-80 transition-opacity bg-white rounded"
+                        style={{ borderRadius: "4px", aspectRatio: "600/400" }}
+                      >
+                        <div
+                          onClick={() =>
+                            handleTemplateSelect(
+                              "/templates/props/props-11.png"
+                            )
+                          }
+                          className="relative w-full h-full"
+                        >
+                          <img
+                            src="/templates/props/props-11.png"
+                            alt="Props Template 11"
+                            className="w-full h-full object-cover"
+                            style={{ borderRadius: "4px" }}
+                          />
+                          {/* White Overlay with Stroke Line */}
+                          <div
+                            className="absolute top-0 left-0 right-0 bg-white border-b-2 border-gray-400"
+                            style={{
+                              height: "20%",
+                              zIndex: 50,
+                              borderRadius: "4px 4px 0 0",
+                            }}
+                          >
+                            {/* Logo Container */}
+                            <div
+                              className="absolute flex items-center"
+                              style={{
+                                height: "60%",
+                                width: "60%",
+                                maxWidth: "60%",
+                                left: "20px",
+                                top: "50%",
+                                transform: "translateY(-50%)",
+                              }}
+                            >
+                              <img
+                                src="/instagram_placeholder.png"
+                                alt="Instagram Logo"
+                                className="h-full max-h-full w-auto object-contain"
+                              />
+                            </div>
+                          </div>
+                          {/* Button Overlay */}
+                          <div
+                            className="absolute inset-0 flex items-end justify-start pb-4"
+                            style={{ paddingLeft: "24px" }}
+                          >
+                            <div
+                              className="bg-black border border-white rounded-full px-3 py-1 flex items-center justify-center"
+                              style={{
+                                fontSize: "14px",
+                                lineHeight: "1.5",
+                                minHeight: "29px",
+                                backgroundColor: "rgba(0, 0, 0, 0.5)",
+                              }}
+                            >
+                              <span className="font-semibold text-white text-center whitespace-nowrap">
+                                {getCompanyName(11)}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Props Template 12 */}
+                      <div
+                        className="w-full cursor-pointer hover:opacity-80 transition-opacity bg-white rounded"
+                        style={{ borderRadius: "4px", aspectRatio: "600/400" }}
+                      >
+                        <div
+                          onClick={() =>
+                            handleTemplateSelect(
+                              "/templates/props/props-12.png"
+                            )
+                          }
+                          className="relative w-full h-full"
+                        >
+                          <img
+                            src="/templates/props/props-12.png"
+                            alt="Props Template 12"
+                            className="w-full h-full object-cover"
+                            style={{ borderRadius: "4px" }}
+                          />
+                          {/* White Overlay with Stroke Line */}
+                          <div
+                            className="absolute top-0 left-0 right-0 bg-white border-b-2 border-gray-400"
+                            style={{
+                              height: "20%",
+                              zIndex: 50,
+                              borderRadius: "4px 4px 0 0",
+                            }}
+                          >
+                            {/* Logo Container */}
+                            <div
+                              className="absolute flex items-center"
+                              style={{
+                                height: "60%",
+                                width: "60%",
+                                maxWidth: "60%",
+                                left: "20px",
+                                top: "50%",
+                                transform: "translateY(-50%)",
+                              }}
+                            >
+                              <img
+                                src="/instagram_placeholder.png"
+                                alt="Instagram Logo"
+                                className="h-full max-h-full w-auto object-contain"
+                              />
+                            </div>
+                          </div>
+                          {/* Button Overlay */}
+                          <div
+                            className="absolute inset-0 flex items-end justify-start pb-4"
+                            style={{ paddingLeft: "24px" }}
+                          >
+                            <div
+                              className="bg-black border border-white rounded-full px-3 py-1 flex items-center justify-center"
+                              style={{
+                                fontSize: "14px",
+                                lineHeight: "1.5",
+                                minHeight: "29px",
+                                backgroundColor: "rgba(0, 0, 0, 0.5)",
+                              }}
+                            >
+                              <span className="font-semibold text-white text-center whitespace-nowrap">
+                                {getCompanyName(12)}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
                     </div>
                   )}
-
                   {activeTab === "achievements" && (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 justify-start pb-6 h-full">
                       {/* Achievement Template 1 */}
