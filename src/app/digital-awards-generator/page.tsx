@@ -150,6 +150,35 @@ export default function DigitalAwardsPage() {
                   {selectedTemplate && (
                     <div className="w-full flex justify-center">
                       <div className="relative">
+                        {/* White Overlay with Stroke Line */}
+                        <div 
+                          className="absolute top-0 left-0 right-0 bg-white border-b-2 border-gray-400"
+                          style={{ 
+                            height: '80px',
+                            zIndex: 50,
+                            borderRadius: '8px 8px 0 0'
+                          }}
+                        >
+                          {/* Blue Placeholder Container */}
+                          <div 
+                            className="absolute bg-blue-500 flex items-center"
+                            style={{ 
+                              height: '40px',
+                              width: '250px',
+                              maxWidth: '250px',
+                              left: '20px',
+                              top: '50%',
+                              transform: 'translateY(-50%)'
+                            }}
+                          >
+                            <img 
+                              src="/instagram_placeholder.png"
+                              alt="Instagram Logo"
+                              className="h-full max-h-[40px] w-auto object-contain"
+                              style={{ maxHeight: '40px' }}
+                            />
+                          </div>
+                        </div>
                         <img 
                           src={selectedTemplate}
                           alt="Selected Template"
