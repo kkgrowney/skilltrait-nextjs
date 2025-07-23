@@ -22,6 +22,7 @@ export default function CompanyStep({ onNext, onPrevious, selectedTemplate, temp
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showCompanyNameInput, setShowCompanyNameInput] = useState(false);
   const [modalTrigger, setModalTrigger] = useState<'logo' | 'company' | null>(null);
+  const [hasConfirmedModal, setHasConfirmedModal] = useState(false);
 
   // Auto-set Instagram logo for Props templates
   useEffect(() => {
@@ -94,6 +95,7 @@ export default function CompanyStep({ onNext, onPrevious, selectedTemplate, temp
       }
     } else if (modalTrigger === 'company') {
       setShowCompanyNameInput(true);
+      setHasConfirmedModal(true);
       if (setLogoVisible) {
         setLogoVisible(false);
       }
@@ -123,7 +125,7 @@ export default function CompanyStep({ onNext, onPrevious, selectedTemplate, temp
       
 
       
-      <div className="space-y-6 flex-1">
+      <div className="space-y-6">
         {/* Drag to upload logo section */}
         <div>
           <h3 className="text-lg font-medium text-white mb-4">Drag to upload logo</h3>
@@ -213,9 +215,10 @@ export default function CompanyStep({ onNext, onPrevious, selectedTemplate, temp
                   if (setCompanyNameText) {
                     console.log('Setting company name text:', companyName);
                     setCompanyNameText(companyName);
+                    setHasConfirmedModal(false);
                   }
                 }}
-                className="px-4 py-2 text-sm font-medium transition-colors bg-[var(--primary-dark)] text-[#212327] rounded hover:bg-[#0AFB84]"
+                className="px-4 py-2 text-sm font-medium transition-colors bg-white text-[#212327] rounded hover:bg-gray-100"
               >
                 Add
               </button>
@@ -233,17 +236,16 @@ export default function CompanyStep({ onNext, onPrevious, selectedTemplate, temp
         </div>
       </div>
       
-      {/* Navigation buttons */}
-      <div className="flex justify-between" style={{marginTop: '12px'}}>
+      {/* Next button - right justified below container */}
+      <div className="flex justify-end" style={{marginTop: '24px'}}>
         <button 
-          onClick={onPrevious}
-          className="px-6 py-3 text-sm font-medium transition-colors bg-gray-600 text-white rounded hover:bg-gray-500"
-        >
-          Previous
-        </button>
-        <button 
-          onClick={handleNext}
-          disabled={!companyName.trim()}
+          onClick={() => {
+            if (setCompanyNameText && companyName.trim()) {
+              setCompanyNameText(companyName);
+            }
+            onNext();
+          }}
+          disabled={hasConfirmedModal && !companyName.trim()}
           className="px-6 py-3 text-sm font-medium transition-colors bg-[var(--primary-dark)] text-[#212327] rounded hover:bg-[#0AFB84] disabled:opacity-50 disabled:cursor-not-allowed"
         >
           Next

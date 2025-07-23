@@ -129,9 +129,9 @@ export default function DigitalAwardsPage() {
             {/* Fixed Header */}
             <div className="flex-shrink-0 px-6 pt-5" style={{backgroundColor: '#1B1D21'}}>
               <h1 className="text-[30px] font-bold text-white mb-4">
-                {(showTemplateDetail || (currentStep === 'company' && selectedTemplate)) ? 'Template Detail' : (activeTab === 'props' ? 'Props Templates' : 'Achievement Templates')}
+                {(showTemplateDetail || (currentStep === 'company' && selectedTemplate) || (currentStep === 'background' && selectedTemplate)) ? 'Template Detail' : (activeTab === 'props' ? 'Props Templates' : 'Achievement Templates')}
               </h1>
-              {!(showTemplateDetail || (currentStep === 'company' && selectedTemplate)) && (
+              {!(showTemplateDetail || (currentStep === 'company' && selectedTemplate) || (currentStep === 'background' && selectedTemplate)) && (
                 <p className="text-md text-gray-300 mb-6">
                   Choose a template for your achievement. You can update this later in saved awards.
                 </p>
@@ -140,7 +140,7 @@ export default function DigitalAwardsPage() {
             
             {/* Content Area */}
             <div className="flex-1 overflow-y-auto px-6" style={{backgroundColor: '#1B1D21'}}>
-              {(showTemplateDetail || (currentStep === 'company' && selectedTemplate)) ? (
+              {(showTemplateDetail || (currentStep === 'company' && selectedTemplate) || (currentStep === 'background' && selectedTemplate)) ? (
                 /* Template Detail View */
                 <div className="h-full flex flex-col items-center justify-start pt-6">
                   {/* Back Button */}
@@ -159,10 +159,10 @@ export default function DigitalAwardsPage() {
                   {/* Selected Template Display */}
                   {selectedTemplate && (
                     <div className="w-full flex justify-center">
-                      <div className="relative">
+                      <div className="relative bg-white rounded" style={{borderRadius: '4px'}}>
                         {/* White Overlay with Stroke Line */}
                         <div 
-                          className="absolute top-0 left-0 right-0 bg-white border-b-2 border-gray-400"
+                          className="absolute top-0 left-0 right-0 bg-white border-b-2 border-gray-200"
                           style={{ 
                             height: '80px',
                             zIndex: 50,
