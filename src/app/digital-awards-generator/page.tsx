@@ -317,7 +317,11 @@ export default function DigitalAwardsPage() {
                     <div className="w-full flex justify-center">
                       <div
                         className="relative bg-white rounded"
-                        style={{ borderRadius: "4px" }}
+                        style={{ 
+                          borderRadius: "4px",
+                          width: "600px",
+                          height: "480px"
+                        }}
                       >
                         {/* White Overlay with Stroke Line */}
                         <div
@@ -371,11 +375,16 @@ export default function DigitalAwardsPage() {
                         <img
                           src={selectedTemplate}
                           alt="Selected Template"
-                          className="max-w-full max-h-auto object-contain rounded"
-                          style={{ borderRadius: "4px" }}
+                          className="object-contain rounded"
+                          style={{ 
+                            borderRadius: "4px",
+                            width: "600px",
+                            height: "480px",
+                            objectPosition: "bottom"
+                          }}
                         />
-                        {/* Button Overlay */}
-                        <div
+                        {/* Button Overlay - Hidden */}
+                        {/* <div
                           className="absolute inset-0 flex items-end justify-start pb-4"
                           style={{ paddingLeft: "24px" }}
                         >
@@ -392,7 +401,7 @@ export default function DigitalAwardsPage() {
                               {getCompanyName(0)}
                             </span>
                           </div>
-                        </div>
+                        </div> */}
                       </div>
                     </div>
                   )}
@@ -467,7 +476,7 @@ export default function DigitalAwardsPage() {
                             />
                             {/* White Overlay with Stroke Line */}
                             <div
-                              className="absolute top-0 left-0 right-0 bg-white border-b-2 border-gray-400"
+                              className="absolute top-0 left-0 right-0 bg-white border-b-2 border-gray-200"
                               style={{
                                 height: "20%",
                                 zIndex: 50,
@@ -493,8 +502,8 @@ export default function DigitalAwardsPage() {
                                 />
                               </div>
                             </div>
-                            {/* Button Overlay */}
-                            <div
+                            {/* Button Overlay - Hidden */}
+                            {/* <div
                               className="absolute inset-0 flex items-end justify-start pb-4"
                               style={{ paddingLeft: "24px" }}
                             >
@@ -511,7 +520,7 @@ export default function DigitalAwardsPage() {
                                   {temp.achievement.name}
                                 </span>
                               </div>
-                            </div>
+                            </div> */}
                           </div>
                         </div>
                       ))}

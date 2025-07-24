@@ -49,6 +49,8 @@ export default function AwardsStep({
             t.achievement.tags.forEach((tag: string) => allTagsSet.add(tag));
           }
         });
+        
+        // Show all available filters
         const allTags = Array.from(allTagsSet);
 
         // Set filters with all tags as keys and default value of false
