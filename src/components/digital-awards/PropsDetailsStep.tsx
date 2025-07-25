@@ -93,7 +93,7 @@ export default function PropsDetailsStep({
                   placeholder="Enter props title"
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
-                  maxLength={20}
+                  maxLength={30}
                   className="flex-1 px-4 py-2 text-sm bg-[#1B1D21] border rounded text-white placeholder-gray-400 focus:outline-none focus:border-[var(--primary-dark)]"
                   style={{
                     borderColor: '#454446',
@@ -127,11 +127,11 @@ export default function PropsDetailsStep({
                 className="w-full px-4 py-2 text-sm bg-[#1B1D21] border rounded text-white placeholder-gray-400 cursor-pointer hover:border-[var(--primary-dark)] transition-colors"
                 style={{
                   borderColor: '#454446',
-                  textAlign: 'right',
-                  paddingRight: '12px'
+                  textAlign: 'left',
+                  paddingLeft: '12px'
                 }}
               >
-                <span className="text-gray-400" style={{ textAlign: 'right' }}>Click to enter props title</span>
+                <span className="text-gray-400" style={{ textAlign: 'left', display: 'block' }}>Click to enter props title</span>
               </div>
             )}
             <p className="text-gray-300 text-sm mt-2">The title will be displayed right-justified in the white container.</p>
