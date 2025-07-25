@@ -9,7 +9,6 @@ import {
   CompanyStep,
   BackgroundStep,
   PropsDetailsStep,
-  DetailsStep,
   ShareStep,
 } from "@/components/digital-awards";
 import CompanyButtonOverlay from "@/components/CompanyButtonOverlay";
@@ -74,15 +73,6 @@ export default function DigitalAwardsPage() {
       return;
     }
 
-    if (step === "details" && !selectedTemplate) {
-      setAlertMessage(
-        "You must first select an award template in order to proceed."
-      );
-      setShowAlert(true);
-      setTimeout(() => setShowAlert(false), 4000);
-      return;
-    }
-
     if (step === "share" && !selectedTemplate) {
       setAlertMessage(
         "You must first select an award template in order to proceed."
@@ -101,7 +91,6 @@ export default function DigitalAwardsPage() {
       "company",
       "background",
       "props-details",
-      "details",
       "share",
     ];
     const currentIndex = steps.indexOf(currentStep);
@@ -115,7 +104,7 @@ export default function DigitalAwardsPage() {
       "awards",
       "company",
       "background",
-      "details",
+      "props-details",
       "share",
     ];
     const currentIndex = steps.indexOf(currentStep);
@@ -137,7 +126,7 @@ export default function DigitalAwardsPage() {
     setSelectedTemplate(null);
   };
 
-  const handleChangeSearch = (e) => {
+  const handleChangeSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(e.target.value.toLowerCase());
   };
 
@@ -204,8 +193,6 @@ export default function DigitalAwardsPage() {
             setFromMessage={setFromMessage}
           />
         );
-      case "details":
-        return <DetailsStep onNext={handleNext} onPrevious={handlePrevious} />;
       case "share":
         return <ShareStep onPrevious={handlePrevious} />;
       default:

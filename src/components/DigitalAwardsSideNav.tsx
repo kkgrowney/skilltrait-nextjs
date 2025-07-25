@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 
-export type StepType = 'awards' | 'company' | 'background' | 'props-details' | 'details' | 'share';
+export type StepType = 'awards' | 'company' | 'background' | 'props-details' | 'share';
 
 interface DigitalAwardsSideNavProps {
   currentStep: StepType;
@@ -15,7 +15,6 @@ export default function DigitalAwardsSideNav({ currentStep, onStepChange }: Digi
     { key: 'company', label: 'Company', icon: '/company.svg' },
     { key: 'background', label: 'Background', icon: '/background.svg' },
     { key: 'props-details', label: 'Props Details', icon: '/details.svg' },
-    { key: 'details', label: 'Details', icon: '/details.svg' },
     { key: 'share', label: 'Share', icon: '/share.svg' }
   ];
 
