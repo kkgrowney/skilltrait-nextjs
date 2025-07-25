@@ -74,9 +74,9 @@ export default function PropsDetailsStep({
     <div className="h-full flex flex-col">
       <div className="text-center mb-8">
         <h1 className="text-[30px] font-bold text-white mb-4">
-          Props Details
+          Details
         </h1>
-        <p className="text-md text-gray-300 mb-0">
+        <p className="text-md text-gray-300 mb-6">
           Add details to personalize your props template.
         </p>
       </div>
