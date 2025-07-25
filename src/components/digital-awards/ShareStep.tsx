@@ -67,7 +67,7 @@ This digital award recognizes excellence and dedication in professional developm
     <div className="h-full flex flex-col">
       <div className="text-center mb-8">
         <h1 className="text-[30px] font-bold text-white mb-4">Share</h1>
-        <p className="text-md text-gray-300 mb-6">
+        <p className="text-md text-gray-300 mb-3">
           Generate and share your digital award.
         </p>
       </div>
@@ -78,10 +78,10 @@ This digital award recognizes excellence and dedication in professional developm
             className="p-4 rounded-sm border"
             style={{ backgroundColor: "#1B1D21", borderColor: "#454446" }}
           >
-            <h3 className="text-lg font-medium text-white mb-4">
+            <h3 className="text-lg font-medium text-white mb-2">
               Ready to Generate
             </h3>
-            <p className="text-gray-300 text-sm mb-4">
+            <p className="text-gray-300 text-sm mb-2">
               Click the button below to generate your digital award based on all
               the information you&#39;ve provided.
             </p>
