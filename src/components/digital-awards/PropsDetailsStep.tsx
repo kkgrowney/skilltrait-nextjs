@@ -93,7 +93,7 @@ export default function PropsDetailsStep({
                   placeholder="Enter props title"
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
-                  maxLength={30}
+                  maxLength={23}
                   className="flex-1 px-4 py-2 text-sm bg-[#1B1D21] border rounded text-white placeholder-gray-400 focus:outline-none focus:border-[var(--primary-dark)]"
                   style={{
                     borderColor: '#454446',
@@ -101,7 +101,10 @@ export default function PropsDetailsStep({
                     fontSize: '14px',
                     color: 'white',
                     textAlign: 'right',
-                    paddingRight: '12px'
+                    paddingRight: '12px',
+                    whiteSpace: 'nowrap',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis'
                   }}
                 />
                 <style jsx>{`
@@ -244,6 +247,23 @@ export default function PropsDetailsStep({
                 <p className="text-gray-400 text-xs mt-1">{message.length}/500 characters</p>
               </div>
             </div>
+            
+            {/* Add Button for From Section */}
+            <div className="flex justify-end mt-4">
+              <button
+                onClick={() => {
+                  // Handle adding the "From" information to the template
+                  if (setFromName) setFromName(name);
+                  if (setFromDate) setFromDate(date);
+                  if (setFromMessage) setFromMessage(message);
+                  console.log('Adding From information to template:', { name, date, message });
+                }}
+                className="px-4 py-2 text-sm font-medium transition-colors bg-white text-[#212327] rounded hover:bg-gray-100"
+              >
+                Add
+              </button>
+            </div>
+            
             <p className="text-gray-300 text-sm mt-2">Add your name, date, and a personal message.</p>
           </div>
         </div>
