@@ -72,11 +72,11 @@ export default function PropsDetailsStep({
 
   return (
     <div className="h-full flex flex-col">
-      <div className="text-center mb-8">
-        <h1 className="text-[30px] font-bold text-white mb-4">
+      <div className="text-center mb-6">
+        <h1 className="text-[30px] font-bold text-white mb-1">
           Details
         </h1>
-        <p className="text-md text-gray-300 mb-6">
+        <p className="text-md text-gray-300 mb-[-2]">
           Add details to personalize your props template.
         </p>
       </div>
@@ -137,7 +137,7 @@ export default function PropsDetailsStep({
                 <span className="text-gray-400" style={{ textAlign: 'left', display: 'block' }}>Click to enter props title</span>
               </div>
             )}
-            <p className="text-gray-300 text-sm mt-2">The title will be displayed right-justified in the white container.</p>
+
           </div>
         </div>
 
@@ -160,7 +160,7 @@ export default function PropsDetailsStep({
               <div className="flex items-center space-x-2">
                 <input 
                   type="text"
-                  placeholder="Add recipient name"
+                  placeholder="Add one or more recipient names"
                   value={newRecipient}
                   onChange={(e) => setNewRecipient(e.target.value)}
                   onKeyPress={(e) => e.key === 'Enter' && handleAddRecipient()}
@@ -180,7 +180,7 @@ export default function PropsDetailsStep({
                 </button>
               </div>
             </div>
-            <p className="text-gray-300 text-sm mt-2">Add the names of people receiving props.</p>
+
           </div>
         </div>
 
@@ -189,44 +189,50 @@ export default function PropsDetailsStep({
           <h3 className="text-lg font-medium text-white mb-4">From</h3>
           <div className="p-4 rounded-sm border" style={{backgroundColor: '#1B1D21', borderColor: '#454446'}}>
             <div className="space-y-4">
-              {/* Name */}
-              <div>
-                <label className="block text-white text-sm mb-2">Name</label>
-                <input 
-                  type="text"
-                  placeholder="Your name"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  maxLength={50}
-                  className="w-full px-4 py-2 text-sm bg-[#1B1D21] border rounded text-white placeholder-gray-400 focus:outline-none focus:border-[var(--primary-dark)]"
-                  style={{
-                    borderColor: '#454446',
-                    fontFamily: 'Poppins',
-                    fontSize: '14px',
-                    color: 'white'
-                  }}
-                />
+              {/* Name and Date on the same row */}
+              <div className="flex gap-2">
+                <div className="flex-1 basis-10/12">
+                  <label className="block text-white text-sm mb-2">Name</label>
+                  <input 
+                    type="text"
+                    placeholder="Your name"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    maxLength={50}
+                    className="w-full px-4 py-2 text-sm bg-[#1B1D21] border rounded text-white placeholder-gray-400 focus:outline-none focus:border-[var(--primary-dark)]"
+                    style={{
+                      borderColor: '#454446',
+                      fontFamily: 'Poppins',
+                      fontSize: '14px',
+                      color: 'white'
+                    }}
+                  />
+                </div>
+                <div className="basis-2/12 min-w-[90px]">
+                  <label className="block text-white text-sm mb-2">Date</label>
+                  <input 
+                    type="text"
+                    placeholder="d/m/yr"
+                    value={date}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      // Allow only numbers, slashes, and backspace
+                      if (/^[\d\/\b]*$/.test(value) || value === '') {
+                        setDate(value);
+                      }
+                    }}
+                    className="w-full px-2 py-2 text-sm bg-[#1B1D21] border rounded text-white focus:outline-none focus:border-[var(--primary-dark)]"
+                    style={{
+                      borderColor: '#454446',
+                      fontFamily: 'Poppins',
+                      fontSize: '14px',
+                      color: 'white',
+                      textAlign: 'right',
+                      paddingRight: '12px'
+                    }}
+                  />
+                </div>
               </div>
-
-              {/* Date */}
-              <div>
-                <label className="block text-white text-sm mb-2">Date</label>
-                <input 
-                  type="date"
-                  value={date}
-                  onChange={(e) => setDate(e.target.value)}
-                  className="w-full px-4 py-2 text-sm bg-[#1B1D21] border rounded text-white focus:outline-none focus:border-[var(--primary-dark)]"
-                  style={{
-                    borderColor: '#454446',
-                    fontFamily: 'Poppins',
-                    fontSize: '14px',
-                    color: 'white',
-                    textAlign: 'right',
-                    paddingRight: '12px'
-                  }}
-                />
-              </div>
-
               {/* Message */}
               <div>
                 <label className="block text-white text-sm mb-2">Message</label>
@@ -264,7 +270,7 @@ export default function PropsDetailsStep({
               </button>
             </div>
             
-            <p className="text-gray-300 text-sm mt-2">Add your name, date, and a personal message.</p>
+
           </div>
         </div>
       </div>
