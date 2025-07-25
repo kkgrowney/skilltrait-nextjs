@@ -189,9 +189,9 @@ export default function PropsDetailsStep({
           <h3 className="text-lg font-medium text-white mb-4">From</h3>
           <div className="p-4 rounded-sm border" style={{backgroundColor: '#1B1D21', borderColor: '#454446'}}>
             <div className="space-y-4">
-              {/* Name and Date on the same row */}
+              {/* Name and Calendar on the same row */}
               <div className="flex gap-2">
-                <div className="flex-1 basis-10/12">
+                <div className="basis-2/3">
                   <label className="block text-white text-sm mb-2">Name</label>
                   <input 
                     type="text"
@@ -208,27 +208,19 @@ export default function PropsDetailsStep({
                     }}
                   />
                 </div>
-                <div className="basis-2/12 min-w-[90px]">
+                <div className="basis-1/3">
                   <label className="block text-white text-sm mb-2">Date</label>
                   <input 
-                    type="text"
-                    placeholder="d/m/yr"
+                    type="date"
                     value={date}
-                    onChange={(e) => {
-                      const value = e.target.value;
-                      // Allow only numbers, slashes, and backspace
-                      if (/^[\d\/\b]*$/.test(value) || value === '') {
-                        setDate(value);
-                      }
-                    }}
-                    className="w-full px-2 py-2 text-sm bg-[#1B1D21] border rounded text-white focus:outline-none focus:border-[var(--primary-dark)]"
+                    onChange={(e) => setDate(e.target.value)}
+                    className="w-full px-2 py-2 text-sm bg-[#1B1D21] border rounded focus:outline-none focus:border-[var(--primary-dark)] cursor-pointer text-white"
                     style={{
                       borderColor: '#454446',
                       fontFamily: 'Poppins',
                       fontSize: '14px',
-                      color: 'white',
-                      textAlign: 'right',
-                      paddingRight: '12px'
+                      minHeight: '40px',
+                      textAlign: 'center'
                     }}
                   />
                 </div>
