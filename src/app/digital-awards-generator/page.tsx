@@ -8,6 +8,7 @@ import {
   AwardsStep,
   CompanyStep,
   BackgroundStep,
+  PropsDetailsStep,
   DetailsStep,
   ShareStep,
 } from "@/components/digital-awards";
@@ -23,15 +24,23 @@ export default function DigitalAwardsPage() {
   };
   const [currentStep, setCurrentStep] = useState<StepType>("awards");
   const [activeTab, setActiveTab] = useState<"props" | "achievements">("props");
-  const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null);
+  const [selectedTemplate, setSelectedTemplate] = useState<any | null>(null);
   const [showTemplateDetail, setShowTemplateDetail] = useState(false);
   const [showAlert, setShowAlert] = useState(false);
   const [alertMessage, setAlertMessage] = useState("");
   const [logoVisible, setLogoVisible] = useState(true);
   const [uploadedLogoFile, setUploadedLogoFile] = useState<File | null>(null);
-  const [propsTemplates, setPropsTemplates] = useState<string>();
+  const [propsTemplates, setPropsTemplates] = useState<any[]>([]);
   const [loadingTemplates, setLoadingTemplates] = useState<boolean>(false);
   const [companyNameText, setCompanyNameText] = useState<string>("");
+  const [backgroundVisible, setBackgroundVisible] = useState(true);
+  const [uploadedBackgroundFile, setUploadedBackgroundFile] = useState<File | null>(null);
+  const [backgroundNameText, setBackgroundNameText] = useState<string>("");
+  const [propsTitle, setPropsTitle] = useState<string>("");
+  const [propsRecipients, setPropsRecipients] = useState<string[]>([]);
+  const [fromName, setFromName] = useState<string>("");
+  const [fromDate, setFromDate] = useState<string>("");
+  const [fromMessage, setFromMessage] = useState<string>("");
   const [filters, setFilters] = useState<{ [tag: string]: boolean }>({});
   const [filteredTemplates, setFilteredTemplates] = useState<any[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
@@ -48,6 +57,15 @@ export default function DigitalAwardsPage() {
     }
 
     if (step === "background" && !selectedTemplate) {
+      setAlertMessage(
+        "You must first select an award template in order to proceed."
+      );
+      setShowAlert(true);
+      setTimeout(() => setShowAlert(false), 4000);
+      return;
+    }
+
+    if (step === "props-details" && !selectedTemplate) {
       setAlertMessage(
         "You must first select an award template in order to proceed."
       );
@@ -82,6 +100,7 @@ export default function DigitalAwardsPage() {
       "awards",
       "company",
       "background",
+      "props-details",
       "details",
       "share",
     ];
@@ -105,13 +124,12 @@ export default function DigitalAwardsPage() {
     }
   };
 
-  const handleTemplateSelect = (templateSrc: string) => {
-    setSelectedTemplate(templateSrc);
+  const handleTemplateSelect = (templateObj: any) => {
+    setSelectedTemplate(templateObj);
     setShowTemplateDetail(true);
     setLogoVisible(true); // Reset logo visibility for new template
     setUploadedLogoFile(null); // Reset uploaded logo for new template
     setCompanyNameText(""); // Reset company name for new template
-    // Don't change the current step - stay on Awards
   };
 
   const handleBackToTemplates = () => {
@@ -148,11 +166,43 @@ export default function DigitalAwardsPage() {
             setUploadedLogoFile={setUploadedLogoFile}
             companyNameText={companyNameText}
             setCompanyNameText={setCompanyNameText}
+            defaultLogoUrl={selectedTemplate?.achievement?.logoImage}
           />
         );
       case "background":
         return (
-          <BackgroundStep onNext={handleNext} onPrevious={handlePrevious} />
+          <BackgroundStep
+            onNext={handleNext}
+            onPrevious={handlePrevious}
+            selectedTemplate={selectedTemplate}
+            templateType={activeTab}
+            backgroundVisible={backgroundVisible}
+            setBackgroundVisible={setBackgroundVisible}
+            uploadedBackgroundFile={uploadedBackgroundFile}
+            setUploadedBackgroundFile={setUploadedBackgroundFile}
+            backgroundNameText={backgroundNameText}
+            setBackgroundNameText={setBackgroundNameText}
+            defaultBackgroundUrl={selectedTemplate?.achievement?.backgroundImage}
+          />
+        );
+      case "props-details":
+        return (
+          <PropsDetailsStep
+            onNext={handleNext}
+            onPrevious={handlePrevious}
+            selectedTemplate={selectedTemplate}
+            templateType={activeTab}
+            propsTitle={propsTitle}
+            setPropsTitle={setPropsTitle}
+            propsRecipients={propsRecipients}
+            setPropsRecipients={setPropsRecipients}
+            fromName={fromName}
+            setFromName={setFromName}
+            fromDate={fromDate}
+            setFromDate={setFromDate}
+            fromMessage={fromMessage}
+            setFromMessage={setFromMessage}
+          />
         );
       case "details":
         return <DetailsStep onNext={handleNext} onPrevious={handlePrevious} />;
@@ -362,7 +412,7 @@ export default function DigitalAwardsPage() {
                                   src={
                                     uploadedLogoFile
                                       ? URL.createObjectURL(uploadedLogoFile)
-                                      : "/instagram_placeholder.png"
+                                      : selectedTemplate.achievement.logoImage
                                   }
                                   alt="Logo"
                                   className="h-full max-h-[40px] w-auto object-contain"
@@ -371,11 +421,67 @@ export default function DigitalAwardsPage() {
                               )}
                             </div>
                           )}
+                          
+                          {/* Props Title Container */}
+                          {propsTitle && (
+                            <div
+                              className="absolute flex items-center justify-end"
+                              style={{
+                                height: "40px",
+                                width: "250px",
+                                maxWidth: "250px",
+                                right: "20px",
+                                top: "50%",
+                                transform: "translateY(-50%)",
+                              }}
+                            >
+                              <div
+                                className="text-black font-poppins text-right"
+                                style={{
+                                  fontFamily: "Poppins",
+                                  fontSize: "20px",
+                                  maxWidth: "250px",
+                                  color: "black",
+                                  textAlign: "right",
+                                }}
+                              >
+                                {propsTitle}
+                              </div>
+                            </div>
+                          )}
                         </div>
+                        {/* Background Image Overlay */}
+                        {(backgroundVisible || uploadedBackgroundFile) && (
+                          <div
+                            className="absolute inset-0 z-10 overflow-hidden"
+                            style={{
+                              borderRadius: "4px",
+                              width: "600px",
+                              height: "480px",
+                            }}
+                          >
+                            <img
+                              src={
+                                uploadedBackgroundFile
+                                  ? URL.createObjectURL(uploadedBackgroundFile)
+                                  : selectedTemplate.achievement.backgroundImage
+                              }
+                              alt="Background"
+                              className="w-full h-full object-cover rounded"
+                              style={{ 
+                                borderRadius: "4px",
+                                minWidth: "600px",
+                                minHeight: "480px",
+                                objectFit: "cover",
+                                objectPosition: "center"
+                              }}
+                            />
+                          </div>
+                        )}
                         <img
-                          src={selectedTemplate}
+                          src={selectedTemplate.achievement.props}
                           alt="Selected Template"
-                          className="object-contain rounded"
+                          className="object-contain rounded relative z-20"
                           style={{ 
                             borderRadius: "4px",
                             width: "600px",
@@ -464,7 +570,7 @@ export default function DigitalAwardsPage() {
                         >
                           <div
                             onClick={() =>
-                              handleTemplateSelect(temp.achievement.props)
+                              handleTemplateSelect(temp)
                             }
                             className="relative w-full h-full"
                           >

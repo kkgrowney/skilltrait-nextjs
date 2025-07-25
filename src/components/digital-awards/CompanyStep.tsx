@@ -13,9 +13,10 @@ interface CompanyStepProps {
   setUploadedLogoFile?: (file: File | null) => void;
   companyNameText?: string;
   setCompanyNameText?: (text: string) => void;
+  defaultLogoUrl?: string | null;
 }
 
-export default function CompanyStep({ onNext, onPrevious, selectedTemplate, templateType, logoVisible, setLogoVisible, uploadedLogoFile, setUploadedLogoFile, companyNameText, setCompanyNameText }: CompanyStepProps) {
+export default function CompanyStep({ onNext, onPrevious, selectedTemplate, templateType, logoVisible, setLogoVisible, uploadedLogoFile, setUploadedLogoFile, companyNameText, setCompanyNameText, defaultLogoUrl }: CompanyStepProps) {
   const [companyName, setCompanyName] = useState('');
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [isDragOver, setIsDragOver] = useState(false);
@@ -23,22 +24,13 @@ export default function CompanyStep({ onNext, onPrevious, selectedTemplate, temp
   const [showCompanyNameInput, setShowCompanyNameInput] = useState(false);
   const [modalTrigger, setModalTrigger] = useState<'logo' | 'company' | null>(null);
   const [hasConfirmedModal, setHasConfirmedModal] = useState(false);
+  const [logoDeleted, setLogoDeleted] = useState(false);
 
-  // Auto-set Instagram logo for Props templates
   useEffect(() => {
-    if (templateType === 'props' && selectedTemplate) {
-      // Create a file object from the Instagram logo URL
-      fetch('/instagram_placeholder.png')
-        .then(response => response.blob())
-        .then(blob => {
-          const file = new File([blob], 'instagram_logo.png', { type: 'image/png' });
-          setUploadedFile(file);
-        })
-        .catch(error => {
-          console.error('Error loading Instagram logo:', error);
-        });
+    if (!uploadedFile && uploadedLogoFile) {
+      setUploadedFile(uploadedLogoFile);
     }
-  }, [templateType, selectedTemplate]);
+  }, [uploadedLogoFile]);
 
   const handleNext = () => {
     if (companyName.trim()) {
@@ -62,6 +54,7 @@ export default function CompanyStep({ onNext, onPrevious, selectedTemplate, temp
     const files = e.dataTransfer.files;
     if (files.length > 0) {
       setUploadedFile(files[0]);
+      setLogoDeleted(false);
       if (setLogoVisible) {
         setLogoVisible(true);
       }
@@ -75,6 +68,7 @@ export default function CompanyStep({ onNext, onPrevious, selectedTemplate, temp
     const files = e.target.files;
     if (files && files.length > 0) {
       setUploadedFile(files[0]);
+      setLogoDeleted(false);
       if (setLogoVisible) {
         setLogoVisible(true);
       }
@@ -87,6 +81,7 @@ export default function CompanyStep({ onNext, onPrevious, selectedTemplate, temp
   const handleDeleteLogo = () => {
     if (modalTrigger === 'logo') {
       setUploadedFile(null);
+      setLogoDeleted(true);
       if (setLogoVisible) {
         setLogoVisible(false);
       }
@@ -139,11 +134,39 @@ export default function CompanyStep({ onNext, onPrevious, selectedTemplate, temp
             onDragLeave={handleDragLeave}
             onDrop={handleDrop}
           >
-            {uploadedFile ? (
+            {!logoDeleted && (uploadedFile ? (
               <div className="relative w-[250px] h-[40px] rounded-none flex items-center justify-start">
                 <img 
                   src={URL.createObjectURL(uploadedFile)} 
                   alt="Uploaded logo" 
+                  className="max-w-[250px] max-h-[40px] w-auto h-auto object-contain mr-6"
+                />
+                <button
+                  onClick={() => handleShowDeleteModal('logo')}
+                  className="absolute -top-2 -right-2 w-4 h-4 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center text-xs font-bold transition-colors"
+                >
+                  ×
+                </button>
+              </div>
+            ) : uploadedLogoFile ? (
+              <div className="relative w-[250px] h-[40px] rounded-none flex items-center justify-start">
+                <img 
+                  src={URL.createObjectURL(uploadedLogoFile)} 
+                  alt="Uploaded logo" 
+                  className="max-w-[250px] max-h-[40px] w-auto h-auto object-contain mr-6"
+                />
+                <button
+                  onClick={() => handleShowDeleteModal('logo')}
+                  className="absolute -top-2 -right-2 w-4 h-4 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center text-xs font-bold transition-colors"
+                >
+                  ×
+                </button>
+              </div>
+            ) : defaultLogoUrl ? (
+              <div className="relative w-[250px] h-[40px] rounded-none flex items-center justify-start">
+                <img 
+                  src={defaultLogoUrl} 
+                  alt="Default logo" 
                   className="max-w-[250px] max-h-[40px] w-auto h-auto object-contain mr-6"
                 />
                 <button
@@ -176,7 +199,7 @@ export default function CompanyStep({ onNext, onPrevious, selectedTemplate, temp
                   </label>
                 </div>
               </div>
-            )}
+            ))}
           </div>
           <p className="text-white text-sm mt-2">Max Dimensions: 40 px X 250 px (Dark logo preferred)</p>
         </div>

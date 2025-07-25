@@ -1,0 +1,263 @@
+'use client';
+
+import { useState } from 'react';
+
+interface PropsDetailsStepProps {
+  onNext: () => void;
+  onPrevious: () => void;
+  selectedTemplate?: string | null;
+  templateType?: 'props' | 'achievements';
+  propsTitle?: string;
+  setPropsTitle?: (title: string) => void;
+  propsRecipients?: string[];
+  setPropsRecipients?: (recipients: string[]) => void;
+  fromName?: string;
+  setFromName?: (name: string) => void;
+  fromDate?: string;
+  setFromDate?: (date: string) => void;
+  fromMessage?: string;
+  setFromMessage?: (message: string) => void;
+}
+
+export default function PropsDetailsStep({ 
+  onNext, 
+  onPrevious, 
+  selectedTemplate, 
+  templateType,
+  propsTitle,
+  setPropsTitle,
+  propsRecipients,
+  setPropsRecipients,
+  fromName,
+  setFromName,
+  fromDate,
+  setFromDate,
+  fromMessage,
+  setFromMessage
+}: PropsDetailsStepProps) {
+  const [title, setTitle] = useState(propsTitle || '');
+  const [showTitleInput, setShowTitleInput] = useState(false);
+  const [recipients, setRecipients] = useState<string[]>(propsRecipients || []);
+  const [newRecipient, setNewRecipient] = useState('');
+  const [name, setName] = useState(fromName || '');
+  const [date, setDate] = useState(fromDate || '');
+  const [message, setMessage] = useState(fromMessage || '');
+
+  const handleAddRecipient = () => {
+    if (newRecipient.trim() && !recipients.includes(newRecipient.trim())) {
+      const updatedRecipients = [...recipients, newRecipient.trim()];
+      setRecipients(updatedRecipients);
+      if (setPropsRecipients) {
+        setPropsRecipients(updatedRecipients);
+      }
+      setNewRecipient('');
+    }
+  };
+
+  const handleRemoveRecipient = (index: number) => {
+    const updatedRecipients = recipients.filter((_, i) => i !== index);
+    setRecipients(updatedRecipients);
+    if (setPropsRecipients) {
+      setPropsRecipients(updatedRecipients);
+    }
+  };
+
+  const handleNext = () => {
+    if (setPropsTitle) setPropsTitle(title);
+    if (setFromName) setName(name);
+    if (setFromDate) setFromDate(date);
+    if (setFromMessage) setFromMessage(message);
+    onNext();
+  };
+
+  return (
+    <div className="h-full flex flex-col">
+      <div className="text-center mb-8">
+        <h1 className="text-[30px] font-bold text-white mb-4">
+          Props Details
+        </h1>
+        <p className="text-md text-gray-300 mb-0">
+          Add details to personalize your props template.
+        </p>
+      </div>
+      
+      <div className="space-y-6">
+        {/* Props Title Section */}
+        <div>
+          <h3 className="text-lg font-medium text-white mb-4">Props Title *</h3>
+          <div className="p-4 rounded-sm border" style={{backgroundColor: '#1B1D21', borderColor: '#454446'}}>
+            {showTitleInput ? (
+              <div className="flex items-center space-x-2">
+                <input 
+                  type="text"
+                  placeholder="Enter props title"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  maxLength={20}
+                  className="flex-1 px-4 py-2 text-sm bg-[#1B1D21] border rounded text-white placeholder-gray-400 focus:outline-none focus:border-[var(--primary-dark)]"
+                  style={{
+                    borderColor: '#454446',
+                    fontFamily: 'Poppins',
+                    fontSize: '14px',
+                    color: 'white',
+                    textAlign: 'right',
+                    paddingRight: '12px'
+                  }}
+                />
+                <style jsx>{`
+                  input::placeholder {
+                    text-align: right;
+                  }
+                `}</style>
+                <button
+                  onClick={() => {
+                    if (setPropsTitle) {
+                      setPropsTitle(title);
+                    }
+                    setShowTitleInput(false);
+                  }}
+                  className="px-4 py-2 text-sm font-medium transition-colors bg-white text-[#212327] rounded hover:bg-gray-100"
+                >
+                  Add
+                </button>
+              </div>
+            ) : (
+              <div 
+                onClick={() => setShowTitleInput(true)}
+                className="w-full px-4 py-2 text-sm bg-[#1B1D21] border rounded text-white placeholder-gray-400 cursor-pointer hover:border-[var(--primary-dark)] transition-colors"
+                style={{
+                  borderColor: '#454446',
+                  textAlign: 'right',
+                  paddingRight: '12px'
+                }}
+              >
+                <span className="text-gray-400" style={{ textAlign: 'right' }}>Click to enter props title</span>
+              </div>
+            )}
+            <p className="text-gray-300 text-sm mt-2">The title will be displayed right-justified in the white container.</p>
+          </div>
+        </div>
+
+        {/* Props Recipients Section */}
+        <div>
+          <h3 className="text-lg font-medium text-white mb-4">Props Recipients</h3>
+          <div className="p-4 rounded-sm border" style={{backgroundColor: '#1B1D21', borderColor: '#454446'}}>
+            <div className="space-y-3">
+              {recipients.map((recipient, index) => (
+                <div key={index} className="flex items-center justify-between p-2 bg-[#2A2C30] rounded">
+                  <span className="text-white text-sm">{recipient}</span>
+                  <button
+                    onClick={() => handleRemoveRecipient(index)}
+                    className="text-red-400 hover:text-red-300 text-sm"
+                  >
+                    Remove
+                  </button>
+                </div>
+              ))}
+              <div className="flex items-center space-x-2">
+                <input 
+                  type="text"
+                  placeholder="Add recipient name"
+                  value={newRecipient}
+                  onChange={(e) => setNewRecipient(e.target.value)}
+                  onKeyPress={(e) => e.key === 'Enter' && handleAddRecipient()}
+                  className="flex-1 px-4 py-2 text-sm bg-[#1B1D21] border rounded text-white placeholder-gray-400 focus:outline-none focus:border-[var(--primary-dark)]"
+                  style={{
+                    borderColor: '#454446',
+                    fontFamily: 'Poppins',
+                    fontSize: '14px',
+                    color: 'white'
+                  }}
+                />
+                <button
+                  onClick={handleAddRecipient}
+                  className="px-4 py-2 text-sm font-medium transition-colors bg-white text-[#212327] rounded hover:bg-gray-100"
+                >
+                  Add
+                </button>
+              </div>
+            </div>
+            <p className="text-gray-300 text-sm mt-2">Add the names of people receiving props.</p>
+          </div>
+        </div>
+
+        {/* From Section */}
+        <div>
+          <h3 className="text-lg font-medium text-white mb-4">From</h3>
+          <div className="p-4 rounded-sm border" style={{backgroundColor: '#1B1D21', borderColor: '#454446'}}>
+            <div className="space-y-4">
+              {/* Name */}
+              <div>
+                <label className="block text-white text-sm mb-2">Name</label>
+                <input 
+                  type="text"
+                  placeholder="Your name"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  maxLength={50}
+                  className="w-full px-4 py-2 text-sm bg-[#1B1D21] border rounded text-white placeholder-gray-400 focus:outline-none focus:border-[var(--primary-dark)]"
+                  style={{
+                    borderColor: '#454446',
+                    fontFamily: 'Poppins',
+                    fontSize: '14px',
+                    color: 'white'
+                  }}
+                />
+              </div>
+
+              {/* Date */}
+              <div>
+                <label className="block text-white text-sm mb-2">Date</label>
+                <input 
+                  type="date"
+                  value={date}
+                  onChange={(e) => setDate(e.target.value)}
+                  className="w-full px-4 py-2 text-sm bg-[#1B1D21] border rounded text-white focus:outline-none focus:border-[var(--primary-dark)]"
+                  style={{
+                    borderColor: '#454446',
+                    fontFamily: 'Poppins',
+                    fontSize: '14px',
+                    color: 'white',
+                    textAlign: 'right',
+                    paddingRight: '12px'
+                  }}
+                />
+              </div>
+
+              {/* Message */}
+              <div>
+                <label className="block text-white text-sm mb-2">Message</label>
+                <textarea 
+                  placeholder="Enter your message"
+                  value={message}
+                  onChange={(e) => setMessage(e.target.value)}
+                  rows={4}
+                  maxLength={500}
+                  className="w-full px-4 py-2 text-sm bg-[#1B1D21] border rounded text-white placeholder-gray-400 focus:outline-none focus:border-[var(--primary-dark)] resize-none"
+                  style={{
+                    borderColor: '#454446',
+                    fontFamily: 'Poppins',
+                    fontSize: '14px',
+                    color: 'white'
+                  }}
+                />
+                <p className="text-gray-400 text-xs mt-1">{message.length}/500 characters</p>
+              </div>
+            </div>
+            <p className="text-gray-300 text-sm mt-2">Add your name, date, and a personal message.</p>
+          </div>
+        </div>
+      </div>
+      
+      {/* Next button - right justified below container */}
+      <div className="flex justify-end" style={{marginTop: '24px'}}>
+        <button 
+          onClick={handleNext}
+          className="px-6 py-3 text-sm font-medium transition-colors bg-[var(--primary-dark)] text-[#212327] rounded hover:bg-[#0AFB84]"
+        >
+          Next
+        </button>
+      </div>
+    </div>
+  );
+} 
