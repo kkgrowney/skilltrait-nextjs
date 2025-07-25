@@ -93,7 +93,7 @@ export default function PropsDetailsStep({
                   placeholder="Enter props title"
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
-                  maxLength={23}
+                  maxLength={22}
                   className="flex-1 px-4 py-2 text-sm bg-[#1B1D21] border rounded text-white placeholder-gray-400 focus:outline-none focus:border-[var(--primary-dark)]"
                   style={{
                     borderColor: '#454446',
