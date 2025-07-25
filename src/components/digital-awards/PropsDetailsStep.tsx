@@ -235,7 +235,7 @@ export default function PropsDetailsStep({
                   value={message}
                   onChange={(e) => setMessage(e.target.value)}
                   rows={4}
-                  maxLength={500}
+                  maxLength={300}
                   className="w-full px-4 py-2 text-sm bg-[#1B1D21] border rounded text-white placeholder-gray-400 focus:outline-none focus:border-[var(--primary-dark)] resize-none"
                   style={{
                     borderColor: '#454446',
@@ -244,7 +244,7 @@ export default function PropsDetailsStep({
                     color: 'white'
                   }}
                 />
-                <p className="text-gray-400 text-xs mt-1">{message.length}/500 characters</p>
+                <p className="text-gray-400 text-xs mt-1">{message.length}/300 characters</p>
               </div>
             </div>
             

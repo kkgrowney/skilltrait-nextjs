@@ -479,16 +479,16 @@ export default function DigitalAwardsPage() {
                         
                         {/* Props Recipients Text Container */}
                         {propsRecipients && propsRecipients.length > 0 && (
-                          <div
-                            className="absolute z-30 bg-gradient-to-r from-[#ADAFBE] via-[#4F7295] to-[#ADAFBE] opacity-80 rounded-lg p-2"
-                            style={{
-                              left: "20px",
-                              top: "92px",
-                              maxWidth: "280px",
-                              minHeight: "60px",
-                              position: "absolute"
-                            }}
-                          >
+                                        <div
+                className="absolute z-30 bg-gradient-to-r from-[#ADAFBE] via-[#4F7295] to-[#ADAFBE] opacity-90 rounded-lg p-2"
+                style={{
+                  left: "20px",
+                  top: "92px",
+                  maxWidth: "280px",
+                  minHeight: "60px",
+                  position: "absolute"
+                }}
+              >
                             <p className="text-white text-sm font-medium mb-1">Props recipients:</p>
                                                     <p className="text-white text-base font-medium" style={{ lineHeight: '1.2' }}>
                           {propsRecipients.join(', ')}
@@ -496,15 +496,15 @@ export default function DigitalAwardsPage() {
                             
                             {/* From Section Text Container - Child of Recipients Container */}
                             {(fromName || fromDate || fromMessage) && (
-                              <div
-                                className="absolute z-30 bg-gradient-to-r from-[#ADAFBE] via-[#4F7295] to-[#ADAFBE] opacity-80 rounded-lg p-2"
-                                style={{
-                                  left: "0px",
-                                  top: "calc(100% + 12px)",
-                                  maxWidth: "280px",
-                                  minHeight: "60px"
-                                }}
-                              >
+                                                <div
+                    className="absolute z-30 bg-gradient-to-r from-[#ADAFBE] via-[#4F7295] to-[#ADAFBE] opacity-90 rounded-lg p-2"
+                    style={{
+                      left: "0px",
+                      top: "calc(100% + 12px)",
+                      maxWidth: "280px",
+                      minHeight: "60px"
+                    }}
+                  >
                                 {fromName && (
                                   <div className="flex justify-between items-center mb-2">
                                     <p className="text-white text-sm font-medium">From: {fromName}</p>
@@ -532,15 +532,15 @@ export default function DigitalAwardsPage() {
                         
                         {/* From Section Text Container - When no recipients */}
                         {(!propsRecipients || propsRecipients.length === 0) && (fromName || fromDate || fromMessage) && (
-                          <div
-                            className="absolute z-30 bg-gradient-to-r from-[#ADAFBE] via-[#4F7295] to-[#ADAFBE] opacity-80 rounded-lg p-2"
-                            style={{
-                              left: "20px",
-                              top: "92px",
-                              maxWidth: "280px",
-                              minHeight: "60px"
-                            }}
-                          >
+                                        <div
+                className="absolute z-30 bg-gradient-to-r from-[#ADAFBE] via-[#4F7295] to-[#ADAFBE] opacity-90 rounded-lg p-2"
+                style={{
+                  left: "20px",
+                  top: "92px",
+                  maxWidth: "280px",
+                  minHeight: "60px"
+                }}
+              >
                             {fromName && (
                               <div className="flex justify-between items-center mb-2">
                                 <p className="text-white text-sm font-medium">From: {fromName}</p>
