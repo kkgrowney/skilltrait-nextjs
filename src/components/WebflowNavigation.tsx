@@ -31,7 +31,7 @@ export default function WebflowNavigation() {
         <nav role="navigation" className="navbar1_menu-2 is-page-height-tablet w-nav-menu">
           <Link href="/" aria-current="page" className="navbar-link is-alternate achievement w-nav-link w--current">Home</Link>
           <Link href="/achievements" className="navbar-link is-alternate w-nav-link">Digital Awards</Link>
-          <Link href="/award-templates" className="navbar-link is-alternate w-nav-link">Templates</Link>
+          <Link href="/digital-awards-generator" className="navbar-link is-alternate w-nav-link">Digital Awards Generator</Link>
           <Link href="/pricing" className="navbar-link is-alternate w-nav-link">Pricing</Link>
           <Link href="#help" className="navbar-link is-alternate w-nav-link">Help</Link>
           <div className="navbar1_menu-buttons">

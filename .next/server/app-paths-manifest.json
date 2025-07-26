@@ -1,3 +1,4 @@
 {
+  "/page": "app/page.js",
   "/digital-awards-generator/page": "app/digital-awards-generator/page.js"
 }
