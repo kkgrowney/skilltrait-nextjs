@@ -6,10 +6,12 @@ import { useEffect, useState } from "react";
 
 interface AwardsStepProps {
   onTabChange: (tab: "props" | "achievements") => void;
-  setFilters: (tab: "props" | "achievements") => void;
-  handleChangeSearch: (tab: "props" | "achievements") => void;
-  filters: any;
-  searchQuery: any;
+  setFilters: (filters: { [key: string]: boolean }) => void;
+  handleChangeSearch: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  filters: { [key: string]: boolean };
+  searchQuery: string;
+  showTemplateDetail?: boolean;
+  setShowAchievementsModal?: (show: boolean) => void;
 }
 
 export default function AwardsStep({
@@ -18,6 +20,8 @@ export default function AwardsStep({
   setFilters,
   handleChangeSearch,
   searchQuery,
+  showTemplateDetail = false,
+  setShowAchievementsModal,
 }: AwardsStepProps) {
   const [awardType, setAwardType] = useState("");
   const [recipientName, setRecipientName] = useState("");
@@ -68,10 +72,10 @@ export default function AwardsStep({
   }, []);
 
   const toggleFilter = (filterName: keyof typeof filters) => {
-    setFilters((prev) => ({
-      ...prev,
-      [filterName]: !prev[filterName],
-    }));
+    setFilters({
+      ...filters,
+      [filterName]: !filters[filterName],
+    });
   };
 
   return (
@@ -106,12 +110,18 @@ export default function AwardsStep({
           </button>
           <button
             onClick={() => {
-              setActiveTab("achievements");
-              onTabChange("achievements");
+              if (showTemplateDetail && setShowAchievementsModal) {
+                setShowAchievementsModal(true);
+              } else {
+                setActiveTab("achievements");
+                onTabChange("achievements");
+              }
             }}
             className={`px-4 py-2 text-sm font-medium transition-colors relative ${
               activeTab === "achievements"
                 ? "text-white border-b-2"
+                : showTemplateDetail
+                ? "text-gray-500 cursor-not-allowed"
                 : "text-gray-300 hover:text-white"
             }`}
             style={{
@@ -120,6 +130,7 @@ export default function AwardsStep({
                   ? "var(--primary-dark)"
                   : "transparent",
             }}
+            disabled={showTemplateDetail}
           >
             Achievements
           </button>
@@ -131,7 +142,7 @@ export default function AwardsStep({
         <div className="relative">
           <input
             type="text"
-            value={searchQuery}
+            value={searchQuery || ""}
             onChange={handleChangeSearch}
             placeholder="Search templates..."
             className="w-full px-4 py-3 text-sm bg-[#1B1D21] border rounded text-white placeholder-gray-400 focus:outline-none focus:border-[var(--primary-dark)]"

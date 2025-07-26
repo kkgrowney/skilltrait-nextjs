@@ -43,6 +43,7 @@ export default function DigitalAwardsPage() {
   const [filters, setFilters] = useState<{ [tag: string]: boolean }>({});
   const [filteredTemplates, setFilteredTemplates] = useState<any[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
+  const [showAchievementsModal, setShowAchievementsModal] = useState(false);
 
   const handleStepChange = (step: StepType) => {
     // Check if user can navigate to this step
@@ -140,6 +141,8 @@ export default function DigitalAwardsPage() {
             setFilters={setFilters}
             filters={filters}
             onTabChange={setActiveTab}
+            showTemplateDetail={showTemplateDetail}
+            setShowAchievementsModal={setShowAchievementsModal}
           />
         );
       case "company":
@@ -203,6 +206,8 @@ export default function DigitalAwardsPage() {
             setFilters={setFilters}
             filters={filters}
             onTabChange={setActiveTab}
+            showTemplateDetail={showTemplateDetail}
+            setShowAchievementsModal={setShowAchievementsModal}
           />
         );
     }
@@ -281,7 +286,15 @@ export default function DigitalAwardsPage() {
               style={{ backgroundColor: "#212327", padding: "20px" }}
             >
               {showTemplateDetail && currentStep === "awards" ? (
-                <AwardsStep onTabChange={setActiveTab} />
+                <AwardsStep 
+                  searchQuery={searchQuery}
+                  handleChangeSearch={handleChangeSearch}
+                  setFilters={setFilters}
+                  filters={filters}
+                  onTabChange={setActiveTab}
+                  showTemplateDetail={showTemplateDetail}
+                  setShowAchievementsModal={setShowAchievementsModal}
+                />
               ) : (
                 renderCurrentStep()
               )}
@@ -399,7 +412,7 @@ export default function DigitalAwardsPage() {
                                   src={
                                     uploadedLogoFile
                                       ? URL.createObjectURL(uploadedLogoFile)
-                                      : selectedTemplate.achievement.logoImage
+                                      : selectedTemplate?.achievement?.logoImage || ""
                                   }
                                   alt="Logo"
                                   className="h-full max-h-[40px] w-auto object-contain"
@@ -451,7 +464,7 @@ export default function DigitalAwardsPage() {
                               src={
                                 uploadedBackgroundFile
                                   ? URL.createObjectURL(uploadedBackgroundFile)
-                                  : selectedTemplate.achievement.backgroundImage
+                                  : selectedTemplate?.achievement?.backgroundImage || ""
                               }
                               alt="Background"
                               className="w-full h-full object-cover rounded"
@@ -466,7 +479,7 @@ export default function DigitalAwardsPage() {
                           </div>
                         )}
                         <img
-                          src={selectedTemplate.achievement.props}
+                          src={selectedTemplate?.achievement?.props || ""}
                           alt="Selected Template"
                           className="object-contain rounded relative z-20"
                           style={{ 
@@ -600,8 +613,9 @@ export default function DigitalAwardsPage() {
                   {activeTab === "props" && (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 justify-start pb-6 h-full">
                       {/* Props Template 1 */}
-                      {filteredTemplates?.map((temp) => (
+                      {filteredTemplates?.map((temp, index) => (
                         <div
+                          key={`props-template-${index}`}
                           className="w-full cursor-pointer hover:opacity-80 transition-opacity bg-white rounded"
                           style={{
                             borderRadius: "4px",
@@ -684,11 +698,7 @@ export default function DigitalAwardsPage() {
                           alt="Achievement Template 1"
                           className="w-full h-full object-contain"
                           style={{ borderRadius: "4px" }}
-                          onClick={() =>
-                            handleTemplateSelect(
-                              "/templates/achievements/achievements-1.png"
-                            )
-                          }
+                          onClick={() => setShowAchievementsModal(true)}
                         />
                       </div>
 
@@ -702,11 +712,7 @@ export default function DigitalAwardsPage() {
                           alt="Achievement Template 2"
                           className="w-full h-full object-contain"
                           style={{ borderRadius: "4px" }}
-                          onClick={() =>
-                            handleTemplateSelect(
-                              "/templates/achievements/achievements-2.png"
-                            )
-                          }
+                          onClick={() => setShowAchievementsModal(true)}
                         />
                       </div>
 
@@ -720,11 +726,7 @@ export default function DigitalAwardsPage() {
                           alt="Achievement Template 3"
                           className="w-full h-full object-contain"
                           style={{ borderRadius: "4px" }}
-                          onClick={() =>
-                            handleTemplateSelect(
-                              "/templates/achievements/achievements-3.png"
-                            )
-                          }
+                          onClick={() => setShowAchievementsModal(true)}
                         />
                       </div>
 
@@ -738,11 +740,7 @@ export default function DigitalAwardsPage() {
                           alt="Achievement Template 4"
                           className="w-full h-full object-contain"
                           style={{ borderRadius: "4px" }}
-                          onClick={() =>
-                            handleTemplateSelect(
-                              "/templates/achievements/achievements-4.png"
-                            )
-                          }
+                          onClick={() => setShowAchievementsModal(true)}
                         />
                       </div>
 
@@ -756,11 +754,7 @@ export default function DigitalAwardsPage() {
                           alt="Achievement Template 5"
                           className="w-full h-full object-contain"
                           style={{ borderRadius: "4px" }}
-                          onClick={() =>
-                            handleTemplateSelect(
-                              "/templates/achievements/achievements-5.png"
-                            )
-                          }
+                          onClick={() => setShowAchievementsModal(true)}
                         />
                       </div>
 
@@ -774,11 +768,7 @@ export default function DigitalAwardsPage() {
                           alt="Achievement Template 6"
                           className="w-full h-full object-contain"
                           style={{ borderRadius: "4px" }}
-                          onClick={() =>
-                            handleTemplateSelect(
-                              "/templates/achievements/achievements-6.png"
-                            )
-                          }
+                          onClick={() => setShowAchievementsModal(true)}
                         />
                       </div>
 
@@ -792,11 +782,7 @@ export default function DigitalAwardsPage() {
                           alt="Achievement Template 7"
                           className="w-full h-full object-contain"
                           style={{ borderRadius: "4px" }}
-                          onClick={() =>
-                            handleTemplateSelect(
-                              "/templates/achievements/achievements-7.png"
-                            )
-                          }
+                          onClick={() => setShowAchievementsModal(true)}
                         />
                       </div>
 
@@ -810,11 +796,7 @@ export default function DigitalAwardsPage() {
                           alt="Achievement Template 8"
                           className="w-full h-full object-contain"
                           style={{ borderRadius: "4px" }}
-                          onClick={() =>
-                            handleTemplateSelect(
-                              "/templates/achievements/achievements-8.png"
-                            )
-                          }
+                          onClick={() => setShowAchievementsModal(true)}
                         />
                       </div>
 
@@ -828,11 +810,7 @@ export default function DigitalAwardsPage() {
                           alt="Achievement Template 9"
                           className="w-full h-full object-contain"
                           style={{ borderRadius: "4px" }}
-                          onClick={() =>
-                            handleTemplateSelect(
-                              "/templates/achievements/achievements-9.png"
-                            )
-                          }
+                          onClick={() => setShowAchievementsModal(true)}
                         />
                       </div>
 
@@ -922,6 +900,31 @@ export default function DigitalAwardsPage() {
           </div>
         </div>
       )}
+      {showAchievementsModal && (
+  <div className="fixed inset-0 flex items-center justify-center z-[9999] bg-black bg-opacity-50">
+    <div className="bg-[#212327] border border-gray-600 rounded-lg p-6 max-w-sm w-full mx-4 shadow-2xl text-center">
+      <h2 className="text-lg font-medium text-white mb-4">Achievements Coming Soon</h2>
+      <p className="text-gray-300 mb-6">To send Achievements, please use our legacy web app.</p>
+      <div className="flex space-x-3 justify-end">
+        <button
+          className="flex-1 px-4 py-2 text-sm font-medium transition-colors border rounded text-gray-300 hover:text-white"
+          style={{borderColor: '#454446'}}
+          onClick={() => setShowAchievementsModal(false)}
+        >
+          Cancel
+        </button>
+        <a
+          href="https://legacy.skilltrait.com" // TODO: Replace with actual legacy app link
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex-1 px-4 py-2 text-sm font-medium transition-colors bg-[var(--primary-dark)] text-[#212327] rounded hover:bg-[#0AFB84] text-center"
+        >
+          Achievements
+        </a>
+      </div>
+    </div>
+  </div>
+)}
     </div>
   );
 }

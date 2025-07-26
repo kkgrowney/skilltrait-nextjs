@@ -30,7 +30,7 @@ export default function NavPrelogin() {
           {/* Desktop Navigation - left justified with 36px padding from logo */}
           <div className="hidden md:flex items-center" style={{marginLeft: '36px'}}>
             <div className="flex items-center space-x-8">
-              <Link 
+              {/* <Link 
                 href="/linkedin-resume-analysis" 
                 className={`px-2 py-2 text-sm font-bold transition-colors relative ${
                   pathname === '/linkedin-resume-analysis'
@@ -39,7 +39,7 @@ export default function NavPrelogin() {
                 }`}
               >
                 Resume Analysis
-              </Link>
+              </Link> */}
               <Link 
                 href="/employees" 
                 className={`px-2 py-2 text-sm transition-colors relative ${
@@ -127,7 +127,7 @@ export default function NavPrelogin() {
       {/* Mobile menu */}
       <div className={`${isMenuOpen ? 'block' : 'hidden'} md:hidden`}>
         <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3 border-t" style={{backgroundColor: '#212327', borderColor: '#454446'}}>
-          <Link
+          {/* <Link
             href="/linkedin-resume-analysis"
             className={`block px-3 py-2 text-base font-bold transition-colors ${
               pathname === '/linkedin-resume-analysis' 
@@ -137,7 +137,7 @@ export default function NavPrelogin() {
             onClick={() => setIsMenuOpen(false)}
           >
             Resume Analysis
-          </Link>
+          </Link> */}
           <Link
             href="/employees"
             className={`block px-3 py-2 text-base font-medium transition-colors ${
