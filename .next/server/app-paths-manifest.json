@@ -1,7 +1,8 @@
 {
-  "/signin/page": "app/signin/page.js",
+  "/favicon.ico/route": "app/favicon.ico/route.js",
   "/signup/page": "app/signup/page.js",
+  "/signin/page": "app/signin/page.js",
   "/dashboard/page": "app/dashboard/page.js",
-  "/page": "app/page.js",
-  "/digital-awards-generator/page": "app/digital-awards-generator/page.js"
+  "/digital-awards-generator/page": "app/digital-awards-generator/page.js",
+  "/page": "app/page.js"
 }

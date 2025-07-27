@@ -11,16 +11,6 @@
       "static/chunks/main-app.js",
       "static/chunks/app/not-found.js"
     ],
-    "/digital-awards-generator/page": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/digital-awards-generator/page.js"
-    ],
-    "/_not-found/page": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/_not-found/page.js"
-    ],
     "/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
@@ -36,20 +26,25 @@
       "static/chunks/main-app.js",
       "static/chunks/app/signup/page.js"
     ],
-    "/employees/page": [
+    "/dashboard/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
-      "static/chunks/app/employees/page.js"
+      "static/chunks/app/dashboard/page.js"
     ],
     "/profile/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
       "static/chunks/app/profile/page.js"
     ],
-    "/dashboard/page": [
+    "/_not-found/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
-      "static/chunks/app/dashboard/page.js"
+      "static/chunks/app/_not-found/page.js"
+    ],
+    "/digital-awards-generator/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/digital-awards-generator/page.js"
     ]
   }
 }
