@@ -4,7 +4,7 @@ import React from 'react';
 
 export default function SideNavAuth() {
   return (
-    <aside className="bg-[#181d21] w-60 min-h-screen flex flex-col justify-between border-r border-[#454446]">
+    <aside className="bg-[#181d21] w-60 h-screen fixed left-0 top-0 flex flex-col justify-between border-r border-[#454446]">
       {/* Top Section */}
       <div className="flex flex-col gap-4 p-3">
         {/* Company Name */}

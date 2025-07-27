@@ -2,18 +2,41 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 
 export default function NavPrelogin() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [showNotification, setShowNotification] = useState(false);
   const pathname = usePathname();
+  const router = useRouter();
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
   };
 
+  const handleProtectedLink = (e: React.MouseEvent) => {
+    e.preventDefault();
+    console.log('Showing notification...');
+    setShowNotification(true);
+    
+    // Hide notification after 2 seconds and redirect
+    setTimeout(() => {
+      console.log('Hiding notification and redirecting...');
+      setShowNotification(false);
+      router.push('/signup');
+    }, 2000);
+  };
+
   return (
-    <nav className="sticky top-0 z-50 shadow-sm border-b w-full" style={{backgroundColor: '#212327', borderColor: '#454446'}}>
+    <>
+      {/* Notification */}
+      {showNotification && (
+        <div className="fixed top-20 left-1/2 transform -translate-x-1/2 z-[9999] bg-[var(--primary-dark)] border border-[#454446] rounded-lg px-6 py-4 shadow-xl">
+          <div className="text-[#212327] text-base font-semibold">Please create a free account</div>
+        </div>
+      )}
+      
+      <nav className="sticky top-0 z-50 shadow-sm border-b w-full" style={{backgroundColor: '#212327', borderColor: '#454446'}}>
       <div className="w-full px-5">
         <div className="flex items-center h-16">
           {/* Logo - left justified with 20px margin to align with content */}
@@ -41,16 +64,6 @@ export default function NavPrelogin() {
                 Resume Analysis
               </Link> */}
               <Link 
-                href="/employees" 
-                className={`px-2 py-2 text-sm transition-colors relative ${
-                  pathname === '/employees'
-                    ? 'text-white font-bold after:content-[""] after:absolute after:left-0 after:right-0 after:bottom-[-14px] after:h-0.5 after:bg-[var(--primary-dark)] after:z-10'
-                    : 'text-gray-300 hover:text-white hover:after:content-[""] hover:after:absolute hover:after:left-0 hover:after:right-0 hover:after:bottom-[-14px] hover:after:h-0.5 hover:after:bg-[var(--primary-dark)] hover:after:opacity-50 hover:after:z-10 font-medium'
-                }`}
-              >
-                Employees
-              </Link>
-              <Link 
                 href="/digital-awards-generator" 
                 className={`px-2 py-2 text-sm transition-colors relative ${
                   pathname === '/digital-awards-generator'
@@ -58,8 +71,28 @@ export default function NavPrelogin() {
                     : 'text-gray-300 hover:text-white hover:after:content-[""] hover:after:absolute hover:after:left-0 hover:after:right-0 hover:after:bottom-[-14px] hover:after:h-0.5 hover:after:bg-[var(--primary-dark)] hover:after:opacity-50 hover:after:z-10 font-medium'
                 }`}
               >
-                Digital Awards
+                Awards Generator
               </Link>
+              <button 
+                onClick={handleProtectedLink}
+                className={`px-2 py-2 text-sm transition-colors relative cursor-pointer ${
+                  pathname === '/profile'
+                    ? 'text-white font-bold after:content-[""] after:absolute after:left-0 after:right-0 after:bottom-[-14px] after:h-0.5 after:bg-[var(--primary-dark)] after:z-10'
+                    : 'text-gray-300 hover:text-white hover:after:content-[""] hover:after:absolute hover:after:left-0 hover:after:right-0 hover:after:bottom-[-14px] hover:after:h-0.5 hover:after:bg-[var(--primary-dark)] hover:after:opacity-50 hover:after:z-10 font-medium'
+                }`}
+              >
+                Profile
+              </button>
+              <button 
+                onClick={handleProtectedLink}
+                className={`px-2 py-2 text-sm transition-colors relative cursor-pointer ${
+                  pathname === '/employees'
+                    ? 'text-white font-bold after:content-[""] after:absolute after:left-0 after:right-0 after:bottom-[-14px] after:h-0.5 after:bg-[var(--primary-dark)] after:z-10'
+                    : 'text-gray-300 hover:text-white hover:after:content-[""] hover:after:absolute hover:after:left-0 hover:after:right-0 hover:after:bottom-[-14px] hover:after:h-0.5 hover:after:bg-[var(--primary-dark)] hover:after:opacity-50 hover:after:z-10 font-medium'
+                }`}
+              >
+                Employees
+              </button>
             </div>
           </div>
 
@@ -75,7 +108,7 @@ export default function NavPrelogin() {
               href="/signin" 
               className="px-4 py-2 rounded text-sm font-medium transition-colors bg-[var(--primary-dark)] text-[#212327] hover:bg-[#0AFB84]"
             >
-              Send free props
+              Sign up for free
             </Link>
           </div>
 
@@ -139,17 +172,6 @@ export default function NavPrelogin() {
             Resume Analysis
           </Link> */}
           <Link
-            href="/employees"
-            className={`block px-3 py-2 text-base font-medium transition-colors ${
-              pathname === '/employees' 
-                ? 'text-white font-bold' 
-                : 'text-gray-300 hover:text-white'
-            }`}
-            onClick={() => setIsMenuOpen(false)}
-          >
-            Employees
-          </Link>
-          <Link
             href="/digital-awards-generator"
             className={`block px-3 py-2 text-base font-medium transition-colors ${
               pathname === '/digital-awards-generator' 
@@ -158,8 +180,34 @@ export default function NavPrelogin() {
             }`}
             onClick={() => setIsMenuOpen(false)}
           >
-            Digital Awards
+            Awards Generator
           </Link>
+          <button
+            onClick={(e) => {
+              setIsMenuOpen(false);
+              handleProtectedLink(e);
+            }}
+            className={`block w-full text-left px-3 py-2 text-base font-medium transition-colors cursor-pointer ${
+              pathname === '/profile' 
+                ? 'text-white font-bold' 
+                : 'text-gray-300 hover:text-white'
+            }`}
+          >
+            Profile
+          </button>
+          <button
+            onClick={(e) => {
+              setIsMenuOpen(false);
+              handleProtectedLink(e);
+            }}
+            className={`block w-full text-left px-3 py-2 text-base font-medium transition-colors cursor-pointer ${
+              pathname === '/employees' 
+                ? 'text-white font-bold' 
+                : 'text-gray-300 hover:text-white'
+            }`}
+          >
+            Employees
+          </button>
           <Link
             href="/signin"
             className="text-gray-300 hover:text-white block px-3 py-2 text-base font-medium transition-colors"
@@ -172,10 +220,11 @@ export default function NavPrelogin() {
             className="block px-3 py-2 rounded text-base font-medium transition-colors bg-[var(--primary-dark)] text-[#212327] hover:bg-[#0AFB84]"
             onClick={() => setIsMenuOpen(false)}
           >
-            Send free props
+            Sign up for free
           </Link>
         </div>
       </div>
     </nav>
+    </>
   );
 } 

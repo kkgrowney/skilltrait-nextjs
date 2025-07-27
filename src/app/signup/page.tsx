@@ -113,7 +113,7 @@ export default function SignUpPage() {
             </div>
           </div>
         </div>
-        <div className="hidden md:block basis-0 bg-center bg-cover bg-no-repeat grow h-full min-h-screen min-w-px shrink-0" style={{backgroundImage: 'url(\'https://picsum.photos/1200/800?random=2\')'}}></div>
+        <div className="hidden md:block basis-0 bg-center bg-cover bg-no-repeat grow h-full min-h-screen min-w-px shrink-0" style={{backgroundImage: 'url(\'/hero_image1x.jpg\')'}}></div>
       </div>
     );
   }
@@ -462,7 +462,7 @@ export default function SignUpPage() {
         </div>
       </div>
       
-      <div className="hidden md:block basis-0 bg-center bg-cover bg-no-repeat grow h-full min-h-screen min-w-px shrink-0" style={{backgroundImage: 'url(\'https://picsum.photos/1200/800?random=2\')'}}></div>
+      <div className="hidden md:block basis-0 bg-center bg-cover bg-no-repeat grow h-full min-h-screen min-w-px shrink-0" style={{backgroundImage: 'url(\'/hero_image1x.jpg\')'}}></div>
     </div>
   );
 } 

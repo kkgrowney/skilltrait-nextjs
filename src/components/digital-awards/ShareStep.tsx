@@ -129,32 +129,38 @@ This digital award recognizes excellence and dedication in professional developm
         <h3 className="text-lg font-medium text-white mb-2 mt-6">Share Props</h3>
         
         {/* Social Media Icons */}
-        <div className="flex justify-center gap-6 mb-4">
+        <div className="flex justify-center gap-3 mb-4">
           {/* Copy Icon */}
           <button
             type="button"
-            className="p-3 rounded-full bg-gray-600 hover:bg-gray-500 transition-colors"
+            className="p-3 rounded-full bg-gray-600 hover:bg-gray-500 transition-colors flex items-center justify-center"
             aria-label="Copy"
           >
-            <img src="/copy.png" alt="Copy" width="26" height="26" />
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" className="text-white">
+              <path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm-1 16H8V7h10v14z"/>
+            </svg>
           </button>
           
           {/* Link Icon */}
           <button
             type="button"
-            className="p-3 rounded-full bg-gray-600 hover:bg-gray-500 transition-colors"
+            className="p-3 rounded-full bg-gray-600 hover:bg-gray-500 transition-colors flex items-center justify-center"
             aria-label="Link"
           >
-            <img src="/link.png" alt="Link" width="26" height="26" />
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" className="text-white">
+              <path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z"/>
+            </svg>
           </button>
           
           {/* Download Icon */}
           <button
             type="button"
-            className="p-3 rounded-full bg-gray-600 hover:bg-gray-500 transition-colors"
+            className="p-3 rounded-full bg-gray-600 hover:bg-gray-500 transition-colors flex items-center justify-center"
             aria-label="Download"
           >
-            <img src="/download.png" alt="Download" width="26" height="26" />
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" className="text-white">
+              <path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/>
+            </svg>
           </button>
           
           {/* LinkedIn Icon */}
