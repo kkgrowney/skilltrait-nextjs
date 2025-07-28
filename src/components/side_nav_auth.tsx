@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import React from 'react';
-import { useNavigation } from '@/contexts/NavigationContext';
+import React from "react";
+import { useNavigation } from "@/contexts/NavigationContext";
 
 export default function SideNavAuth() {
   const { toggleCollapsed } = useNavigation();
@@ -12,54 +12,69 @@ export default function SideNavAuth() {
       <div className="flex flex-col gap-2 p-3">
         {/* SkillTrait Logo */}
         <div className="h-[38px] relative flex justify-center items-center mb-2">
-          <img 
-            src="/skilltrait_dark.svg" 
-            alt="SkillTrait" 
+          <img
+            src="/skilltrait_dark.svg"
+            alt="SkillTrait"
             className="h-6 w-auto"
           />
-          <img 
-            src="/chevron-double-left-outline.svg" 
-            alt="Collapse" 
+          <img
+            src="/chevron-double-left-outline.svg"
+            alt="Collapse"
             className="h-3 w-3 absolute right-0 cursor-pointer hover:opacity-80"
-            style={{ filter: 'brightness(0) saturate(100%) invert(84%) sepia(0%) saturate(0%) hue-rotate(0deg) brightness(89%) contrast(86%)' }}
+            style={{
+              filter:
+                "brightness(0) saturate(100%) invert(84%) sepia(0%) saturate(0%) hue-rotate(0deg) brightness(89%) contrast(86%)",
+            }}
             onClick={toggleCollapsed}
           />
         </div>
-        
+
         {/* Main Navigation */}
         <nav className="flex flex-col gap-2">
           {/* Home - Active State */}
-          <div className="bg-[#181d21] flex items-center p-2 rounded-lg">
-            <div className="flex items-center gap-3 pl-2">
-              <img 
-                src="/home.svg" 
-                alt="Home" 
-                className="h-5 w-5"
-                style={{ filter: 'brightness(0) saturate(100%) invert(100%) sepia(0%) saturate(0%) hue-rotate(0deg) brightness(100%) contrast(100%)' }}
+          <div className="bg-[#181d21] flex items-center cursor-pointer p-2 rounded-lg">
+            <div className="flex items-center cursor-pointer gap-3 pl-2">
+              <img
+                src="/home.svg"
+                alt="Home"
+                className="h-5 w-5 cursor-pointer"
+                style={{
+                  filter:
+                    "brightness(0) saturate(100%) invert(100%) sepia(0%) saturate(0%) hue-rotate(0deg) brightness(100%) contrast(100%)",
+                }}
               />
-              <span className="text-[#00df71] font-medium text-base">Home</span>
+              <span className="text-[#00df71] font-medium text-base cursor-pointer">
+                Home
+              </span>
             </div>
           </div>
-          
-          {/* Companies - Inactive State */}
-          <div className="flex items-center p-2 rounded-lg hover:bg-[#202327]">
-            <div className="flex items-center gap-3 pl-2">
-              <img 
-                src="/company.svg" 
-                alt="Companies" 
-                className="h-5 w-5"
-                style={{ filter: 'brightness(0) saturate(100%) invert(84%) sepia(0%) saturate(0%) hue-rotate(0deg) brightness(89%) contrast(86%)' }}
+
+          {/* Companies - Hoverable Inactive */}
+          <div className="group flex items-center p-2 rounded-lg cursor-pointer hover:bg-[#181d21]">
+            <div className="flex items-center cursor-pointer gap-3 pl-2">
+              <img
+                src="/company.svg"
+                alt="Companies"
+                className="h-5 w-5 cursor-pointer transition-all group-hover:filter group-hover:invert group-hover:brightness-100"
+                style={{
+                  filter:
+                    "brightness(0) saturate(100%) invert(84%) sepia(0%) saturate(0%) hue-rotate(0deg) brightness(89%) contrast(86%)",
+                }}
               />
-              <span className="text-[#79828a] font-medium text-base">Companies</span>
+              <span className="text-[#79828a] font-medium text-base cursor-pointer group-hover:text-[#00df71] transition-all">
+                Companies
+              </span>
             </div>
           </div>
         </nav>
       </div>
-      
+
       {/* Bottom CTA */}
       <div className="p-3 mt-auto mb-6">
-        <button className="w-full bg-[#00dc79] text-[#2b2a2d] font-medium text-xs rounded-lg py-2">Try Premium for 30 days</button>
+        <button className="w-full bg-[#00dc79] text-[#2b2a2d] font-medium text-xs rounded-lg py-2">
+          Try Premium for 30 days
+        </button>
       </div>
     </aside>
   );
-} 
+}
