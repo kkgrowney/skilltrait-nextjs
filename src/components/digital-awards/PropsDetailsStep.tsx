@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 interface PropsDetailsStepProps {
   onNext: () => void;
@@ -69,6 +69,21 @@ export default function PropsDetailsStep({
     if (setFromMessage) setFromMessage(message);
     onNext();
   };
+
+  useEffect(() => {
+    // Get current date in US Eastern Time
+    const formatter = new Intl.DateTimeFormat("en-CA", {
+      timeZone: "America/New_York", // or any US zone like "America/Los_Angeles"
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    });
+
+    const parts = formatter.formatToParts(new Date());
+    const dateObj = Object.fromEntries(parts.map((p) => [p.type, p.value]));
+    const formattedDate = `${dateObj.year}-${dateObj.month}-${dateObj.day}`;
+    setDate(formattedDate);
+  }, []);
 
   return (
     <div className="h-full flex flex-col">
