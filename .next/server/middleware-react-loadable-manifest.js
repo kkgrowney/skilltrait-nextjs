@@ -1,1 +1,0 @@
-self.__REACT_LOADABLE_MANIFEST="{\"lib/firebase.ts -> firebase/analytics\":{\"id\":\"lib/firebase.ts -> firebase/analytics\",\"files\":[\"static/chunks/_app-pages-browser_node_modules_firebase_analytics_dist_esm_index_esm_js.js\"]}}"
