@@ -139,3 +139,10 @@
     }
   }
 }
+
+/* Hide signup image when screen width is less than 1360px */
+@media (max-width: 1359px) {
+  .signup-image {
+    display: none !important;
+  }
+}

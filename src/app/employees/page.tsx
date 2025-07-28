@@ -40,7 +40,7 @@ export default function EmployeesPage() {
   return (
     <div className="h-screen bg-[#1A1D21] text-white flex font-poppins overflow-hidden">
       {/* Fixed Side Navigation */}
-      <aside className="fixed left-0 top-0 bg-[#212327] w-60 h-screen flex flex-col border-r border-[#454446] z-10">
+      <aside className="fixed left-0 top-16 bg-[#212327] w-60 h-[calc(100vh-4rem)] flex flex-col border-r border-[#454446] z-10">
         {/* Top Section */}
         <div className="flex flex-col gap-4 p-3">
           {/* Skill#Trait Logo - negative margin to move up by 51px */}
