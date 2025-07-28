@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import Link from "next/link";
+import SignUpModal from "./SignupModal";
 
 interface ShareStepProps {
   onPrevious: () => void;
@@ -13,6 +14,7 @@ export default function ShareStep({ onPrevious }: ShareStepProps) {
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedAward, setGeneratedAward] = useState("");
   const [isLoggedIn, setIsLoggedIn] = useState<boolean | null>(null);
+  const [isSignupModalOpen, setisSignupModalOpen] = useState<boolean>(false);
 
   const handleGenerateAward = async () => {
     setIsGenerating(true);
@@ -259,6 +261,11 @@ This digital award recognizes excellence and dedication in professional developm
         </p>
       </div>
 
+      <SignUpModal
+        isOpen={isSignupModalOpen}
+        setIsOpen={setisSignupModalOpen}
+      />
+
       <div className="space-y-4 flex-1">
         {!generatedAward ? (
           <div
@@ -274,7 +281,11 @@ This digital award recognizes excellence and dedication in professional developm
             </p>
             <button
               className="w-full bg-[var(--primary-dark)] text-white font-semibold py-2 rounded mb-4 mt-2 hover:bg-[var(--primary)] transition"
-              onClick={handleGenerateAward}
+              onClick={
+                !isLoggedIn
+                  ? () => setisSignupModalOpen(true)
+                  : handleGenerateAward
+              }
               disabled={isGenerating}
             >
               {isGenerating ? "Generating..." : "Generate Award"}
