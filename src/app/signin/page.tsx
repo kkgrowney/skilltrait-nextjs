@@ -48,8 +48,8 @@ export default function SignInPage() {
   return (
     <div className="flex flex-row items-center justify-start h-[calc(100vh-64px)] overflow-hidden" style={{backgroundColor: '#1B1D21'}}>
       {/* Desktop View */}
-      <div className="hidden md:flex basis-0 grow h-full min-w-px relative shrink-0 justify-center items-center" style={{backgroundColor: '#1B1D21'}}>
-        <div className="flex flex-col items-center justify-center relative size-full max-w-md">
+      <div className="hidden md:flex justify-center items-center h-full w-full" style={{backgroundColor: '#1B1D21'}}>
+        <div className="flex flex-col items-center justify-center relative max-w-md">
           <div className="flex flex-col items-center justify-center px-6 py-24 relative w-full">
             <div className="flex flex-col gap-6 items-start justify-start max-w-[360px] p-0 relative shrink-0 w-full">
               <div className="flex flex-col gap-2 items-start justify-start leading-[0] p-0 relative shrink-0 text-center w-full">
@@ -302,8 +302,6 @@ export default function SignInPage() {
           </div>
         </div>
       </div>
-      
-      <div className="hidden md:block basis-0 bg-center bg-cover bg-no-repeat grow h-full min-h-screen min-w-px shrink-0" style={{backgroundImage: 'url(\'https://picsum.photos/1200/800?random=1\')'}}></div>
     </div>
   );
 } 

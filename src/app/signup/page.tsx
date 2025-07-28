@@ -108,7 +108,7 @@ export default function SignUpPage() {
   return (
     <div className="flex flex-row items-center justify-start h-[calc(100vh-64px)] overflow-hidden" style={{backgroundColor: '#1B1D21'}}>
       {/* Desktop View */}
-      <div className="hidden md:flex basis-0 grow h-full min-h-screen min-w-px relative shrink-0 justify-center items-center" style={{backgroundColor: '#1B1D21'}}>
+      <div className="hidden md:flex flex-1 h-full min-h-screen min-w-px relative shrink-0 justify-center items-center" style={{backgroundColor: '#1B1D21'}}>
         <div className="flex flex-col items-center justify-center relative size-full max-w-md">
           <div className="flex flex-col items-center justify-center px-6 py-24 relative w-full">
             <div className="flex flex-col gap-6 items-start justify-start max-w-[360px] p-0 relative shrink-0 w-full">
@@ -412,7 +412,7 @@ export default function SignUpPage() {
         </div>
       </div>
       
-      <div className="hidden md:block basis-0 bg-center bg-cover bg-no-repeat grow h-full min-w-px shrink-0" style={{backgroundImage: 'url(\'/hero_image1x.jpg\')'}}></div>
+      <div className="hidden md:block w-[900px] bg-center bg-cover bg-no-repeat h-full min-w-px shrink-0 signup-image" style={{backgroundImage: 'url(\'/hero_image1x.jpg\')'}}></div>
     </div>
   );
 } 
