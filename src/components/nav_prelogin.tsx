@@ -116,7 +116,7 @@ export default function NavPrelogin() {
                 Sign In
               </Link>
               <Link
-                href="/signin"
+                href="/signup"
                 className="px-4 py-2 rounded text-sm font-medium transition-colors bg-[var(--primary-dark)] text-[#212327] hover:bg-[#0AFB84]"
               >
                 Sign up for free
@@ -230,7 +230,7 @@ export default function NavPrelogin() {
               Sign In
             </Link>
             <Link
-              href="/signin"
+              href="/signup"
               className="block px-3 py-2 rounded text-base font-medium transition-colors bg-[var(--primary-dark)] text-[#212327] hover:bg-[#0AFB84]"
               onClick={() => setIsMenuOpen(false)}
             >
