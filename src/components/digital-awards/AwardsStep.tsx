@@ -71,8 +71,8 @@ export default function AwardsStep({
   };
 
   return (
-    <div className="h-full flex flex-col">
-      <div className="text-center mb-8" style={{ paddingTop: "-20px" }}>
+    <div className="h-full flex flex-col w-full" style={{ height: "100vh", overflow: "hidden", padding: "8px", maxWidth: "100%", boxSizing: "border-box" }}>
+      <div className="text-center mb-6" style={{ paddingTop: "0px", flexShrink: 0 }}>
         <h1 className="text-[30px] font-bold text-white mb-4">Awards</h1>
         <p className="text-md text-gray-300 mb-0">
           Create professional digital awards and certificates to recognize
@@ -81,7 +81,7 @@ export default function AwardsStep({
       </div>
 
       {/* Tab Component */}
-      <div className="mb-6">
+      <div className="mb-4" style={{ flexShrink: 0 }}>
         <div className="flex border-b" style={{ borderColor: "#454446" }}>
           <button
             onClick={() => {
@@ -130,7 +130,7 @@ export default function AwardsStep({
       </div>
 
       {/* Search Box */}
-      <div className="mb-6">
+      <div className="mb-4" style={{ flexShrink: 0 }}>
         <div className="relative">
           <input
             type="text"
@@ -159,7 +159,7 @@ export default function AwardsStep({
       </div>
 
       {/* Filters */}
-      <div className="mb-6">
+      <div style={{ flexShrink: 0 }}>
         <h3 className="text-sm font-medium text-white mb-3">Filters</h3>
         <div className="flex flex-wrap gap-2">
           {filters &&

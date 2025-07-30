@@ -626,16 +626,13 @@ export default function DigitalAwardsView() {
                 </div>
                 
                 {activeTab === "props" && (
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 justify-start pb-6 h-full">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 w-full gap-6 justify-start pb-6 h-full px-4">
                     {/* Props Template 1 */}
                     {filteredTemplates?.map((temp, index) => (
                       <div
                         key={`props-template-${index}`}
                         className="w-full cursor-pointer hover:opacity-80 transition-opacity bg-white rounded"
-                        style={{
-                          borderRadius: "4px",
-                          aspectRatio: "600/400",
-                        }}
+                        style={{ borderRadius: "4px", minHeight: "200px" }}
                       >
                         <div
                           onClick={() => handleTemplateSelect(temp)}
@@ -681,11 +678,11 @@ export default function DigitalAwardsView() {
                   </div>
                 )}
                 {activeTab === "achievements" && (
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 justify-start pb-6 h-full">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 w-full gap-6 justify-start pb-6 h-full px-4">
                     {/* Achievement Template 1 */}
                     <div
                       className="w-full flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity bg-white rounded"
-                      style={{ borderRadius: "4px", aspectRatio: "600/447" }}
+                      style={{ borderRadius: "4px", minHeight: "200px" }}
                     >
                       <img
                         src="/templates/achievements/achievements-1.png"
@@ -699,7 +696,7 @@ export default function DigitalAwardsView() {
                     {/* Achievement Template 2 */}
                     <div
                       className="w-full flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity bg-white rounded"
-                      style={{ borderRadius: "4px", aspectRatio: "600/447" }}
+                      style={{ borderRadius: "4px" }}
                     >
                       <img
                         src="/templates/achievements/achievements-2.png"
@@ -713,7 +710,7 @@ export default function DigitalAwardsView() {
                     {/* Achievement Template 3 */}
                     <div
                       className="w-full flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity bg-white rounded"
-                      style={{ borderRadius: "4px", aspectRatio: "600/447" }}
+                      style={{ borderRadius: "4px" }}
                     >
                       <img
                         src="/templates/achievements/achievements-3.png"
@@ -727,7 +724,7 @@ export default function DigitalAwardsView() {
                     {/* Achievement Template 4 */}
                     <div
                       className="w-full flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity bg-white rounded"
-                      style={{ borderRadius: "4px", aspectRatio: "600/447" }}
+                      style={{ borderRadius: "4px" }}
                     >
                       <img
                         src="/templates/achievements/achievements-4.png"
@@ -741,7 +738,7 @@ export default function DigitalAwardsView() {
                     {/* Achievement Template 5 */}
                     <div
                       className="w-full flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity bg-white rounded"
-                      style={{ borderRadius: "4px", aspectRatio: "600/447" }}
+                      style={{ borderRadius: "4px" }}
                     >
                       <img
                         src="/templates/achievements/achievements-5.png"
@@ -755,7 +752,7 @@ export default function DigitalAwardsView() {
                     {/* Achievement Template 6 */}
                     <div
                       className="w-full flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity bg-white rounded"
-                      style={{ borderRadius: "4px", aspectRatio: "600/447" }}
+                      style={{ borderRadius: "4px" }}
                     >
                       <img
                         src="/templates/achievements/achievements-6.png"
@@ -769,7 +766,7 @@ export default function DigitalAwardsView() {
                     {/* Achievement Template 7 */}
                     <div
                       className="w-full flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity bg-white rounded"
-                      style={{ borderRadius: "4px", aspectRatio: "600/447" }}
+                      style={{ borderRadius: "4px" }}
                     >
                       <img
                         src="/templates/achievements/achievements-7.png"
@@ -783,7 +780,7 @@ export default function DigitalAwardsView() {
                     {/* Achievement Template 8 */}
                     <div
                       className="w-full flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity bg-white rounded"
-                      style={{ borderRadius: "4px", aspectRatio: "600/447" }}
+                      style={{ borderRadius: "4px" }}
                     >
                       <img
                         src="/templates/achievements/achievements-8.png"
@@ -797,7 +794,7 @@ export default function DigitalAwardsView() {
                     {/* Achievement Template 9 */}
                     <div
                       className="w-full flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity bg-white rounded"
-                      style={{ borderRadius: "4px", aspectRatio: "600/447" }}
+                      style={{ borderRadius: "4px" }}
                     >
                       <img
                         src="/templates/achievements/achievements-9.png"
@@ -811,7 +808,7 @@ export default function DigitalAwardsView() {
                     {/* Achievement Template 10 */}
                     <div
                       className="w-full flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity bg-white rounded"
-                      style={{ borderRadius: "4px", aspectRatio: "600/447" }}
+                      style={{ borderRadius: "4px" }}
                     >
                       <img
                         src="/templates/achievements/achievements-10.png"
@@ -829,7 +826,7 @@ export default function DigitalAwardsView() {
                     {/* Achievement Template 11 */}
                     <div
                       className="w-full flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity bg-white rounded"
-                      style={{ borderRadius: "4px", aspectRatio: "600/447" }}
+                      style={{ borderRadius: "4px" }}
                     >
                       <img
                         src="/templates/achievements/achievements-11.png"
@@ -847,7 +844,7 @@ export default function DigitalAwardsView() {
                     {/* Achievement Template 12 */}
                     <div
                       className="w-full flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity bg-white rounded"
-                      style={{ borderRadius: "4px", aspectRatio: "600/447" }}
+                      style={{ borderRadius: "4px" }}
                     >
                       <img
                         src="/templates/achievements/achievements-12.png"
