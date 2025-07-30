@@ -240,10 +240,12 @@ export default function DigitalAwardsPage() {
       );
 
       const matchesSelectedFilters =
-        activeTags.length === 0 || tags.some((tag: string) => activeTags.includes(tag));
+        activeTags.length === 0 ||
+        tags.some((tag: string) => activeTags.includes(tag));
 
       const matchesSearchQuery =
-        searchQuery === "" || tags.some((tag: string) => tag.includes(searchQuery));
+        searchQuery === "" ||
+        tags.some((tag: string) => tag.includes(searchQuery));
 
       return matchesSelectedFilters && matchesSearchQuery;
     });
@@ -251,6 +253,21 @@ export default function DigitalAwardsPage() {
     setFilteredTemplates(filtered);
   }, [filters, propsTemplates, searchQuery]);
 
+  return (
+    <div className="min-h-screen flex" style={{ backgroundColor: "#1B1D21" }}>
+      {/* Fixed Side Navigation */}
+      <DigitalAwardsSideNav
+        currentStep={currentStep}
+        onStepChange={handleStepChange}
+      />
+
+      {/* Main Content with Sticky Nav */}
+      <div className="h-screen w-full">
+        <div className="flex h-full">
+          {/* Side Navigation - Fixed width of 94px */}
+          {/* <div className="w-[94px] h-full flex-shrink-0">
+          </div> */}
+          
   // Create left content
   const leftContent = showTemplateDetail && currentStep === "awards" ? (
     <AwardsStep
