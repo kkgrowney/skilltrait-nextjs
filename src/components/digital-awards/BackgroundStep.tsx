@@ -125,7 +125,7 @@ export default function BackgroundStep({
 
   return (
     <div className="h-full flex flex-col">
-      <div className="text-center mb-8">
+      <div className="text-center">
         <h1 className="text-[30px] font-bold text-white mb-4">Background</h1>
         <p className="text-md text-gray-300 mb-0">
           Add background information to personalize your digital award.
@@ -201,7 +201,7 @@ export default function BackgroundStep({
                 >
                   <div className="relative w-full h-full">
                     <img
-                      src={selectedTemplate?.achievement?.props}
+                      src={selectedTemplate || ""}
                       alt="Selected Template"
                       className="w-full h-full object-cover"
                       style={{ borderRadius: "4px" }}
@@ -229,7 +229,7 @@ export default function BackgroundStep({
                         }}
                       >
                         <img
-                          src={selectedTemplate?.achievement?.logoImage}
+                          src="/templates/achievements/achievements-1.png"
                           alt="Logo"
                           className="h-full max-h-full w-auto object-contain"
                         />

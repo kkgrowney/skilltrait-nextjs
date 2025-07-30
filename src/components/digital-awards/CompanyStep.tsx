@@ -109,7 +109,7 @@ export default function CompanyStep({ onNext, onPrevious, selectedTemplate, temp
 
   return (
     <div className="h-full flex flex-col">
-      <div className="text-center mb-8">
+      <div className="text-center">
         <h1 className="text-[30px] font-bold text-white mb-4">
           Company
         </h1>

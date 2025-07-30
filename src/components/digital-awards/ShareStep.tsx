@@ -254,7 +254,7 @@ This digital award recognizes excellence and dedication in professional developm
 
   return (
     <div className="h-full flex flex-col">
-      <div className="text-center mb-8">
+      <div className="text-center">
         <h1 className="text-[30px] font-bold text-white mb-4">Share</h1>
         <p className="text-md text-gray-300 mb-3">
           Generate and share your digital award.
