@@ -255,10 +255,10 @@ export default function DigitalAwardsPage() {
       );
 
       const matchesSelectedFilters =
-        activeTags.length === 0 || tags.some((tag) => activeTags.includes(tag));
+        activeTags.length === 0 || tags.some((tag: string) => activeTags.includes(tag));
 
       const matchesSearchQuery =
-        searchQuery === "" || tags.some((tag) => tag.includes(searchQuery));
+        searchQuery === "" || tags.some((tag: string) => tag.includes(searchQuery));
 
       return matchesSelectedFilters && matchesSearchQuery;
     });

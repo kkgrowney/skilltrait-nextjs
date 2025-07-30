@@ -80,7 +80,7 @@ export default function AwardsStep({
 
   return (
     <div className="h-full flex flex-col">
-      <div className="text-center mb-8">
+      <div className="text-center mb-8" style={{ paddingTop: "-20px" }}>
         <h1 className="text-[30px] font-bold text-white mb-4">Awards</h1>
         <p className="text-md text-gray-300 mb-0">
           Create professional digital awards and certificates to recognize

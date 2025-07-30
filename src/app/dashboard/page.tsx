@@ -6,11 +6,14 @@ import { auth } from '@/lib/firebase';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import SideNavigation, { useSideNavMargin } from '@/components/SideNavigation';
+import { useNavigation } from '@/contexts/NavigationContext';
+import DigitalAwardsView from '@/components/DigitalAwardsView';
 
 export default function Dashboard() {
   const { user, loading } = useAuth();
   const router = useRouter();
   const sideNavMargin = useSideNavMargin();
+  const { currentView } = useNavigation();
 
   const handleSignOut = async () => {
     try {
@@ -37,6 +40,20 @@ export default function Dashboard() {
     return null;
   }
 
+  // Render Digital Awards view
+  if (currentView === 'digital-awards') {
+    return (
+      <div className="min-h-screen" style={{backgroundColor: '#1A1D21'}}>
+        <SideNavigation />
+        
+        <div className={sideNavMargin}>
+          <DigitalAwardsView />
+        </div>
+      </div>
+    );
+  }
+
+  // Render Home view (default)
   return (
     <div className="min-h-screen" style={{backgroundColor: '#1A1D21'}}>
       <SideNavigation />
