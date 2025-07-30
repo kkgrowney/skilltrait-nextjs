@@ -193,7 +193,7 @@ export default function BackgroundStep({
                 </div>
               ) : defaultBackgroundUrl ? (
                 <div
-                  className="w-[300px] bg-white rounded relative overflow-hidden"
+                  className="w-full cursor-pointer hover:opacity-80 transition-opacity bg-white rounded"
                   style={{
                     borderRadius: "4px",
                     aspectRatio: "600/400",
@@ -201,7 +201,7 @@ export default function BackgroundStep({
                 >
                   <div className="relative w-full h-full">
                     <img
-                      src={selectedTemplate || ""}
+                      src={selectedTemplate?.achievement?.props || ""}
                       alt="Selected Template"
                       className="w-full h-full object-cover"
                       style={{ borderRadius: "4px" }}
@@ -229,14 +229,14 @@ export default function BackgroundStep({
                         }}
                       >
                         <img
-                          src="/templates/achievements/achievements-1.png"
+                          src={selectedTemplate?.achievement?.logoImage || ""}
                           alt="Logo"
                           className="h-full max-h-full w-auto object-contain"
                         />
                       </div>
                     </div>
 
-                    {/* Delete button */}
+                    {/* Delete Button */}
                     <button
                       onClick={() => handleShowDeleteModal("background")}
                       className="absolute w-4 h-4 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center text-xs font-bold transition-colors"
