@@ -46,20 +46,12 @@ export default function AwardsStep({
           (t) => t.achievement && t.achievement.props
         );
 
-        // Merge all tags from all templatesWithProps into a unique array
-        const allTagsSet = new Set<string>();
-        templatesWithProps.forEach((t) => {
-          if (Array.isArray(t.achievement.tags)) {
-            t.achievement.tags.forEach((tag: string) => allTagsSet.add(tag));
-          }
-        });
-        
-        // Show all available filters
-        const allTags = Array.from(allTagsSet);
+        // Define the specific filters we want to show
+        const allowedFilters = ["Free", "Creative", "Leadership", "Mentor", "Birthday", "Work Anniversary"];
 
-        // Set filters with all tags as keys and default value of false
+        // Set filters with only the allowed filters as keys and default value of false
         const filtersObj: { [tag: string]: boolean } = {};
-        allTags.forEach((tag) => {
+        allowedFilters.forEach((tag) => {
           filtersObj[tag] = false;
         });
         setFilters(filtersObj);
