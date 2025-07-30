@@ -1,9 +1,6 @@
 'use client';
 
 import { useEffect, useState } from "react";
-import DigitalAwardsSideNav, {
-  StepType,
-} from "@/components/DigitalAwardsSideNav";
 import {
   AwardsStep,
   CompanyStep,
@@ -15,7 +12,8 @@ import CompanyButtonOverlay from "@/components/CompanyButtonOverlay";
 import { companyNames } from "@/lib/companyNames";
 import { collection, getDocs, query } from "firebase/firestore";
 import { db } from "@/lib/firebase";
-import ViewTitle from "@/components/ViewTitle";
+import DigitalAwardsLayout from "@/components/DigitalAwardsLayout";
+import DigitalAwardsSideNav, { StepType } from "@/components/DigitalAwardsSideNav";
 
 export default function DigitalAwardsView() {
   // Function to get consistent company name based on template index
@@ -268,11 +266,11 @@ export default function DigitalAwardsView() {
   }, [filters, propsTemplates, searchQuery]);
 
   return (
-    <div className="h-full" style={{ backgroundColor: "#1B1D21" }}>
+    <div className="h-screen" style={{ backgroundColor: "#1B1D21" }}>
       {/* Main Content Area */}
       <div className="h-full flex flex-col" style={{ marginLeft: "64px", width: "calc(100% - 64px)" }}>
         {/* ViewTitle Container */}
-        <div className="w-full bg-[#1e2327] flex items-center border-b border-[#454446]" style={{ marginLeft: "-64px", width: "calc(100vw - 64px)", height: "64px", paddingLeft: "12px" }}>
+        <div className="w-full bg-[#1e2327] flex items-center border-b border-[#454446] h-16" style={{ marginLeft: "-64px", width: "calc(100vw - 64px)", height: "64px !important", minHeight: "64px", maxHeight: "64px", paddingLeft: "12px" }}>
           
           {/* Title text */}
           <div className="font-semibold text-[#ffffff] text-[18px] whitespace-nowrap">
@@ -325,8 +323,15 @@ export default function DigitalAwardsView() {
             (currentStep === "background" && selectedTemplate) ? (
               /* Template Detail View */
               <div className="h-full flex flex-col items-center justify-start">
+                {/* Template Detail Title */}
+                <div className="w-full mb-6" style={{ marginTop: "20px" }}>
+                  <h1 className="text-[30px] font-bold text-white mb-4">
+                    Template Detail
+                  </h1>
+                </div>
+
                 {/* Back Button */}
-                <div className="w-full mb-6">
+                <div className="w-full mb-6" style={{ marginTop: "-32px" }}>
                   <button
                     onClick={handleBackToTemplates}
                     className="flex items-center text-gray-300 hover:text-white transition-colors"
