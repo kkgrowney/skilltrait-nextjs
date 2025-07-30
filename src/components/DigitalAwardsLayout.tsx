@@ -60,10 +60,10 @@ export default function DigitalAwardsLayout({
 
           {/* Right Container - Scrollable */}
           <div className="w-9/12 flex flex-col" style={{ overflow: "hidden" }}>
-            {/* Fixed Header */}
+            {/* Sticky Header */}
             <div
               className="flex-shrink-0 px-6 pt-5"
-              style={{ backgroundColor: "#1B1D21" }}
+              style={{ backgroundColor: "#1B1D21", position: "sticky", top: 0, zIndex: 10 }}
             >
               <h1 className="text-[30px] font-bold text-white mb-4">
                 {viewTitleText}
@@ -129,6 +129,16 @@ export default function DigitalAwardsLayout({
 
           {/* Right Container - Scrollable */}
           <div className="w-9/12 flex flex-col" style={{ overflow: "hidden" }}>
+            {/* Sticky Header */}
+            <div
+              className="flex-shrink-0 px-6 pt-5"
+              style={{ backgroundColor: "#1B1D21", position: "sticky", top: 0, zIndex: 10 }}
+            >
+              <h1 className="text-[30px] font-bold text-white mb-4">
+                {viewTitleText}
+              </h1>
+            </div>
+
             {/* Content Area */}
             <div
               className="flex-1 overflow-y-auto px-6"
