@@ -55,7 +55,7 @@ export default function SideNavCollapsed() {
               <img
                 src="/home_nav.svg"
                 alt="Home"
-                className="h-8 w-8"
+                className="h-7 w-7"
                 style={{
                   filter: currentView === "home" 
                     ? "brightness(0) saturate(100%) invert(84%) sepia(11%) saturate(6382%) hue-rotate(86deg) brightness(101%) contrast(107%)" // #00DF71

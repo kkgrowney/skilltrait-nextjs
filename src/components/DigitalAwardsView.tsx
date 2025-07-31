@@ -199,7 +199,21 @@ export default function DigitalAwardsView() {
           />
         );
       case "share":
-        return <ShareStep onPrevious={handlePrevious} />;
+        return (
+          <ShareStep 
+            onPrevious={handlePrevious}
+            selectedTemplate={selectedTemplate}
+            companyNameText={companyNameText}
+            uploadedLogoFile={uploadedLogoFile}
+            backgroundNameText={backgroundNameText}
+            uploadedBackgroundFile={uploadedBackgroundFile}
+            propsTitle={propsTitle}
+            propsRecipients={propsRecipients}
+            fromName={fromName}
+            fromDate={fromDate}
+            fromMessage={fromMessage}
+          />
+        );
       default:
         return (
           <AwardsStep
@@ -269,15 +283,6 @@ export default function DigitalAwardsView() {
     <div className="h-screen" style={{ backgroundColor: "#1B1D21" }}>
       {/* Main Content Area */}
       <div className="h-full flex flex-col" style={{ marginLeft: "64px", width: "calc(100% - 64px)" }}>
-        {/* ViewTitle Container */}
-        <div className="w-full bg-[#1e2327] flex items-center border-b border-[#454446] h-16" style={{ marginLeft: "-64px", width: "calc(100vw - 64px)", height: "64px !important", minHeight: "64px", maxHeight: "64px", paddingLeft: "12px" }}>
-          
-          {/* Title text */}
-          <div className="font-semibold text-[#ffffff] text-[18px] whitespace-nowrap">
-            Awards Generator
-          </div>
-        </div>
-        
         {/* Parent Container for Left and Right */}
         <div className="w-full flex" style={{ marginLeft: "-64px", width: "calc(100vw - 64px)" }}>
           {/* Left Container - Fixed Height (3 parts) */}

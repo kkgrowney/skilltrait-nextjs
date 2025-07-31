@@ -1,6 +1,6 @@
 import { initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
-import { getFirestore } from "firebase/firestore";
+import { getFirestore, doc, setDoc, collection, addDoc } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
 
 let analytics;
@@ -15,19 +15,26 @@ const firebaseConfig = {
   measurementId: "G-R0C17N4NG6",
 };
 
-// Initialize Firebase
 const app = initializeApp(firebaseConfig);
 
-// Only call getAnalytics in the browser
-if (typeof window !== "undefined") {
-  import("firebase/analytics").then(({ getAnalytics }) => {
-    analytics = getAnalytics(app);
-  });
-}
-
 export const auth = getAuth(app);
-
 export const storage = getStorage(app);
-
 export const db = getFirestore(app);
+
+// Function to save user prop to Firestore
+export const saveUserProp = async (userId: string, propData: any) => {
+  try {
+    const userPropsRef = collection(db, 'users', userId, 'props');
+    const docRef = await addDoc(userPropsRef, {
+      ...propData,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    });
+    return docRef.id;
+  } catch (error) {
+    console.error('Error saving user prop:', error);
+    throw error;
+  }
+};
+
 // export default app;

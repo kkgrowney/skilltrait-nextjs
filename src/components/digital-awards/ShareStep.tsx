@@ -3,48 +3,159 @@
 import { useEffect, useState } from "react";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 import { auth } from "@/lib/firebase";
+import { saveUserProp } from "@/lib/firebase";
 import Link from "next/link";
 import SignUpModal from "./SignupModal";
 
 interface ShareStepProps {
   onPrevious: () => void;
+  selectedTemplate?: any;
+  companyNameText?: string;
+  uploadedLogoFile?: File | null;
+  backgroundNameText?: string;
+  uploadedBackgroundFile?: File | null;
+  propsTitle?: string;
+  propsRecipients?: string[];
+  fromName?: string;
+  fromDate?: string;
+  fromMessage?: string;
 }
 
-export default function ShareStep({ onPrevious }: ShareStepProps) {
+export default function ShareStep({ 
+  onPrevious, 
+  selectedTemplate,
+  companyNameText,
+  uploadedLogoFile,
+  backgroundNameText,
+  uploadedBackgroundFile,
+  propsTitle,
+  propsRecipients,
+  fromName,
+  fromDate,
+  fromMessage
+}: ShareStepProps) {
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedAward, setGeneratedAward] = useState("");
   const [isLoggedIn, setIsLoggedIn] = useState<boolean | null>(null);
   const [isSignupModalOpen, setisSignupModalOpen] = useState<boolean>(false);
+  const [savedPropId, setSavedPropId] = useState<string | null>(null);
 
   const handleGenerateAward = async () => {
     setIsGenerating(true);
 
-    // Simulate award generation
-    setTimeout(() => {
-      const award = `
+    try {
+      // Get current user
+      const user = auth.currentUser;
+      if (!user) {
+        throw new Error("User not authenticated");
+      }
+
+      // Generate the completed prop image
+      const fullPropImage = await generateCompletedPropImage();
+
+      // Create prop data object with the same structure as templates
+      const propData = {
+        achievement: {
+          props: selectedTemplate?.achievement?.props || "",
+          logoImage: selectedTemplate?.achievement?.logoImage || "",
+          tags: selectedTemplate?.achievement?.tags || [],
+        },
+        // User customizations
+        customizations: {
+          companyName: companyNameText || "",
+          uploadedLogoFile: uploadedLogoFile ? await fileToBase64(uploadedLogoFile) : null,
+          backgroundName: backgroundNameText || "",
+          uploadedBackgroundFile: uploadedBackgroundFile ? await fileToBase64(uploadedBackgroundFile) : null,
+          propsTitle: propsTitle || "",
+          propsRecipients: propsRecipients || [],
+          fromName: fromName || "",
+          fromDate: fromDate || "",
+          fromMessage: fromMessage || "",
+        },
+        // Generated completed prop image
+        fullPropImage: fullPropImage,
+        // Template reference
+        templateId: selectedTemplate?.id || "",
+        templateType: "props"
+      };
+
+      // Save to Firestore
+      const propId = await saveUserProp(user.uid, propData);
+      setSavedPropId(propId);
+
+      // Simulate award generation
+      setTimeout(() => {
+        const award = `
 🏆 DIGITAL AWARD CERTIFICATE 🏆
 
 This is to certify that
 
-John Doe
+${fromName || "John Doe"}
 
 has been awarded the
 
-Employee of the Month
+${propsTitle || "Employee of the Month"}
 
 for outstanding achievement in
 
-Excellence in customer service and team collaboration
+${fromMessage || "Excellence in customer service and team collaboration"}
 
-Date: ${new Date().toLocaleDateString()}
-Certificate ID: ${Math.random().toString(36).substr(2, 9).toUpperCase()}
+Date: ${fromDate || new Date().toLocaleDateString()}
+Certificate ID: ${propId}
 
 This digital award recognizes excellence and dedication in professional development.
-      `;
+        `;
 
-      setGeneratedAward(award);
+        setGeneratedAward(award);
+        setIsGenerating(false);
+      }, 2000);
+
+    } catch (error) {
+      console.error("Error generating award:", error);
       setIsGenerating(false);
-    }, 2000);
+      // Handle error appropriately
+    }
+  };
+
+  // Function to generate completed prop image
+  const generateCompletedPropImage = async (): Promise<string> => {
+    try {
+      // Prepare parameters for the cloud function
+      const recipientArray = propsRecipients?.join(',') || 'Team Members';
+      const message = fromMessage || 'Thank you for your outstanding work and dedication!';
+      const sender = fromName || 'Management';
+      const category = 'props';
+      const template = selectedTemplate?.id || '';
+      const teamId = 'default'; // You can customize this as needed
+      
+      // Determine company parameter
+      let companyParam;
+      if (uploadedLogoFile) {
+        // If user uploaded a logo, use "other" and pass custom company name
+        companyParam = 'other';
+        const customCompany = companyNameText || 'Company Name';
+        const imageUrl = `https://us-central1-skill-trait-rwubkx.cloudfunctions.net/imageGeneration?rec=${encodeURIComponent(recipientArray)}&message=${encodeURIComponent(message)}&sen=${encodeURIComponent(sender)}&com=${encodeURIComponent(customCompany)}&cat=${category}&tem=${template}&tid=${teamId}`;
+        return imageUrl;
+      } else {
+        // If no logo uploaded, use the template's company
+        companyParam = selectedTemplate?.achievement?.company || 'default';
+        const imageUrl = `https://us-central1-skill-trait-rwubkx.cloudfunctions.net/imageGeneration?rec=${encodeURIComponent(recipientArray)}&message=${encodeURIComponent(message)}&sen=${encodeURIComponent(sender)}&com=${companyParam}&cat=${category}&tem=${template}&tid=${teamId}`;
+        return imageUrl;
+      }
+    } catch (error) {
+      console.error('Error generating image URL:', error);
+      return '';
+    }
+  };
+
+  // Helper function to convert File to base64
+  const fileToBase64 = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = error => reject(error);
+    });
   };
 
   const handleDownload = () => {
@@ -269,6 +380,11 @@ This digital award recognizes excellence and dedication in professional developm
               <h3 className="text-lg font-medium text-white mb-3">
                 Generated Award
               </h3>
+              {savedPropId && (
+                <div className="text-green-400 text-sm mb-2">
+                  ✓ Award saved successfully! ID: {savedPropId}
+                </div>
+              )}
               <div
                 className="bg-[#212327] p-4 rounded border"
                 style={{ borderColor: "#454446" }}
