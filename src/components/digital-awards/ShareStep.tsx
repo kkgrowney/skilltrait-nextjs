@@ -102,6 +102,7 @@ This digital award recognizes excellence and dedication in professional developm
 
       return () => unsubscribe();
     }, []);
+
     return (
       <div className="mt-6">
         <h3 className="text-lg font-medium text-white mb-2">
@@ -114,14 +115,14 @@ This digital award recognizes excellence and dedication in professional developm
             placeholder="Enter one email at a time"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="flex-1 px-3 py-2 rounded bg-[#1B1D21] border border-gray-600 text-white placeholder-gray-400 focus:outline-none focus:border-[var(--primary-dark)]"
+            className="flex-1 px-3 py-2 rounded bg-[#1B1D21] border border-gray-600 text-white placeholder-gray-400 focus:outline-none focus:border-[var(--primary-dark)] disabled:opacity-50"
             style={{ fontFamily: "Poppins", fontSize: "14px" }}
           />
           <button
             type="button"
             disabled={!isLoggedIn}
             onClick={handleAdd}
-            className="bg-white text-black px-4 py-2 rounded font-semibold hover:bg-gray-200 disabled:oppacity-50"
+            className="bg-white text-black px-4 py-2 rounded font-semibold hover:bg-gray-200 disabled:opacity-50"
           >
             Add
           </button>
@@ -227,9 +228,6 @@ This digital award recognizes excellence and dedication in professional developm
     <div className="h-full flex flex-col">
       <div className="text-center">
         <h1 className="text-[30px] font-bold text-white mb-4">Share</h1>
-        <p className="text-md text-gray-300 mb-3">
-          Generate and share your digital award.
-        </p>
       </div>
 
       <SignUpModal
@@ -244,7 +242,7 @@ This digital award recognizes excellence and dedication in professional developm
             style={{ backgroundColor: "#1B1D21", borderColor: "#454446" }}
           >
             <h3 className="text-lg font-medium text-white mb-2">
-              Ready to Generate
+              Generate, Save and Share
             </h3>
             <p className="text-gray-300 text-sm mb-2">
               Click the button below to generate your digital award based on all
@@ -259,7 +257,7 @@ This digital award recognizes excellence and dedication in professional developm
               }
               disabled={isGenerating}
             >
-              {isGenerating ? "Generating..." : "Generate Award"}
+              {isGenerating ? "Generating..." : "Generate & Save"}
             </button>
           </div>
         ) : (
