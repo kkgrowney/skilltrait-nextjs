@@ -566,6 +566,22 @@ export default function DigitalAwardsView() {
                           )}
                         </div>
                       )}
+
+                      {/* SkillTrait Logo - Bottom Right Corner */}
+                      <div
+                        className="absolute"
+                        style={{
+                          bottom: "-21px",
+                          right: "0px",
+                          zIndex: 100
+                        }}
+                      >
+                        <img
+                          src="/skilltrait_mark.svg"
+                          alt="SkillTrait"
+                          className="h-16 w-16"
+                        />
+                      </div>
                     </div>
                   </div>
                 )}
