@@ -163,14 +163,14 @@ export default function Dashboard() {
 
                 {/* Profile Info */}
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-end gap-3 mb-1">
+                  <div className="flex items-center gap-3 mb-1">
                     <h2 className="text-xl md:text-2xl font-bold text-[#00DF71]">
                       {userProfile?.display_name || userProfile?.displayName || userProfile?.name || 'Kevin Growney'}
                     </h2>
                     
                     {/* LinkedIn Icon */}
-                    <div className="flex-shrink-0" style={{ marginTop: "12px" }}>
-                      <svg className="w-3 h-3 md:w-3.5 md:h-3.5 text-white" fill="currentColor" viewBox="0 0 24 24">
+                    <div className="flex-shrink-0" style={{ transform: "translateY(0px)" }}>
+                      <svg className="w-[14px] h-[14px] md:w-[20px] md:h-[20px] text-white" fill="currentColor" viewBox="0 0 24 24">
                         <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
                       </svg>
                     </div>
@@ -192,6 +192,61 @@ export default function Dashboard() {
                 <p className="text-gray-300 text-sm md:text-base">
                   {userProfile?.about || userProfile?.bio || userProfile?.description || 'Stamping out user frustration, one pixel at a time.'}
                 </p>
+              </div>
+            </div>
+
+            {/* Recent Props Section */}
+            <div className="bg-[#212327] rounded-lg shadow-sm border border-[#454446] p-6 mb-6">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-xl font-bold text-white">Recent Props</h2>
+                <button className="px-3 py-1 text-xs bg-[#00DF71] text-[#212327] rounded-full hover:bg-[#0AFB84] transition-colors">
+                  View All
+                </button>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {/* Placeholder Prop */}
+                <div className="bg-[#1e2327] rounded-lg overflow-hidden border border-[#454446] hover:border-[#00DF71] transition-colors">
+                  <div className="relative">
+                    <img 
+                      src="/liquid_death_props.png" 
+                      alt="Recent Prop"
+                      className="w-full object-cover"
+                      style={{ aspectRatio: "5/4" }}
+                    />
+                    <div className="absolute top-2 right-2">
+                      <div className="bg-[#00DF71] text-[#212327] text-xs px-2 py-1 rounded-full font-medium">
+                        New
+                      </div>
+                    </div>
+                  </div>
+                  <div className="p-4">
+                    <h3 className="text-white font-semibold text-sm mb-1">Liquid Death Props</h3>
+                    <p className="text-gray-400 text-xs">Created 2 days ago</p>
+                  </div>
+                </div>
+
+                {/* Empty State Placeholder */}
+                <div className="bg-[#1e2327] rounded-lg border-2 border-dashed border-[#454446] p-8 flex flex-col items-center justify-center">
+                  <div className="w-12 h-12 bg-[#454446] rounded-full flex items-center justify-center mb-3">
+                    <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                    </svg>
+                  </div>
+                  <p className="text-gray-400 text-sm text-center">No props created yet</p>
+                  <p className="text-gray-500 text-xs text-center mt-1">Create your first prop in the Awards Generator</p>
+                </div>
+
+                {/* Another Empty State Placeholder */}
+                <div className="bg-[#1e2327] rounded-lg border-2 border-dashed border-[#454446] p-8 flex flex-col items-center justify-center">
+                  <div className="w-12 h-12 bg-[#454446] rounded-full flex items-center justify-center mb-3">
+                    <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                    </svg>
+                  </div>
+                  <p className="text-gray-400 text-sm text-center">No props created yet</p>
+                  <p className="text-gray-500 text-xs text-center mt-1">Create your first prop in the Awards Generator</p>
+                </div>
               </div>
             </div>
 
