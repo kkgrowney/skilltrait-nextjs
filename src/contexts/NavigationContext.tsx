@@ -27,7 +27,7 @@ export const useNavigation = () => {
 };
 
 export function NavigationProvider({ children }: { children: React.ReactNode }) {
-  const [isCollapsed, setIsCollapsed] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState(true);
   const [currentView, setCurrentView] = useState<ViewType>('home');
 
   const toggleCollapsed = () => {
