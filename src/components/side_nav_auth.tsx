@@ -17,24 +17,16 @@ export default function SideNavAuth() {
             alt="SkillTrait"
             className="h-6 w-auto"
           />
-          <img
-            src="/chevron-double-left-outline.svg"
-            alt="Collapse"
-            className="h-3 w-3 absolute right-0 cursor-pointer hover:opacity-80"
-            style={{
-              filter:
-                "brightness(0) saturate(100%) invert(84%) sepia(0%) saturate(0%) hue-rotate(0deg) brightness(89%) contrast(86%)",
-            }}
-            onClick={toggleCollapsed}
-          />
         </div>
 
         {/* Main Navigation */}
         <nav className="flex flex-col gap-2">
           {/* Home - Active/Inactive State */}
           <div
-            className={`flex items-center p-2 rounded-lg cursor-pointer ${
-              currentView === "home" ? "bg-[#181d21]" : "hover:bg-[#202327]"
+            className={`flex items-center p-2 rounded-lg cursor-pointer transition-colors ${
+              currentView === "home" 
+                ? "bg-[#181d21]" 
+                : "hover:bg-[#181d21] hover:bg-opacity-50"
             }`}
             onClick={() => setCurrentView("home")}
           >
@@ -69,10 +61,10 @@ export default function SideNavAuth() {
 
           {/* Digital Awards - Active/Inactive State */}
           <div
-            className={`flex items-center p-2 rounded-lg cursor-pointer ${
+            className={`flex items-center p-2 rounded-lg cursor-pointer transition-colors ${
               currentView === "digital-awards"
                 ? "bg-[#181d21]"
-                : "hover:bg-[#202327]"
+                : "hover:bg-[#181d21] hover:bg-opacity-50"
             }`}
             onClick={() => setCurrentView("digital-awards")}
           >
