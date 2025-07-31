@@ -269,7 +269,7 @@ export default function DigitalAwardsPage() {
   }, [filters, propsTemplates, searchQuery]);
 
   return (
-    <div className="min-h-screen flex" style={{ backgroundColor: "#1B1D21" }}>
+    <div className="flex" style={{ backgroundColor: "#1B1D21" }}>
       {/* Fixed Side Navigation */}
       <DigitalAwardsSideNav
         currentStep={currentStep}
@@ -277,17 +277,21 @@ export default function DigitalAwardsPage() {
       />
 
       {/* Main Content with Sticky Nav */}
-      <div className="h-screen w-full">
-        <div className="flex h-full">
+      <div className=" w-full">
+        <div className="flex">
           {/* Side Navigation - Fixed width of 94px */}
           {/* <div className="w-[94px] h-full flex-shrink-0">
           </div> */}
 
           {/* Left Container - Fixed Height (3 parts) */}
-          <div className="w-3/12 h-full overflow-y-auto">
+          <div className="w-3/12">
             <div
-              className="h-full"
-              style={{ backgroundColor: "#212327", padding: "20px" }}
+              className=" overflow-y-scroll"
+              style={{
+                backgroundColor: "#212327",
+                padding: "20px",
+                height: "calc(100vh - var(--nav-height))",
+              }}
             >
               {showTemplateDetail && currentStep === "awards" ? (
                 <AwardsStep
@@ -305,9 +309,10 @@ export default function DigitalAwardsPage() {
             </div>
           </div>
 
-          {/* Right Container - Fixed, Full Height (9 parts) */}
-          <div className="w-9/12 h-full flex flex-col">
-            {/* Fixed Header */}
+          <div
+            className="w-9/12 flex flex-col overflow-y-scroll"
+            style={{ height: "calc(100vh - var(--nav-height))" }}
+          >
             <div
               className="flex-shrink-0 px-6 pt-5"
               style={{ backgroundColor: "#1B1D21" }}
@@ -333,17 +338,14 @@ export default function DigitalAwardsPage() {
               )}
             </div>
 
-            {/* Content Area */}
             <div
-              className="flex-1 overflow-y-auto px-6"
+              className="flex-1  px-6"
               style={{ backgroundColor: "#1B1D21" }}
             >
               {showTemplateDetail ||
               (currentStep === "company" && selectedTemplate) ||
               (currentStep === "background" && selectedTemplate) ? (
-                /* Template Detail View */
                 <div className="h-full flex flex-col items-center justify-start pt-6">
-                  {/* Back Button */}
                   <div className="w-full mb-6">
                     <button
                       onClick={handleBackToTemplates}
@@ -366,7 +368,6 @@ export default function DigitalAwardsPage() {
                     </button>
                   </div>
 
-                  {/* Selected Template Display */}
                   {selectedTemplate && (
                     <div className="w-full flex justify-center">
                       <div
@@ -377,7 +378,6 @@ export default function DigitalAwardsPage() {
                           height: "480px",
                         }}
                       >
-                        {/* White Overlay with Stroke Line */}
                         <div
                           className="absolute top-0 left-0 right-0 bg-white border-b-2 border-gray-200"
                           style={{
@@ -386,7 +386,6 @@ export default function DigitalAwardsPage() {
                             borderRadius: "8px 8px 0 0",
                           }}
                         >
-                          {/* Logo Container */}
                           {(logoVisible || companyNameText) && (
                             <div
                               className="absolute flex items-center"
@@ -427,7 +426,6 @@ export default function DigitalAwardsPage() {
                             </div>
                           )}
 
-                          {/* Props Title Container */}
                           {propsTitle && (
                             <div
                               className="absolute flex items-center justify-end"
@@ -455,7 +453,6 @@ export default function DigitalAwardsPage() {
                             </div>
                           )}
                         </div>
-                        {/* Background Image Overlay */}
                         {(backgroundVisible || uploadedBackgroundFile) && (
                           <div
                             className="absolute inset-0 z-10 overflow-hidden"
@@ -496,7 +493,6 @@ export default function DigitalAwardsPage() {
                           }}
                         />
 
-                        {/* Props Recipients Text Container */}
                         {propsRecipients && propsRecipients.length > 0 && (
                           <div
                             className="absolute z-30 bg-gradient-to-r from-[#ADAFBE] via-[#4F7295] to-[#ADAFBE] opacity-80 rounded-lg p-2"
@@ -526,7 +522,6 @@ export default function DigitalAwardsPage() {
                           </div>
                         )}
 
-                        {/* From Section Text Container - Independent */}
                         {(fromName || fromDate || fromMessage) && (
                           <div
                             className="absolute z-30 bg-gradient-to-r from-[#ADAFBE] via-[#4F7295] to-[#ADAFBE] opacity-80 rounded-lg p-2"
@@ -579,26 +574,6 @@ export default function DigitalAwardsPage() {
                             )}
                           </div>
                         )}
-
-                        {/* Button Overlay - Hidden */}
-                        {/* <div
-                          className="absolute inset-0 flex items-end justify-start pb-4"
-                          style={{ paddingLeft: "24px" }}
-                        >
-                          <div
-                            className="bg-black border border-white rounded-full px-3 py-1 flex items-center justify-center"
-                            style={{
-                              fontSize: "14px",
-                              lineHeight: "1.5",
-                              minHeight: "29px",
-                              backgroundColor: "rgba(0, 0, 0, 0.5)",
-                            }}
-                          >
-                            <span className="font-semibold text-white text-center whitespace-nowrap">
-                              {getCompanyName(0)}
-                            </span>
-                          </div>
-                        </div> */}
                       </div>
                     </div>
                   )}
@@ -646,11 +621,9 @@ export default function DigitalAwardsPage() {
                   </div>
                 </div>
               ) : (
-                /* Template Grid View */
                 <>
                   {activeTab === "props" && (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 justify-start pb-6 h-full">
-                      {/* Props Template 1 */}
                       {filteredTemplates?.map((temp, index) => (
                         <div
                           key={`props-template-${index}`}
@@ -670,7 +643,6 @@ export default function DigitalAwardsPage() {
                               className="w-full h-full object-cover"
                               style={{ borderRadius: "4px" }}
                             />
-                            {/* White Overlay with Stroke Line */}
                             <div
                               className="absolute top-0 left-0 right-0 bg-white border-b-2 border-gray-200"
                               style={{
@@ -679,7 +651,6 @@ export default function DigitalAwardsPage() {
                                 borderRadius: "4px 4px 0 0",
                               }}
                             >
-                              {/* Logo Container */}
                               <div
                                 className="absolute flex items-center"
                                 style={{
@@ -698,25 +669,6 @@ export default function DigitalAwardsPage() {
                                 />
                               </div>
                             </div>
-                            {/* Button Overlay - Hidden */}
-                            {/* <div
-                              className="absolute inset-0 flex items-end justify-start pb-4"
-                              style={{ paddingLeft: "24px" }}
-                            >
-                              <div
-                                className="bg-black border border-white rounded-full px-3 py-1 flex items-center justify-center"
-                                style={{
-                                  fontSize: "14px",
-                                  lineHeight: "1.5",
-                                  minHeight: "29px",
-                                  backgroundColor: "rgba(0, 0, 0, 0.5)",
-                                }}
-                              >
-                                <span className="font-semibold text-white text-center whitespace-nowrap">
-                                  {temp.achievement.name}
-                                </span>
-                              </div>
-                            </div> */}
                           </div>
                         </div>
                       ))}
