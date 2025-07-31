@@ -58,18 +58,28 @@ export default function Dashboard() {
     <div className="min-h-screen" style={{backgroundColor: '#1A1D21'}}>
       <SideNavigation />
       
-      <div className={`${sideNavMargin} p-8`}>
-        <div className="max-w-4xl">
-          <div className="bg-gray-800 rounded-lg shadow-sm border border-gray-700 p-6">
-            <div className="flex items-center justify-between mb-6">
-              <h1 className="text-2xl font-bold text-white">Dashboard</h1>
-              <button
-                onClick={handleSignOut}
-                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
-              >
-                Sign Out
-              </button>
-            </div>
+      <div className={`${sideNavMargin} h-full flex flex-col`}>
+        {/* ViewTitle Container */}
+        <div className="w-full bg-[#1e2327] flex items-center border-b border-[#454446] h-16" style={{ height: "64px !important", minHeight: "64px", maxHeight: "64px", paddingLeft: "12px" }}>
+          {/* Title text */}
+          <div className="font-semibold text-[#ffffff] text-[18px] whitespace-nowrap">
+            Home
+          </div>
+        </div>
+        
+        {/* Content Area */}
+        <div className="flex-1 overflow-y-auto p-8">
+          <div className="max-w-4xl">
+            <div className="bg-gray-800 rounded-lg shadow-sm border border-gray-700 p-6">
+              <div className="flex items-center justify-between mb-6">
+                <h1 className="text-2xl font-bold text-white">Dashboard</h1>
+                <button
+                  onClick={handleSignOut}
+                  className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+                >
+                  Sign Out
+                </button>
+              </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="bg-gray-700 rounded-lg p-4">
@@ -120,6 +130,7 @@ export default function Dashboard() {
                 </div>
               </div>
             </div>
+          </div>
 
             <div className="mt-6 p-4 bg-blue-900 rounded-lg">
               <h3 className="text-lg font-semibold text-blue-100 mb-2">Welcome to SkillTrait!</h3>

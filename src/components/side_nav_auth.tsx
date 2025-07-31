@@ -26,7 +26,7 @@ export default function SideNavAuth() {
             className={`flex items-center p-2 rounded-lg cursor-pointer transition-colors ${
               currentView === "home" 
                 ? "bg-[#181d21]" 
-                : "hover:bg-[#181d21] hover:bg-opacity-50"
+                : "hover:bg-[#2a2e32]"
             }`}
             onClick={() => setCurrentView("home")}
           >
@@ -57,7 +57,7 @@ export default function SideNavAuth() {
             className={`flex items-center p-2 rounded-lg cursor-pointer transition-colors ${
               currentView === "digital-awards"
                 ? "bg-[#181d21]"
-                : "hover:bg-[#181d21] hover:bg-opacity-50"
+                : "hover:bg-[#2a2e32]"
             }`}
             onClick={() => setCurrentView("digital-awards")}
           >
