@@ -1,9 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import DigitalAwardsSideNav, {
-  StepType,
-} from "@/components/DigitalAwardsSideNav";
 import {
   AwardsStep,
   CompanyStep,
@@ -15,6 +12,8 @@ import CompanyButtonOverlay from "@/components/CompanyButtonOverlay";
 import { companyNames } from "@/lib/companyNames";
 import { collection, getDocs, query } from "firebase/firestore";
 import { db } from "@/lib/firebase";
+import DigitalAwardsLayout from "@/components/DigitalAwardsLayout";
+import { StepType } from "@/components/DigitalAwardsSideNav";
 
 export default function DigitalAwardsPage() {
   // Function to get consistent company name based on template index
@@ -216,24 +215,35 @@ export default function DigitalAwardsPage() {
     }
   };
 
+  // Fetch templates from Firestore - try both collection names
   useEffect(() => {
     const fetchTemplates = async () => {
+      setLoadingTemplates(true);
       try {
-        const q = query(collection(db, "template"));
-        const snapshot = await getDocs(q);
-        const templates: any[] = [];
+        // Try the new collection name first (Kevin's approach)
+        let templatesRef = collection(db, "templates");
+        let q = query(templatesRef);
+        let querySnapshot = await getDocs(q);
 
-        snapshot.forEach((doc) => {
-          const data = doc.data();
-          templates.push(data);
-        });
+        if (querySnapshot.empty) {
+          // If empty, try the old collection name (your approach)
+          templatesRef = collection(db, "template");
+          q = query(templatesRef);
+          querySnapshot = await getDocs(q);
+        }
 
+        const templates = querySnapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
+
+        // Filter templates with props (your approach)
         const templatesWithProps = templates.filter(
-          (t) => t.achievement && t.achievement.props
+          (t: any) => t.achievement && t.achievement.props
         );
 
         setPropsTemplates(templatesWithProps);
-        setFilteredTemplates(templatesWithProps); // initialize with all
+        setFilteredTemplates(templatesWithProps);
       } catch (error) {
         console.error("Error fetching templates:", error);
       } finally {
@@ -244,12 +254,13 @@ export default function DigitalAwardsPage() {
     fetchTemplates();
   }, []);
 
+  // Filter templates based on search query and filters
   useEffect(() => {
     const activeTags = Object.entries(filters)
       .filter(([_, isActive]) => isActive)
       .map(([tag]) => tag.toLowerCase());
 
-    const filtered = propsTemplates?.filter((template) => {
+    const filtered = propsTemplates?.filter((template: any) => {
       const tags = (template.achievement?.tags || []).map((tag: string) =>
         tag.toLowerCase()
       );
@@ -268,601 +279,569 @@ export default function DigitalAwardsPage() {
     setFilteredTemplates(filtered);
   }, [filters, propsTemplates, searchQuery]);
 
-  return (
-    <div className="flex" style={{ backgroundColor: "#1B1D21" }}>
-      {/* Fixed Side Navigation */}
-      <DigitalAwardsSideNav
-        currentStep={currentStep}
-        onStepChange={handleStepChange}
+  // Create left content
+  const leftContent =
+    showTemplateDetail && currentStep === "awards" ? (
+      <AwardsStep
+        searchQuery={searchQuery}
+        handleChangeSearch={handleChangeSearch}
+        setFilters={setFilters}
+        filters={filters}
+        onTabChange={setActiveTab}
+        showTemplateDetail={showTemplateDetail}
+        setShowAchievementsModal={setShowAchievementsModal}
       />
+    ) : (
+      renderCurrentStep()
+    );
 
-      {/* Main Content with Sticky Nav */}
-      <div className=" w-full">
-        <div className="flex">
-          {/* Side Navigation - Fixed width of 94px */}
-          {/* <div className="w-[94px] h-full flex-shrink-0">
-          </div> */}
-
-          {/* Left Container - Fixed Height (3 parts) */}
-          <div className="w-3/12">
-            <div
-              className=" overflow-y-scroll"
-              style={{
-                backgroundColor: "#212327",
-                padding: "20px",
-                height: "calc(100vh - var(--nav-height))",
-              }}
+  // Create right content with detailed template preview
+  const rightContent = (
+    <>
+      {showTemplateDetail ||
+      (currentStep === "company" && selectedTemplate) ||
+      (currentStep === "background" && selectedTemplate) ? (
+        /* Template Detail View */
+        <div className="h-full flex flex-col items-center justify-start pt-6">
+          {/* Back Button */}
+          <div className="w-full mb-6">
+            <button
+              onClick={handleBackToTemplates}
+              className="flex items-center text-gray-300 hover:text-white transition-colors"
             >
-              {showTemplateDetail && currentStep === "awards" ? (
-                <AwardsStep
-                  searchQuery={searchQuery}
-                  handleChangeSearch={handleChangeSearch}
-                  setFilters={setFilters}
-                  filters={filters}
-                  onTabChange={setActiveTab}
-                  showTemplateDetail={showTemplateDetail}
-                  setShowAchievementsModal={setShowAchievementsModal}
+              <svg
+                className="w-5 h-5 mr-2"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M15 19l-7-7 7-7"
                 />
-              ) : (
-                renderCurrentStep()
-              )}
-            </div>
+              </svg>
+              Back to Templates
+            </button>
           </div>
 
-          <div
-            className="w-9/12 flex flex-col overflow-y-scroll"
-            style={{ height: "calc(100vh - var(--nav-height))" }}
-          >
-            <div
-              className="flex-shrink-0 px-6 pt-5"
-              style={{ backgroundColor: "#1B1D21" }}
-            >
-              <h1 className="text-[30px] font-bold text-white mb-4">
-                {showTemplateDetail ||
-                (currentStep === "company" && selectedTemplate) ||
-                (currentStep === "background" && selectedTemplate)
-                  ? "Template Detail"
-                  : activeTab === "props"
-                  ? "Props Templates"
-                  : "Achievement Templates"}
-              </h1>
-              {!(
-                showTemplateDetail ||
-                (currentStep === "company" && selectedTemplate) ||
-                (currentStep === "background" && selectedTemplate)
-              ) && (
-                <p className="text-md text-gray-300 mb-6">
-                  Choose a template for your achievement. You can update this
-                  later in saved awards.
-                </p>
-              )}
-            </div>
-
-            <div
-              className="flex-1  px-6"
-              style={{ backgroundColor: "#1B1D21" }}
-            >
-              {showTemplateDetail ||
-              (currentStep === "company" && selectedTemplate) ||
-              (currentStep === "background" && selectedTemplate) ? (
-                <div className="h-full flex flex-col items-center justify-start pt-6">
-                  <div className="w-full mb-6">
-                    <button
-                      onClick={handleBackToTemplates}
-                      className="flex items-center text-gray-300 hover:text-white transition-colors"
+          {/* Selected Template Display with Detailed Preview */}
+          {selectedTemplate && (
+            <div className="w-full flex justify-center">
+              <div
+                className="relative bg-white rounded"
+                style={{
+                  borderRadius: "4px",
+                  width: "600px",
+                  height: "480px",
+                }}
+              >
+                <div
+                  className="absolute top-0 left-0 right-0 bg-white border-b-2 border-gray-200"
+                  style={{
+                    height: "80px",
+                    zIndex: 50,
+                    borderRadius: "8px 8px 0 0",
+                  }}
+                >
+                  {(logoVisible || companyNameText) && (
+                    <div
+                      className="absolute flex items-center"
+                      style={{
+                        height: "40px",
+                        width: "250px",
+                        maxWidth: "250px",
+                        left: "20px",
+                        top: "50%",
+                        transform: "translateY(-50%)",
+                      }}
                     >
-                      <svg
-                        className="w-5 h-5 mr-2"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M15 19l-7-7 7-7"
-                        />
-                      </svg>
-                      Back to Templates
-                    </button>
-                  </div>
-
-                  {selectedTemplate && (
-                    <div className="w-full flex justify-center">
-                      <div
-                        className="relative bg-white rounded"
-                        style={{
-                          borderRadius: "4px",
-                          width: "600px",
-                          height: "480px",
-                        }}
-                      >
+                      {companyNameText ? (
                         <div
-                          className="absolute top-0 left-0 right-0 bg-white border-b-2 border-gray-200"
+                          className="text-black font-poppins"
                           style={{
-                            height: "80px",
-                            zIndex: 50,
-                            borderRadius: "8px 8px 0 0",
+                            fontFamily: "Poppins",
+                            fontSize: "25px",
+                            maxWidth: "250px",
+                            color: "black",
                           }}
                         >
-                          {(logoVisible || companyNameText) && (
-                            <div
-                              className="absolute flex items-center"
-                              style={{
-                                height: "40px",
-                                width: "250px",
-                                maxWidth: "250px",
-                                left: "20px",
-                                top: "50%",
-                                transform: "translateY(-50%)",
-                              }}
-                            >
-                              {companyNameText ? (
-                                <div
-                                  className="text-black font-poppins"
-                                  style={{
-                                    fontFamily: "Poppins",
-                                    fontSize: "25px",
-                                    maxWidth: "250px",
-                                    color: "black",
-                                  }}
-                                >
-                                  {companyNameText}
-                                </div>
-                              ) : (
-                                <img
-                                  src={
-                                    uploadedLogoFile
-                                      ? URL.createObjectURL(uploadedLogoFile)
-                                      : selectedTemplate?.achievement
-                                          ?.logoImage || ""
-                                  }
-                                  alt="Logo"
-                                  className="h-full max-h-[40px] w-auto object-contain"
-                                  style={{ maxHeight: "40px" }}
-                                />
-                              )}
-                            </div>
-                          )}
-
-                          {propsTitle && (
-                            <div
-                              className="absolute flex items-center justify-end"
-                              style={{
-                                height: "40px",
-                                width: "250px",
-                                maxWidth: "250px",
-                                right: "20px",
-                                top: "50%",
-                                transform: "translateY(-50%)",
-                              }}
-                            >
-                              <div
-                                className="text-black font-poppins text-right"
-                                style={{
-                                  fontFamily: "Poppins",
-                                  fontSize: "20px",
-                                  maxWidth: "250px",
-                                  color: "black",
-                                  textAlign: "right",
-                                }}
-                              >
-                                {propsTitle}
-                              </div>
-                            </div>
-                          )}
+                          {companyNameText}
                         </div>
-                        {(backgroundVisible || uploadedBackgroundFile) && (
-                          <div
-                            className="absolute inset-0 z-10 overflow-hidden"
-                            style={{
-                              borderRadius: "4px",
-                              width: "600px",
-                              height: "480px",
-                            }}
-                          >
-                            <img
-                              src={
-                                uploadedBackgroundFile
-                                  ? URL.createObjectURL(uploadedBackgroundFile)
-                                  : selectedTemplate?.achievement
-                                      ?.backgroundImage || ""
-                              }
-                              alt="Background"
-                              className="w-full h-full object-cover rounded"
-                              style={{
-                                borderRadius: "4px",
-                                minWidth: "600px",
-                                minHeight: "480px",
-                                objectFit: "cover",
-                                objectPosition: "center",
-                              }}
-                            />
-                          </div>
-                        )}
+                      ) : (
                         <img
-                          src={selectedTemplate?.achievement?.props || ""}
-                          alt="Selected Template"
-                          className="object-contain rounded relative z-20"
-                          style={{
-                            borderRadius: "4px",
-                            width: "600px",
-                            height: "480px",
-                            objectPosition: "bottom",
-                          }}
+                          src={
+                            uploadedLogoFile
+                              ? URL.createObjectURL(uploadedLogoFile)
+                              : selectedTemplate?.achievement?.logoImage || ""
+                          }
+                          alt="Logo"
+                          className="h-full max-h-[40px] w-auto object-contain"
+                          style={{ maxHeight: "40px" }}
                         />
-
-                        {propsRecipients && propsRecipients.length > 0 && (
-                          <div
-                            className="absolute z-30 bg-gradient-to-r from-[#ADAFBE] via-[#4F7295] to-[#ADAFBE] opacity-80 rounded-lg p-2"
-                            style={{
-                              left: "20px",
-                              top: "92px",
-                              maxWidth: "280px",
-                              minHeight: "60px",
-                            }}
-                          >
-                            <p
-                              className="text-white text-sm font-medium mb-1"
-                              style={{ color: "white", opacity: 1 }}
-                            >
-                              Props recipients:
-                            </p>
-                            <p
-                              className="text-white text-base font-medium"
-                              style={{
-                                lineHeight: "1.2",
-                                color: "white",
-                                opacity: 1,
-                              }}
-                            >
-                              {propsRecipients.join(", ")}
-                            </p>
-                          </div>
-                        )}
-
-                        {(fromName || fromDate || fromMessage) && (
-                          <div
-                            className="absolute z-30 bg-gradient-to-r from-[#ADAFBE] via-[#4F7295] to-[#ADAFBE] opacity-80 rounded-lg p-2"
-                            style={{
-                              left: "20px",
-                              top:
-                                propsRecipients && propsRecipients.length > 0
-                                  ? "calc(92px + 60px + 12px)"
-                                  : "92px",
-                              maxWidth: "280px",
-                              minHeight: "60px",
-                            }}
-                          >
-                            {fromName && (
-                              <div className="flex justify-between items-center mb-2">
-                                <p
-                                  className="text-white text-sm font-medium"
-                                  style={{ color: "white", opacity: 1 }}
-                                >
-                                  From: {fromName}
-                                </p>
-                                {fromDate && (
-                                  <p
-                                    className="text-white text-sm font-medium"
-                                    style={{ color: "white", opacity: 1 }}
-                                  >
-                                    {new Date(fromDate).toLocaleDateString(
-                                      "en-US",
-                                      {
-                                        month: "2-digit",
-                                        day: "2-digit",
-                                        year: "2-digit",
-                                      }
-                                    )}
-                                  </p>
-                                )}
-                              </div>
-                            )}
-                            {fromMessage && (
-                              <p
-                                className="text-white text-base mb-2"
-                                style={{
-                                  lineHeight: "1.2",
-                                  color: "white",
-                                  opacity: 1,
-                                }}
-                              >
-                                {fromMessage}
-                              </p>
-                            )}
-                          </div>
-                        )}
-                      </div>
+                      )}
                     </div>
                   )}
 
-                  {/* Action Buttons */}
-                  <div
-                    className="w-full flex gap-4 justify-center"
-                    style={{ marginTop: "24px" }}
-                  >
-                    {currentStep === "awards" ? (
-                      <>
-                        <button
-                          onClick={handleBackToTemplates}
-                          className="px-6 py-3 text-sm font-medium transition-colors border rounded text-gray-300 hover:text-white whitespace-nowrap"
-                          style={{ borderColor: "#454446", width: "150px" }}
-                        >
-                          Back
-                        </button>
-                        <button
-                          onClick={() => {
-                            // Handle template selection - move to Company step but keep template detail visible
-                            setCurrentStep("company");
-                            // Don't set showTemplateDetail to false - keep template visible in right container
-                          }}
-                          className="px-6 py-3 text-sm font-medium transition-colors bg-[var(--primary-dark)] text-[#212327] rounded hover:bg-[#0AFB84] whitespace-nowrap"
-                          style={{ width: "150px" }}
-                        >
-                          Select Template
-                        </button>
-                      </>
-                    ) : (
-                      <button
-                        onClick={() => {
-                          // Return to template grid
-                          setShowTemplateDetail(false);
-                          setSelectedTemplate(null);
-                          setCurrentStep("awards");
+                  {propsTitle && (
+                    <div
+                      className="absolute flex items-center justify-end"
+                      style={{
+                        height: "40px",
+                        width: "250px",
+                        maxWidth: "250px",
+                        right: "20px",
+                        top: "50%",
+                        transform: "translateY(-50%)",
+                      }}
+                    >
+                      <div
+                        className="text-black font-poppins text-right"
+                        style={{
+                          fontFamily: "Poppins",
+                          fontSize: "20px",
+                          maxWidth: "250px",
+                          color: "black",
+                          textAlign: "right",
                         }}
-                        className="px-6 py-3 text-sm font-medium transition-colors border rounded text-gray-300 hover:text-white whitespace-nowrap"
-                        style={{ borderColor: "#454446", width: "150px" }}
                       >
-                        Change Template
-                      </button>
+                        {propsTitle}
+                      </div>
+                    </div>
+                  )}
+                </div>
+                {(backgroundVisible || uploadedBackgroundFile) && (
+                  <div
+                    className="absolute inset-0 z-10 overflow-hidden"
+                    style={{
+                      borderRadius: "4px",
+                      width: "600px",
+                      height: "480px",
+                    }}
+                  >
+                    <img
+                      src={
+                        uploadedBackgroundFile
+                          ? URL.createObjectURL(uploadedBackgroundFile)
+                          : selectedTemplate?.achievement?.backgroundImage || ""
+                      }
+                      alt="Background"
+                      className="w-full h-full object-cover rounded"
+                      style={{
+                        borderRadius: "4px",
+                        minWidth: "600px",
+                        minHeight: "480px",
+                        objectFit: "cover",
+                        objectPosition: "center",
+                      }}
+                    />
+                  </div>
+                )}
+                <img
+                  src={selectedTemplate?.achievement?.props || ""}
+                  alt="Selected Template"
+                  className="object-contain rounded relative z-20"
+                  style={{
+                    borderRadius: "4px",
+                    width: "600px",
+                    height: "480px",
+                    objectPosition: "bottom",
+                  }}
+                />
+
+                {propsRecipients && propsRecipients.length > 0 && (
+                  <div
+                    className="absolute z-30 bg-gradient-to-r from-[#ADAFBE] via-[#4F7295] to-[#ADAFBE] opacity-80 rounded-lg p-2"
+                    style={{
+                      left: "20px",
+                      top: "92px",
+                      maxWidth: "280px",
+                      minHeight: "60px",
+                    }}
+                  >
+                    <p
+                      className="text-white text-sm font-medium mb-1"
+                      style={{ color: "white", opacity: 1 }}
+                    >
+                      Props recipients:
+                    </p>
+                    <p
+                      className="text-white text-base font-medium"
+                      style={{
+                        lineHeight: "1.2",
+                        color: "white",
+                        opacity: 1,
+                      }}
+                    >
+                      {propsRecipients.join(", ")}
+                    </p>
+                  </div>
+                )}
+
+                {(fromName || fromDate || fromMessage) && (
+                  <div
+                    className="absolute z-30 bg-gradient-to-r from-[#ADAFBE] via-[#4F7295] to-[#ADAFBE] opacity-80 rounded-lg p-2"
+                    style={{
+                      left: "20px",
+                      top:
+                        propsRecipients && propsRecipients.length > 0
+                          ? "calc(92px + 60px + 12px)"
+                          : "92px",
+                      maxWidth: "280px",
+                      minHeight: "60px",
+                    }}
+                  >
+                    {fromName && (
+                      <div className="flex justify-between items-center mb-2">
+                        <p
+                          className="text-white text-sm font-medium"
+                          style={{ color: "white", opacity: 1 }}
+                        >
+                          From: {fromName}
+                        </p>
+                        {fromDate && (
+                          <p
+                            className="text-white text-sm font-medium"
+                            style={{ color: "white", opacity: 1 }}
+                          >
+                            {new Date(fromDate).toLocaleDateString("en-US", {
+                              month: "2-digit",
+                              day: "2-digit",
+                              year: "2-digit",
+                            })}
+                          </p>
+                        )}
+                      </div>
+                    )}
+                    {fromMessage && (
+                      <p
+                        className="text-white text-base mb-2"
+                        style={{
+                          lineHeight: "1.2",
+                          color: "white",
+                          opacity: 1,
+                        }}
+                      >
+                        {fromMessage}
+                      </p>
                     )}
                   </div>
-                </div>
-              ) : (
-                <>
-                  {activeTab === "props" && (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 justify-start pb-6 h-full">
-                      {filteredTemplates?.map((temp, index) => (
-                        <div
-                          key={`props-template-${index}`}
-                          className="w-full cursor-pointer hover:opacity-80 transition-opacity bg-white rounded"
-                          style={{
-                            borderRadius: "4px",
-                            aspectRatio: "600/400",
-                          }}
-                        >
-                          <div
-                            onClick={() => handleTemplateSelect(temp)}
-                            className="relative w-full h-full"
-                          >
-                            <img
-                              src={temp.achievement.props}
-                              alt="Props Template 1"
-                              className="w-full h-full object-cover"
-                              style={{ borderRadius: "4px" }}
-                            />
-                            <div
-                              className="absolute top-0 left-0 right-0 bg-white border-b-2 border-gray-200"
-                              style={{
-                                height: "20%",
-                                zIndex: 50,
-                                borderRadius: "4px 4px 0 0",
-                              }}
-                            >
-                              <div
-                                className="absolute flex items-center"
-                                style={{
-                                  height: "60%",
-                                  width: "60%",
-                                  maxWidth: "60%",
-                                  left: "clamp(8px, 2vw, 20px)",
-                                  top: "50%",
-                                  transform: "translateY(-50%)",
-                                }}
-                              >
-                                <img
-                                  src={temp.achievement.logoImage}
-                                  alt="Instagram Logo"
-                                  className="h-full max-h-full w-auto object-contain"
-                                />
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                  {activeTab === "achievements" && (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 justify-start pb-6 h-full">
-                      {/* Achievement Template 1 */}
-                      <div
-                        className="w-full flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity bg-white rounded"
-                        style={{ borderRadius: "4px", aspectRatio: "600/447" }}
-                      >
-                        <img
-                          src="/templates/achievements/achievements-1.png"
-                          alt="Achievement Template 1"
-                          className="w-full h-full object-contain"
-                          style={{ borderRadius: "4px" }}
-                          onClick={() => setShowAchievementsModal(true)}
-                        />
-                      </div>
-
-                      {/* Achievement Template 2 */}
-                      <div
-                        className="w-full flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity bg-white rounded"
-                        style={{ borderRadius: "4px", aspectRatio: "600/447" }}
-                      >
-                        <img
-                          src="/templates/achievements/achievements-2.png"
-                          alt="Achievement Template 2"
-                          className="w-full h-full object-contain"
-                          style={{ borderRadius: "4px" }}
-                          onClick={() => setShowAchievementsModal(true)}
-                        />
-                      </div>
-
-                      {/* Achievement Template 3 */}
-                      <div
-                        className="w-full flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity bg-white rounded"
-                        style={{ borderRadius: "4px", aspectRatio: "600/447" }}
-                      >
-                        <img
-                          src="/templates/achievements/achievements-3.png"
-                          alt="Achievement Template 3"
-                          className="w-full h-full object-contain"
-                          style={{ borderRadius: "4px" }}
-                          onClick={() => setShowAchievementsModal(true)}
-                        />
-                      </div>
-
-                      {/* Achievement Template 4 */}
-                      <div
-                        className="w-full flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity bg-white rounded"
-                        style={{ borderRadius: "4px", aspectRatio: "600/447" }}
-                      >
-                        <img
-                          src="/templates/achievements/achievements-4.png"
-                          alt="Achievement Template 4"
-                          className="w-full h-full object-contain"
-                          style={{ borderRadius: "4px" }}
-                          onClick={() => setShowAchievementsModal(true)}
-                        />
-                      </div>
-
-                      {/* Achievement Template 5 */}
-                      <div
-                        className="w-full flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity bg-white rounded"
-                        style={{ borderRadius: "4px", aspectRatio: "600/447" }}
-                      >
-                        <img
-                          src="/templates/achievements/achievements-5.png"
-                          alt="Achievement Template 5"
-                          className="w-full h-full object-contain"
-                          style={{ borderRadius: "4px" }}
-                          onClick={() => setShowAchievementsModal(true)}
-                        />
-                      </div>
-
-                      {/* Achievement Template 6 */}
-                      <div
-                        className="w-full flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity bg-white rounded"
-                        style={{ borderRadius: "4px", aspectRatio: "600/447" }}
-                      >
-                        <img
-                          src="/templates/achievements/achievements-6.png"
-                          alt="Achievement Template 6"
-                          className="w-full h-full object-contain"
-                          style={{ borderRadius: "4px" }}
-                          onClick={() => setShowAchievementsModal(true)}
-                        />
-                      </div>
-
-                      {/* Achievement Template 7 */}
-                      <div
-                        className="w-full flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity bg-white rounded"
-                        style={{ borderRadius: "4px", aspectRatio: "600/447" }}
-                      >
-                        <img
-                          src="/templates/achievements/achievements-7.png"
-                          alt="Achievement Template 7"
-                          className="w-full h-full object-contain"
-                          style={{ borderRadius: "4px" }}
-                          onClick={() => setShowAchievementsModal(true)}
-                        />
-                      </div>
-
-                      {/* Achievement Template 8 */}
-                      <div
-                        className="w-full flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity bg-white rounded"
-                        style={{ borderRadius: "4px", aspectRatio: "600/447" }}
-                      >
-                        <img
-                          src="/templates/achievements/achievements-8.png"
-                          alt="Achievement Template 8"
-                          className="w-full h-full object-contain"
-                          style={{ borderRadius: "4px" }}
-                          onClick={() => setShowAchievementsModal(true)}
-                        />
-                      </div>
-
-                      {/* Achievement Template 9 */}
-                      <div
-                        className="w-full flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity bg-white rounded"
-                        style={{ borderRadius: "4px", aspectRatio: "600/447" }}
-                      >
-                        <img
-                          src="/templates/achievements/achievements-9.png"
-                          alt="Achievement Template 9"
-                          className="w-full h-full object-contain"
-                          style={{ borderRadius: "4px" }}
-                          onClick={() => setShowAchievementsModal(true)}
-                        />
-                      </div>
-
-                      {/* Achievement Template 10 */}
-                      <div
-                        className="w-full flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity bg-white rounded"
-                        style={{ borderRadius: "4px", aspectRatio: "600/447" }}
-                      >
-                        <img
-                          src="/templates/achievements/achievements-10.png"
-                          alt="Achievement Template 10"
-                          className="w-full h-full object-contain"
-                          style={{ borderRadius: "4px" }}
-                          onClick={() =>
-                            handleTemplateSelect(
-                              "/templates/achievements/achievements-10.png"
-                            )
-                          }
-                        />
-                      </div>
-
-                      {/* Achievement Template 11 */}
-                      <div
-                        className="w-full flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity bg-white rounded"
-                        style={{ borderRadius: "4px", aspectRatio: "600/447" }}
-                      >
-                        <img
-                          src="/templates/achievements/achievements-11.png"
-                          alt="Achievement Template 11"
-                          className="w-full h-full object-contain"
-                          style={{ borderRadius: "4px" }}
-                          onClick={() =>
-                            handleTemplateSelect(
-                              "/templates/achievements/achievements-11.png"
-                            )
-                          }
-                        />
-                      </div>
-
-                      {/* Achievement Template 12 */}
-                      <div
-                        className="w-full flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity bg-white rounded"
-                        style={{ borderRadius: "4px", aspectRatio: "600/447" }}
-                      >
-                        <img
-                          src="/templates/achievements/achievements-12.png"
-                          alt="Achievement Template 12"
-                          className="w-full h-full object-contain"
-                          style={{ borderRadius: "4px" }}
-                          onClick={() =>
-                            handleTemplateSelect(
-                              "/templates/achievements/achievements-12.png"
-                            )
-                          }
-                        />
-                      </div>
-                    </div>
-                  )}
-                </>
-              )}
+                )}
+              </div>
             </div>
+          )}
+
+          {/* Action Buttons */}
+          <div
+            className="w-full flex gap-4 justify-center"
+            style={{ marginTop: "24px" }}
+          >
+            {currentStep === "awards" ? (
+              <>
+                <button
+                  onClick={handleBackToTemplates}
+                  className="px-6 py-3 text-sm font-medium transition-colors border rounded text-gray-300 hover:text-white whitespace-nowrap"
+                  style={{ borderColor: "#454446", width: "150px" }}
+                >
+                  Back
+                </button>
+                <button
+                  onClick={() => {
+                    // Handle template selection - move to Company step but keep template detail visible
+                    setCurrentStep("company");
+                    // Don't set showTemplateDetail to false - keep template visible in right container
+                  }}
+                  className="px-6 py-3 text-sm font-medium transition-colors bg-[var(--primary-dark)] text-[#212327] rounded hover:bg-[#0AFB84] whitespace-nowrap"
+                  style={{ width: "150px" }}
+                >
+                  Select Template
+                </button>
+              </>
+            ) : (
+              <button
+                onClick={() => {
+                  // Return to template grid
+                  setShowTemplateDetail(false);
+                  setSelectedTemplate(null);
+                  setCurrentStep("awards");
+                }}
+                className="px-6 py-3 text-sm font-medium transition-colors border rounded text-gray-300 hover:text-white whitespace-nowrap"
+                style={{ borderColor: "#454446", width: "150px" }}
+              >
+                Change Template
+              </button>
+            )}
           </div>
         </div>
-      </div>
+      ) : (
+        /* Template Grid View */
+        <>
+          {/* Header and Description */}
+          <div className="mb-6" style={{ paddingTop: "20px" }}>
+            <h1 className="text-[30px] font-bold text-white mb-4">
+              {activeTab === "props"
+                ? "Props Templates"
+                : "Achievement Templates"}
+            </h1>
+            <p className="text-md text-gray-300 mb-6">
+              Choose a template for your achievement. You can update this later
+              in saved awards.
+            </p>
+          </div>
+
+          {/* Template Grid */}
+          {activeTab === "props" && (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 justify-start pb-6 h-full">
+              {filteredTemplates?.map((temp, index) => (
+                <div
+                  key={`props-template-${index}`}
+                  className="w-full cursor-pointer hover:opacity-80 transition-opacity bg-white rounded"
+                  style={{
+                    borderRadius: "4px",
+                    aspectRatio: "600/400",
+                  }}
+                >
+                  <div
+                    onClick={() => handleTemplateSelect(temp)}
+                    className="relative w-full h-full"
+                  >
+                    <img
+                      src={temp.achievement.props}
+                      alt="Props Template 1"
+                      className="w-full h-full object-cover"
+                      style={{ borderRadius: "4px" }}
+                    />
+                    <div
+                      className="absolute top-0 left-0 right-0 bg-white border-b-2 border-gray-200"
+                      style={{
+                        height: "20%",
+                        zIndex: 50,
+                        borderRadius: "4px 4px 0 0",
+                      }}
+                    >
+                      <div
+                        className="absolute flex items-center"
+                        style={{
+                          height: "60%",
+                          width: "60%",
+                          maxWidth: "60%",
+                          left: "clamp(8px, 2vw, 20px)",
+                          top: "50%",
+                          transform: "translateY(-50%)",
+                        }}
+                      >
+                        <img
+                          src={temp.achievement.logoImage}
+                          alt="Instagram Logo"
+                          className="h-full max-h-full w-auto object-contain"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+          {activeTab === "achievements" && (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 justify-start pb-6 h-full">
+              {/* Achievement Template 1 */}
+              <div
+                className="w-full flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity bg-white rounded"
+                style={{ borderRadius: "4px", aspectRatio: "600/447" }}
+              >
+                <img
+                  src="/templates/achievements/achievements-1.png"
+                  alt="Achievement Template 1"
+                  className="w-full h-full object-contain"
+                  style={{ borderRadius: "4px" }}
+                  onClick={() => setShowAchievementsModal(true)}
+                />
+              </div>
+
+              {/* Achievement Template 2 */}
+              <div
+                className="w-full flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity bg-white rounded"
+                style={{ borderRadius: "4px", aspectRatio: "600/447" }}
+              >
+                <img
+                  src="/templates/achievements/achievements-2.png"
+                  alt="Achievement Template 2"
+                  className="w-full h-full object-contain"
+                  style={{ borderRadius: "4px" }}
+                  onClick={() => setShowAchievementsModal(true)}
+                />
+              </div>
+
+              {/* Achievement Template 3 */}
+              <div
+                className="w-full flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity bg-white rounded"
+                style={{ borderRadius: "4px", aspectRatio: "600/447" }}
+              >
+                <img
+                  src="/templates/achievements/achievements-3.png"
+                  alt="Achievement Template 3"
+                  className="w-full h-full object-contain"
+                  style={{ borderRadius: "4px" }}
+                  onClick={() => setShowAchievementsModal(true)}
+                />
+              </div>
+
+              {/* Achievement Template 4 */}
+              <div
+                className="w-full flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity bg-white rounded"
+                style={{ borderRadius: "4px", aspectRatio: "600/447" }}
+              >
+                <img
+                  src="/templates/achievements/achievements-4.png"
+                  alt="Achievement Template 4"
+                  className="w-full h-full object-contain"
+                  style={{ borderRadius: "4px" }}
+                  onClick={() => setShowAchievementsModal(true)}
+                />
+              </div>
+
+              {/* Achievement Template 5 */}
+              <div
+                className="w-full flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity bg-white rounded"
+                style={{ borderRadius: "4px", aspectRatio: "600/447" }}
+              >
+                <img
+                  src="/templates/achievements/achievements-5.png"
+                  alt="Achievement Template 5"
+                  className="w-full h-full object-contain"
+                  style={{ borderRadius: "4px" }}
+                  onClick={() => setShowAchievementsModal(true)}
+                />
+              </div>
+
+              {/* Achievement Template 6 */}
+              <div
+                className="w-full flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity bg-white rounded"
+                style={{ borderRadius: "4px", aspectRatio: "600/447" }}
+              >
+                <img
+                  src="/templates/achievements/achievements-6.png"
+                  alt="Achievement Template 6"
+                  className="w-full h-full object-contain"
+                  style={{ borderRadius: "4px" }}
+                  onClick={() => setShowAchievementsModal(true)}
+                />
+              </div>
+
+              {/* Achievement Template 7 */}
+              <div
+                className="w-full flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity bg-white rounded"
+                style={{ borderRadius: "4px", aspectRatio: "600/447" }}
+              >
+                <img
+                  src="/templates/achievements/achievements-7.png"
+                  alt="Achievement Template 7"
+                  className="w-full h-full object-contain"
+                  style={{ borderRadius: "4px" }}
+                  onClick={() => setShowAchievementsModal(true)}
+                />
+              </div>
+
+              {/* Achievement Template 8 */}
+              <div
+                className="w-full flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity bg-white rounded"
+                style={{ borderRadius: "4px", aspectRatio: "600/447" }}
+              >
+                <img
+                  src="/templates/achievements/achievements-8.png"
+                  alt="Achievement Template 8"
+                  className="w-full h-full object-contain"
+                  style={{ borderRadius: "4px" }}
+                  onClick={() => setShowAchievementsModal(true)}
+                />
+              </div>
+
+              {/* Achievement Template 9 */}
+              <div
+                className="w-full flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity bg-white rounded"
+                style={{ borderRadius: "4px", aspectRatio: "600/447" }}
+              >
+                <img
+                  src="/templates/achievements/achievements-9.png"
+                  alt="Achievement Template 9"
+                  className="w-full h-full object-contain"
+                  style={{ borderRadius: "4px" }}
+                  onClick={() => setShowAchievementsModal(true)}
+                />
+              </div>
+
+              {/* Achievement Template 10 */}
+              <div
+                className="w-full flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity bg-white rounded"
+                style={{ borderRadius: "4px", aspectRatio: "600/447" }}
+              >
+                <img
+                  src="/templates/achievements/achievements-10.png"
+                  alt="Achievement Template 10"
+                  className="w-full h-full object-contain"
+                  style={{ borderRadius: "4px" }}
+                  onClick={() =>
+                    handleTemplateSelect(
+                      "/templates/achievements/achievements-10.png"
+                    )
+                  }
+                />
+              </div>
+
+              {/* Achievement Template 11 */}
+              <div
+                className="w-full flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity bg-white rounded"
+                style={{ borderRadius: "4px", aspectRatio: "600/447" }}
+              >
+                <img
+                  src="/templates/achievements/achievements-11.png"
+                  alt="Achievement Template 11"
+                  className="w-full h-full object-contain"
+                  style={{ borderRadius: "4px" }}
+                  onClick={() =>
+                    handleTemplateSelect(
+                      "/templates/achievements/achievements-11.png"
+                    )
+                  }
+                />
+              </div>
+
+              {/* Achievement Template 12 */}
+              <div
+                className="w-full flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity bg-white rounded"
+                style={{ borderRadius: "4px", aspectRatio: "600/447" }}
+              >
+                <img
+                  src="/templates/achievements/achievements-12.png"
+                  alt="Achievement Template 12"
+                  className="w-full h-full object-contain"
+                  style={{ borderRadius: "4px" }}
+                  onClick={() =>
+                    handleTemplateSelect(
+                      "/templates/achievements/achievements-12.png"
+                    )
+                  }
+                />
+              </div>
+            </div>
+          )}
+        </>
+      )}
+    </>
+  );
+
+  return (
+    <>
+      <DigitalAwardsLayout
+        currentStep={currentStep}
+        onStepChange={handleStepChange}
+        leftContent={leftContent}
+        rightContent={rightContent}
+        showViewTitle={false}
+        viewTitleText=""
+        isStandalone={true}
+      />
 
       {/* Alert Message */}
       {showAlert && (
@@ -917,6 +896,6 @@ export default function DigitalAwardsPage() {
           </div>
         </div>
       )}
-    </div>
+    </>
   );
 }
