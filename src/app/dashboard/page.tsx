@@ -17,7 +17,8 @@ export default function Dashboard() {
   const sideNavMargin = useSideNavMargin();
   const { currentView } = useNavigation();
   const [userProfile, setUserProfile] = useState<any>(null);
-  const [isLoadingProfile, setIsLoadingProfile] = useState(false);
+  const [isLoadingProfile, setIsLoadingProfile] = useState(true);
+  const [carouselPosition, setCarouselPosition] = useState(0);
 
   // Fetch user profile data from Firebase
   const fetchUserProfile = async () => {
@@ -56,6 +57,28 @@ export default function Dashboard() {
       router.push('/signin');
     } catch (error) {
       console.error('Error signing out:', error);
+    }
+  };
+
+  const handleCarouselScroll = (direction: 'left' | 'right') => {
+    const container = document.querySelector('.carousel-container');
+    if (container) {
+      const cardWidth = container.scrollWidth / 4; // 4 cards total
+      const currentScroll = container.scrollLeft;
+      
+      if (direction === 'left') {
+        container.scrollTo({
+          left: currentScroll - cardWidth,
+          behavior: 'smooth'
+        });
+        setCarouselPosition(Math.max(0, carouselPosition - 1));
+      } else {
+        container.scrollTo({
+          left: currentScroll + cardWidth,
+          behavior: 'smooth'
+        });
+        setCarouselPosition(Math.min(1, carouselPosition + 1));
+      }
     }
   };
 
@@ -204,119 +227,124 @@ export default function Dashboard() {
                 </button>
               </div>
               
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {/* Placeholder Prop */}
-                <div className="bg-[#1e2327] rounded-lg overflow-hidden border border-[#454446] hover:border-[#00DF71] transition-colors">
-                  <div className="relative">
-                    <img 
-                      src="/liquid_death_props.png" 
-                      alt="Recent Prop"
-                      className="w-full object-cover"
-                      style={{ aspectRatio: "5/4" }}
-                    />
-                    <div className="absolute top-2 right-2">
-                      <div className="bg-[#00DF71] text-[#212327] text-xs px-2 py-1 rounded-full font-medium">
-                        New
+              <div className="relative">
+                {/* Left Arrow */}
+                <button 
+                  onClick={() => handleCarouselScroll('left')}
+                  disabled={carouselPosition === 0}
+                  className={`absolute left-0 top-1/2 transform -translate-y-1/2 z-10 bg-[#1e2327] border border-[#454446] rounded-full p-2 transition-colors ${
+                    carouselPosition === 0 
+                      ? 'opacity-50 cursor-not-allowed' 
+                      : 'hover:border-[#00DF71] cursor-pointer'
+                  }`}
+                >
+                  <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                  </svg>
+                </button>
+
+                {/* Right Arrow */}
+                <button 
+                  onClick={() => handleCarouselScroll('right')}
+                  disabled={carouselPosition === 1}
+                  className={`absolute right-0 top-1/2 transform -translate-y-1/2 z-10 bg-[#1e2327] border border-[#454446] rounded-full p-2 transition-colors ${
+                    carouselPosition === 1 
+                      ? 'opacity-50 cursor-not-allowed' 
+                      : 'hover:border-[#00DF71] cursor-pointer'
+                  }`}
+                >
+                  <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                </button>
+
+                {/* Carousel Container */}
+                <div className="flex gap-4 overflow-x-auto scrollbar-hide px-8 carousel-container">
+                  {/* Liquid Death Props */}
+                  <div className="bg-[#1e2327] rounded-lg overflow-hidden border border-[#454446] hover:border-[#00DF71] transition-colors flex-shrink-0" style={{ width: "calc(33.333% - 8px)" }}>
+                    <div className="relative">
+                      <img 
+                        src="/liquid_death_props.png" 
+                        alt="Recent Prop"
+                        className="w-full object-cover"
+                        style={{ aspectRatio: "5/4" }}
+                      />
+                    </div>
+                    <div className="p-4">
+                      <div className="flex items-center justify-between mb-1">
+                        <h3 className="text-white font-semibold text-sm">Liquid Death Props</h3>
+                        <div className="bg-[#00DF71] text-[#212327] text-xs px-2 py-1 rounded-full font-medium" style={{ marginRight: "8px" }}>
+                          New
+                        </div>
                       </div>
+                      <p className="text-gray-400 text-xs">Created 2 days ago</p>
                     </div>
                   </div>
-                  <div className="p-4">
-                    <h3 className="text-white font-semibold text-sm mb-1">Liquid Death Props</h3>
-                    <p className="text-gray-400 text-xs">Created 2 days ago</p>
-                  </div>
-                </div>
 
-                {/* Empty State Placeholder */}
-                <div className="bg-[#1e2327] rounded-lg border-2 border-dashed border-[#454446] p-8 flex flex-col items-center justify-center">
-                  <div className="w-12 h-12 bg-[#454446] rounded-full flex items-center justify-center mb-3">
-                    <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                    </svg>
+                  {/* Gymshark Props */}
+                  <div className="bg-[#1e2327] rounded-lg overflow-hidden border border-[#454446] hover:border-[#00DF71] transition-colors flex-shrink-0" style={{ width: "calc(33.333% - 8px)" }}>
+                    <div className="relative">
+                      <img 
+                        src="/gymshark_props.png" 
+                        alt="Recent Prop"
+                        className="w-full object-cover"
+                        style={{ aspectRatio: "5/4" }}
+                      />
+                    </div>
+                    <div className="p-4">
+                      <div className="flex items-center justify-between mb-1">
+                        <h3 className="text-white font-semibold text-sm">Gymshark Props</h3>
+                        <div className="bg-[#00DF71] text-[#212327] text-xs px-2 py-1 rounded-full font-medium" style={{ marginRight: "8px" }}>
+                          New
+                        </div>
+                      </div>
+                      <p className="text-gray-400 text-xs">Created 1 day ago</p>
+                    </div>
                   </div>
-                  <p className="text-gray-400 text-sm text-center">No props created yet</p>
-                  <p className="text-gray-500 text-xs text-center mt-1">Create your first prop in the Awards Generator</p>
-                </div>
 
-                {/* Another Empty State Placeholder */}
-                <div className="bg-[#1e2327] rounded-lg border-2 border-dashed border-[#454446] p-8 flex flex-col items-center justify-center">
-                  <div className="w-12 h-12 bg-[#454446] rounded-full flex items-center justify-center mb-3">
-                    <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                    </svg>
+                  {/* Nike Props (Placeholder) */}
+                  <div className="bg-[#1e2327] rounded-lg overflow-hidden border border-[#454446] hover:border-[#00DF71] transition-colors flex-shrink-0" style={{ width: "calc(33.333% - 8px)" }}>
+                    <div className="relative">
+                      <img 
+                        src="/liquid_death_props.png" 
+                        alt="Recent Prop"
+                        className="w-full object-cover"
+                        style={{ aspectRatio: "5/4" }}
+                      />
+                    </div>
+                    <div className="p-4">
+                      <div className="flex items-center justify-between mb-1">
+                        <h3 className="text-white font-semibold text-sm">Nike Props</h3>
+                        <div className="bg-[#00DF71] text-[#212327] text-xs px-2 py-1 rounded-full font-medium" style={{ marginRight: "8px" }}>
+                          New
+                        </div>
+                      </div>
+                      <p className="text-gray-400 text-xs">Created 3 hours ago</p>
+                    </div>
                   </div>
-                  <p className="text-gray-400 text-sm text-center">No props created yet</p>
-                  <p className="text-gray-500 text-xs text-center mt-1">Create your first prop in the Awards Generator</p>
-                </div>
-              </div>
-            </div>
 
-            <div className="bg-gray-800 rounded-lg shadow-sm border border-gray-700 p-6">
-              <div className="flex items-center justify-between mb-6">
-                <h1 className="text-2xl font-bold text-white">Dashboard</h1>
-                <button
-                  onClick={handleSignOut}
-                  className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
-                >
-                  Sign Out
-                </button>
-              </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="bg-gray-700 rounded-lg p-4">
-                <h2 className="text-lg font-semibold text-white mb-4">User Information</h2>
-                <div className="space-y-2">
-                  <div>
-                    <span className="font-medium text-gray-300">Email:</span>
-                    <span className="ml-2 text-white">{user.email}</span>
+                  {/* Adidas Props (Placeholder) */}
+                  <div className="bg-[#1e2327] rounded-lg overflow-hidden border border-[#454446] hover:border-[#00DF71] transition-colors flex-shrink-0" style={{ width: "calc(33.333% - 8px)" }}>
+                    <div className="relative">
+                      <img 
+                        src="/gymshark_props.png" 
+                        alt="Recent Prop"
+                        className="w-full object-cover"
+                        style={{ aspectRatio: "5/4" }}
+                      />
+                    </div>
+                    <div className="p-4">
+                      <div className="flex items-center justify-between mb-1">
+                        <h3 className="text-white font-semibold text-sm">Adidas Props</h3>
+                        <div className="bg-[#00DF71] text-[#212327] text-xs px-2 py-1 rounded-full font-medium" style={{ marginRight: "8px" }}>
+                          New
+                        </div>
+                      </div>
+                      <p className="text-gray-400 text-xs">Created 1 hour ago</p>
+                    </div>
                   </div>
-                  <div>
-                    <span className="font-medium text-gray-300">User ID:</span>
-                    <span className="ml-2 text-white">{user.uid}</span>
-                  </div>
-                  <div>
-                    <span className="font-medium text-gray-300">Email Verified:</span>
-                    <span className="ml-2 text-white">{user.emailVerified ? 'Yes' : 'No'}</span>
-                  </div>
-                  <div>
-                    <span className="font-medium text-gray-300">Provider:</span>
-                    <span className="ml-2 text-white">
-                      {user.providerData[0]?.providerId || 'Email/Password'}
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="bg-gray-700 rounded-lg p-4">
-                <h2 className="text-lg font-semibold text-white mb-4">Account Actions</h2>
-                <div className="space-y-3">
-                  <Link
-                    href="/profile"
-                    className="block w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-center"
-                  >
-                    Edit Profile
-                  </Link>
-                  <Link
-                    href="/settings"
-                    className="block w-full px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors text-center"
-                  >
-                    Settings
-                  </Link>
-                  <Link
-                    href="/"
-                    className="block w-full px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-center"
-                  >
-                    Go to Home
-                  </Link>
                 </div>
               </div>
-            </div>
-          </div>
-
-            <div className="mt-6 p-4 bg-blue-900 rounded-lg">
-              <h3 className="text-lg font-semibold text-blue-100 mb-2">Welcome to SkillTrait!</h3>
-              <p className="text-blue-200">
-                You have successfully signed in. This dashboard shows your authentication status and provides quick access to your account features.
-              </p>
             </div>
           </div>
         </div>
