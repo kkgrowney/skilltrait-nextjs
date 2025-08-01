@@ -71,7 +71,7 @@ export default function AwardsStep({
   };
 
   return (
-    <div className="h-full flex flex-col w-full" style={{ height: "100vh", overflow: "hidden", padding: "8px", maxWidth: "100%", boxSizing: "border-box" }}>
+    <div className="h-full flex flex-col w-full" style={{ overflow: "hidden", padding: "8px", maxWidth: "100%", boxSizing: "border-box" }}>
       <div className="text-center mb-6" style={{ paddingTop: "0px", flexShrink: 0 }}>
         <h1 className="text-[30px] font-bold text-white mb-4">Awards</h1>
         <p className="text-md text-gray-300 mb-0">

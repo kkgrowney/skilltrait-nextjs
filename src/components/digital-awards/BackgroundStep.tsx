@@ -207,35 +207,6 @@ export default function BackgroundStep({
                       style={{ borderRadius: "4px" }}
                     />
 
-                    {/* White Overlay with Stroke Line */}
-                    <div
-                      className="absolute top-0 left-0 right-0 bg-white border-b-2 border-gray-200"
-                      style={{
-                        height: "20%",
-                        zIndex: 50,
-                        borderRadius: "4px 4px 0 0",
-                      }}
-                    >
-                      {/* Logo Container */}
-                      <div
-                        className="absolute flex items-center"
-                        style={{
-                          height: "60%",
-                          width: "60%",
-                          maxWidth: "60%",
-                          left: "clamp(8px, 2vw, 20px)",
-                          top: "50%",
-                          transform: "translateY(-50%)",
-                        }}
-                      >
-                        <img
-                          src={selectedTemplate?.achievement?.logoImage || ""}
-                          alt="Logo"
-                          className="h-full max-h-full w-auto object-contain"
-                        />
-                      </div>
-                    </div>
-
                     {/* Delete Button */}
                     <button
                       onClick={() => handleShowDeleteModal("background")}
