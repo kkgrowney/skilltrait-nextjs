@@ -1,8 +1,9 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { createUserWithEmailAndPassword, signInWithPopup, GoogleAuthProvider } from 'firebase/auth';
-import { auth } from '@/lib/firebase';
+import { createUserWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, sendEmailVerification } from 'firebase/auth';
+import { auth, db } from '@/lib/firebase';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { useRouter } from 'next/navigation';
 
 export default function SignUpPage() {
@@ -37,8 +38,9 @@ export default function SignUpPage() {
     }
 
     try {
-      await createUserWithEmailAndPassword(auth, email, password);
-      router.push('/dashboard');
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      await sendEmailVerification(userCredential.user);
+      router.push('/onboarding');
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : 'An error occurred';
       console.error('Sign up error:', errorMessage);
@@ -52,8 +54,22 @@ export default function SignUpPage() {
 
     try {
       const provider = new GoogleAuthProvider();
-      await signInWithPopup(auth, provider);
-      router.push('/dashboard');
+      const result = await signInWithPopup(auth, provider);
+      
+      // Check if user already has a profile
+      const userDoc = await getDoc(doc(db, 'users', result.user.uid));
+      if (!userDoc.exists()) {
+        // Create basic profile for Google user
+        await setDoc(doc(db, 'users', result.user.uid), {
+          display_name: result.user.displayName || '',
+          email: result.user.email || '',
+          photo_url: result.user.photoURL || '',
+          created_time: new Date(),
+          didInitProfile: false,
+        });
+      }
+      
+      router.push('/onboarding');
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : 'An error occurred';
       console.error('Google sign up error:', errorMessage);

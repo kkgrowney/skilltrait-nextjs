@@ -48,7 +48,7 @@ export default function SignUpModal({ isOpen, setIsOpen }: SignUpModalProps) {
     try {
       await createUserWithEmailAndPassword(auth, email, password);
       setIsOpen(false);
-      router.push("/dashboard");
+      router.push("/home");
     } catch (error: unknown) {
       const errorMessage =
         error instanceof Error ? error.message : "An error occurred";
@@ -65,7 +65,7 @@ export default function SignUpModal({ isOpen, setIsOpen }: SignUpModalProps) {
       const provider = new GoogleAuthProvider();
       await signInWithPopup(auth, provider);
       setIsOpen(false);
-      router.push("/dashboard");
+      router.push("/home");
     } catch (error: unknown) {
       const errorMessage =
         error instanceof Error ? error.message : "An error occurred";

@@ -11,7 +11,7 @@ import DigitalAwardsView from '@/components/DigitalAwardsView';
 import { useEffect, useState } from 'react';
 import { doc, getDoc } from 'firebase/firestore';
 
-export default function Dashboard() {
+export default function Home() {
   const { user, loading } = useAuth();
   const router = useRouter();
   const sideNavMargin = useSideNavMargin();
@@ -22,9 +22,11 @@ export default function Dashboard() {
 
   // Fetch user profile data from Firebase
   const fetchUserProfile = async () => {
+    if (!user?.uid) return;
+    
     setIsLoadingProfile(true);
     try {
-      const userDocRef = doc(db, 'users', 'zIMIiaMN8DfFjoyZ16JOZKxFVrZ2');
+      const userDocRef = doc(db, 'users', user.uid);
       const userDoc = await getDoc(userDocRef);
       
       if (userDoc.exists()) {
@@ -32,6 +34,7 @@ export default function Dashboard() {
         setUserProfile(data);
         console.log('User profile loaded:', data);
         console.log('Photo URL fields:', {
+          photo_url: data.photo_url,
           photoURL: data.photoURL,
           photo: data.photo,
           profilePicture: data.profilePicture
@@ -48,8 +51,10 @@ export default function Dashboard() {
 
   // Fetch user profile data from Firebase
   useEffect(() => {
-    fetchUserProfile();
-  }, []);
+    if (user?.uid) {
+      fetchUserProfile();
+    }
+  }, [user?.uid]);
 
   const handleSignOut = async () => {
     try {
@@ -98,6 +103,13 @@ export default function Dashboard() {
     return null;
   }
 
+  // Check if user has completed onboarding
+  useEffect(() => {
+    if (userProfile && !userProfile.didInitProfile) {
+      router.push('/onboarding');
+    }
+  }, [userProfile, router]);
+
   // Render Digital Awards view
   if (currentView === 'digital-awards') {
     return (
@@ -144,7 +156,10 @@ export default function Dashboard() {
               {/* Profile Title */}
               <div className="flex items-center mb-4">
                 <h2 className="text-xl font-bold text-white">Profile</h2>
-                <button className="ml-3 px-3 py-1 text-xs bg-[#00DF71] text-[#212327] rounded-full hover:bg-[#0AFB84] transition-colors">
+                <button 
+                  onClick={() => router.push('/profileEdit')}
+                  className="ml-3 px-3 py-1 text-xs bg-[#00DF71] text-[#212327] rounded-full hover:bg-[#0AFB84] transition-colors"
+                >
                   Edit
                 </button>
               </div>
@@ -168,7 +183,7 @@ export default function Dashboard() {
                       <div className="w-16 h-16 md:w-20 md:h-20 rounded-full bg-[#454446] flex items-center justify-center hidden border-2 border-[#454446]">
                         <div className="w-12 h-12 md:w-16 md:h-16 rounded-full bg-[#1e2327] flex items-center justify-center">
                           <span className="text-white text-lg md:text-xl font-semibold">
-                            {userProfile?.display_name?.charAt(0) || userProfile?.displayName?.charAt(0) || userProfile?.name?.charAt(0) || userProfile?.email?.charAt(0) || 'U'}
+                            {userProfile?.display_name?.charAt(0) || userProfile?.displayName?.charAt(0) || userProfile?.name?.charAt(0) || userProfile?.email?.charAt(0) || user?.displayName?.charAt(0) || user?.email?.charAt(0) || 'U'}
                           </span>
                         </div>
                       </div>
@@ -177,7 +192,7 @@ export default function Dashboard() {
                     <div className="w-16 h-16 md:w-20 md:h-20 rounded-full bg-[#454446] flex items-center justify-center border-2 border-[#454446]">
                       <div className="w-12 h-12 md:w-16 md:h-16 rounded-full bg-[#1e2327] flex items-center justify-center">
                         <span className="text-white text-lg md:text-xl font-semibold">
-                          {userProfile?.display_name?.charAt(0) || userProfile?.displayName?.charAt(0) || userProfile?.name?.charAt(0) || userProfile?.email?.charAt(0) || 'U'}
+                          {userProfile?.display_name?.charAt(0) || userProfile?.displayName?.charAt(0) || userProfile?.name?.charAt(0) || userProfile?.email?.charAt(0) || user?.displayName?.charAt(0) || user?.email?.charAt(0) || 'U'}
                         </span>
                       </div>
                     </div>
@@ -188,18 +203,26 @@ export default function Dashboard() {
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-3 mb-1">
                     <h2 className="text-xl md:text-2xl font-bold text-[#00DF71]">
-                      {userProfile?.display_name || userProfile?.displayName || userProfile?.name || 'Kevin Growney'}
+                      {userProfile?.display_name || userProfile?.displayName || userProfile?.name || user?.displayName || 'User'}
                     </h2>
                     
-                    {/* LinkedIn Icon */}
-                    <div className="flex-shrink-0" style={{ transform: "translateY(0px)" }}>
-                      <svg className="w-[14px] h-[14px] md:w-[20px] md:h-[20px] text-white" fill="currentColor" viewBox="0 0 24 24">
-                        <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
-                      </svg>
-                    </div>
+                    {/* LinkedIn Icon - Only show if LinkedIn URL exists */}
+                    {(userProfile?.linkedInLink || userProfile?.linkedin) && (
+                      <a 
+                        href={userProfile?.linkedInLink || userProfile?.linkedin}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex-shrink-0 hover:opacity-80 transition-opacity cursor-pointer" 
+                        style={{ transform: "translateY(0px)" }}
+                      >
+                        <svg className="w-[14px] h-[14px] md:w-[20px] md:h-[20px] text-white" fill="currentColor" viewBox="0 0 24 24">
+                          <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
+                        </svg>
+                      </a>
+                    )}
                   </div>
                   <p className="text-gray-300 text-sm md:text-base">
-                    {userProfile?.currentRole || userProfile?.title || userProfile?.role || userProfile?.jobTitle || 'Principal UX Designer @ Universily'}
+                    {userProfile?.currentRole || userProfile?.title || userProfile?.role || userProfile?.jobTitle || 'No title set'}
                   </p>
                 </div>
               </div>
@@ -213,7 +236,7 @@ export default function Dashboard() {
                   About
                 </h3>
                 <p className="text-gray-300 text-sm md:text-base">
-                  {userProfile?.about || userProfile?.bio || userProfile?.description || 'Stamping out user frustration, one pixel at a time.'}
+                  {userProfile?.about || userProfile?.bio || userProfile?.description || 'No bio set'}
                 </p>
               </div>
             </div>

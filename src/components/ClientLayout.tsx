@@ -16,7 +16,8 @@ const IFRAME_ROUTES = [
   "/not-found",
   "/unauthorized",
   "/employees",
-  "/dashboard",
+  "/home",
+  "/profileEdit",
 ];
 
 export default function ClientLayout({

@@ -1,9 +1,10 @@
 'use client';
 
-import { useState } from 'react';
-import { signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider } from 'firebase/auth';
-import { auth } from '@/lib/firebase';
+import { useState, useEffect } from 'react';
+import { signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, onAuthStateChanged } from 'firebase/auth';
+import { auth, db } from '@/lib/firebase';
 import { useRouter } from 'next/navigation';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
 
 export default function SignInPage() {
   const [email, setEmail] = useState('');
@@ -13,13 +14,28 @@ export default function SignInPage() {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
+  const checkUserProfile = async (uid: string) => {
+    try {
+      const userDoc = await getDoc(doc(db, 'users', uid));
+      if (userDoc.exists()) {
+        const userData = userDoc.data();
+        return userData.didInitProfile === true;
+      }
+      return false;
+    } catch (error) {
+      console.error('Error checking user profile:', error);
+      return false;
+    }
+  };
+
   const handleEmailSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
     try {
-      await signInWithEmailAndPassword(auth, email, password);
-      router.push('/dashboard');
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      const hasProfile = await checkUserProfile(userCredential.user.uid);
+      router.push(hasProfile ? '/home' : '/onboarding');
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : 'An error occurred';
       console.error('Sign in error:', errorMessage);
@@ -33,8 +49,25 @@ export default function SignInPage() {
 
     try {
       const provider = new GoogleAuthProvider();
-      await signInWithPopup(auth, provider);
-      router.push('/dashboard');
+      const result = await signInWithPopup(auth, provider);
+      
+      // Check if user has a profile
+      const userDoc = await getDoc(doc(db, 'users', result.user.uid));
+      if (!userDoc.exists()) {
+        // Create basic profile for Google user
+        await setDoc(doc(db, 'users', result.user.uid), {
+          display_name: result.user.displayName || '',
+          email: result.user.email || '',
+          photo_url: result.user.photoURL || '',
+          created_time: new Date(),
+          didInitProfile: false,
+        });
+        router.push('/onboarding');
+      } else {
+        const userData = userDoc.data();
+        const hasProfile = userData.didInitProfile === true;
+        router.push(hasProfile ? '/home' : '/onboarding');
+      }
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : 'An error occurred';
       console.error('Google sign in error:', errorMessage);

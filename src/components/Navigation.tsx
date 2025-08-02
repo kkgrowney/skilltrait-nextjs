@@ -59,8 +59,8 @@ export default function Navigation() {
               Download app
             </a>
             {user ? (
-              <Link href="/dashboard" className="button-r is-secondary is-small is-alternate round w-button">
-                Dashboard
+                      <Link href="/home" className="button-r is-secondary is-small is-alternate round w-button">
+          Home
               </Link>
             ) : (
               <Link href="/signin" className="button-r is-secondary is-small is-alternate round w-button">
