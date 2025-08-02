@@ -19,6 +19,7 @@ export default function Home() {
   const [userProfile, setUserProfile] = useState<any>(null);
   const [isLoadingProfile, setIsLoadingProfile] = useState(true);
   const [carouselPosition, setCarouselPosition] = useState(0);
+  const [templatesCarouselPosition, setTemplatesCarouselPosition] = useState(0);
 
   // Fetch user profile data from Firebase
   const fetchUserProfile = async () => {
@@ -56,6 +57,13 @@ export default function Home() {
     }
   }, [user?.uid]);
 
+  // Check if user has completed onboarding
+  useEffect(() => {
+    if (userProfile && !userProfile.didInitProfile) {
+      router.push('/onboarding');
+    }
+  }, [userProfile, router]);
+
   const handleSignOut = async () => {
     try {
       await signOut(auth);
@@ -87,6 +95,28 @@ export default function Home() {
     }
   };
 
+  const handleTemplatesCarouselScroll = (direction: 'left' | 'right') => {
+    const container = document.querySelector('.templates-carousel-container');
+    if (container) {
+      const cardWidth = container.scrollWidth / 4; // 4 cards total
+      const currentScroll = container.scrollLeft;
+      
+      if (direction === 'left') {
+        container.scrollTo({
+          left: currentScroll - cardWidth,
+          behavior: 'smooth'
+        });
+        setTemplatesCarouselPosition(Math.max(0, templatesCarouselPosition - 1));
+      } else {
+        container.scrollTo({
+          left: currentScroll + cardWidth,
+          behavior: 'smooth'
+        });
+        setTemplatesCarouselPosition(Math.min(1, templatesCarouselPosition + 1));
+      }
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -102,13 +132,6 @@ export default function Home() {
     router.push('/signin');
     return null;
   }
-
-  // Check if user has completed onboarding
-  useEffect(() => {
-    if (userProfile && !userProfile.didInitProfile) {
-      router.push('/onboarding');
-    }
-  }, [userProfile, router]);
 
   // Render Digital Awards view
   if (currentView === 'digital-awards') {
@@ -364,6 +387,72 @@ export default function Home() {
                         </div>
                       </div>
                       <p className="text-gray-400 text-xs">Created 1 hour ago</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Recent Templates Section */}
+            <div className="bg-[#212327] rounded-lg shadow-sm border border-[#454446] p-6 mb-6">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-xl font-bold text-white">Recent Templates</h2>
+                <button className="px-3 py-1 text-xs bg-[#00DF71] text-[#212327] rounded-full hover:bg-[#0AFB84] transition-colors">
+                  View All
+                </button>
+              </div>
+              
+              <div className="relative">
+                {/* Left Arrow */}
+                <button 
+                  onClick={() => handleTemplatesCarouselScroll('left')}
+                  disabled={templatesCarouselPosition === 0}
+                  className={`absolute left-0 top-1/2 transform -translate-y-1/2 z-10 bg-[#1e2327] border border-[#454446] rounded-full p-2 transition-colors ${
+                    templatesCarouselPosition === 0 
+                      ? 'opacity-50 cursor-not-allowed' 
+                      : 'hover:border-[#00DF71] cursor-pointer'
+                  }`}
+                >
+                  <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                  </svg>
+                </button>
+
+                {/* Right Arrow */}
+                <button 
+                  onClick={() => handleTemplatesCarouselScroll('right')}
+                  disabled={templatesCarouselPosition === 1}
+                  className={`absolute right-0 top-1/2 transform -translate-y-1/2 z-10 bg-[#1e2327] border border-[#454446] rounded-full p-2 transition-colors ${
+                    templatesCarouselPosition === 1 
+                      ? 'opacity-50 cursor-not-allowed' 
+                      : 'hover:border-[#00DF71] cursor-pointer'
+                  }`}
+                >
+                  <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                </button>
+
+                {/* Carousel Container */}
+                <div className="flex gap-4 overflow-x-auto scrollbar-hide px-8 templates-carousel-container">
+                  {/* Empty Template Container 1 */}
+                  <div className="bg-[#1e2327] rounded-lg border border-[#454446] flex-shrink-0 flex items-center justify-center" style={{ width: "calc(33.333% - 8px)", aspectRatio: "5/4" }}>
+                    <div className="text-center text-gray-400">
+                      <p className="text-sm">No templates yet</p>
+                    </div>
+                  </div>
+
+                  {/* Empty Template Container 2 */}
+                  <div className="bg-[#1e2327] rounded-lg border border-[#454446] flex-shrink-0 flex items-center justify-center" style={{ width: "calc(33.333% - 8px)", aspectRatio: "5/4" }}>
+                    <div className="text-center text-gray-400">
+                      <p className="text-sm">No templates yet</p>
+                    </div>
+                  </div>
+
+                  {/* Empty Template Container 3 */}
+                  <div className="bg-[#1e2327] rounded-lg border border-[#454446] flex-shrink-0 flex items-center justify-center" style={{ width: "calc(33.333% - 8px)", aspectRatio: "5/4" }}>
+                    <div className="text-center text-gray-400">
+                      <p className="text-sm">No templates yet</p>
                     </div>
                   </div>
                 </div>
