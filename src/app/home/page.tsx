@@ -140,13 +140,13 @@ export default function Home() {
         <SideNavigation />
         
         <div className="md:ml-60 ml-0 md:ml-[66px] h-full flex flex-col">
-          {/* ViewTitle Container */}
-          <div className="w-full bg-[#1e2327] flex items-center border-b border-[#454446] h-16" style={{ height: "64px !important", minHeight: "64px", maxHeight: "64px", paddingLeft: "32px" }}>
-            {/* Title text */}
-            <div className="font-semibold text-[#ffffff] text-[18px] whitespace-nowrap">
-              Awards Generator
-            </div>
+                  {/* ViewTitle Container */}
+        <div className="w-full bg-[#1e2327] flex items-center border-b border-[#454446] h-16" style={{ height: "64px !important", minHeight: "64px", maxHeight: "64px", paddingLeft: "32px" }}>
+          {/* Title text */}
+          <div className="font-semibold text-[#ffffff] text-[18px] whitespace-nowrap md:ml-0 ml-9 flex items-center">
+            Awards Generator
           </div>
+        </div>
           
           {/* Content Area */}
           <div className="flex-1 overflow-y-auto">
@@ -166,7 +166,7 @@ export default function Home() {
         {/* ViewTitle Container */}
         <div className="w-full bg-[#1e2327] flex items-center border-b border-[#454446] h-16" style={{ height: "64px !important", minHeight: "64px", maxHeight: "64px", paddingLeft: "32px" }}>
           {/* Title text */}
-          <div className="font-semibold text-[#ffffff] text-[18px] whitespace-nowrap">
+          <div className="font-semibold text-[#ffffff] text-[18px] whitespace-nowrap md:ml-0 ml-9 flex items-center">
             Home
           </div>
         </div>

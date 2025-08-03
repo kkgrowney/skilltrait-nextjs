@@ -3,11 +3,21 @@
 import React from "react";
 import { useNavigation } from "@/contexts/NavigationContext";
 
-export default function SideNavAuth() {
+interface SideNavAuthProps {
+  onNavigationClick?: () => void;
+  isMobileOpen?: boolean;
+}
+
+export default function SideNavAuth({ onNavigationClick, isMobileOpen }: SideNavAuthProps) {
   const { toggleCollapsed, currentView, setCurrentView } = useNavigation();
 
+  const handleNavigationClick = (view: string) => {
+    setCurrentView(view as any);
+    onNavigationClick?.();
+  };
+
   return (
-    <aside className="bg-[#1F2327] w-60 h-screen fixed left-0 top-0 flex flex-col justify-between border-r border-[#454446]">
+    <aside className={`bg-[#1F2327] w-60 h-screen fixed left-0 top-0 flex flex-col justify-between ${isMobileOpen ? '' : 'border-r border-[#454446]'}`}>
       {/* Top Section */}
       <div className="flex flex-col gap-2 p-3">
         {/* SkillTrait Logo */}
@@ -28,7 +38,7 @@ export default function SideNavAuth() {
                 ? "bg-[#181d21]" 
                 : "hover:bg-[#2a2e32]"
             }`}
-            onClick={() => setCurrentView("home")}
+            onClick={() => handleNavigationClick("home")}
           >
             <div className="flex items-center gap-3 pl-2">
               {/* Home Icon */}
@@ -59,7 +69,7 @@ export default function SideNavAuth() {
                 ? "bg-[#181d21]"
                 : "hover:bg-[#2a2e32]"
             }`}
-            onClick={() => setCurrentView("digital-awards")}
+            onClick={() => handleNavigationClick("digital-awards")}
           >
             <div className="flex items-center gap-3 pl-2">
               {/* Trophy Icon - Digital Awards */}
