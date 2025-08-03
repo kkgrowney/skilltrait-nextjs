@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useState } from 'react';
 
-type ViewType = 'home' | 'digital-awards';
+type ViewType = 'home' | 'digital-awards' | 'team';
 
 interface NavigationContextType {
   isCollapsed: boolean;

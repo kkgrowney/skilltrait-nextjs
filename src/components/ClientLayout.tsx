@@ -18,6 +18,8 @@ const IFRAME_ROUTES = [
   "/employees",
   "/home",
   "/profileEdit",
+  "/team",
+  "/teamEdit",
 ];
 
 export default function ClientLayout({

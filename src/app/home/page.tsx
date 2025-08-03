@@ -15,7 +15,7 @@ export default function Home() {
   const { user, loading } = useAuth();
   const router = useRouter();
   const sideNavMargin = useSideNavMargin();
-  const { currentView } = useNavigation();
+  const { currentView, setCurrentView } = useNavigation();
   const [userProfile, setUserProfile] = useState<any>(null);
   const [isLoadingProfile, setIsLoadingProfile] = useState(true);
   const [carouselPosition, setCarouselPosition] = useState(0);
@@ -50,6 +50,11 @@ export default function Home() {
     }
   };
 
+  // Set current view to home when component mounts
+  useEffect(() => {
+    setCurrentView('home');
+  }, [setCurrentView]);
+
   // Fetch user profile data from Firebase
   useEffect(() => {
     if (user?.uid) {
@@ -63,6 +68,13 @@ export default function Home() {
       router.push('/onboarding');
     }
   }, [userProfile, router]);
+
+  // Handle team view navigation
+  useEffect(() => {
+    if (currentView === 'team') {
+      router.push('/team');
+    }
+  }, [currentView, router]);
 
   const handleSignOut = async () => {
     try {
@@ -155,6 +167,11 @@ export default function Home() {
         </div>
       </div>
     );
+  }
+
+  // Don't render home content if navigating to team
+  if (currentView === 'team') {
+    return null;
   }
 
   // Render Home view (default)

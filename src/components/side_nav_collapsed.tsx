@@ -88,6 +88,30 @@ export default function SideNavCollapsed() {
               />
             </div>
           </div>
+
+          {/* Team - Active/Inactive State */}
+          <div
+            className={`flex items-center justify-center w-11 h-11 rounded-lg cursor-pointer transition-colors ${
+              currentView === "team"
+                ? "bg-[#181d21]"
+                : "hover:bg-[#181d21] hover:bg-opacity-50"
+            }`}
+            onClick={() => setCurrentView("team")}
+          >
+            <div className="flex items-center justify-center w-full h-full">
+              {/* Team Icon */}
+              <img
+                src="/team.svg"
+                alt="Team"
+                className="h-7 w-7 flex-shrink-0"
+                style={{
+                  filter: currentView === "team" 
+                    ? "brightness(0) saturate(100%) invert(84%) sepia(11%) saturate(6382%) hue-rotate(86deg) brightness(101%) contrast(107%)" // #00DF71
+                    : "brightness(0) saturate(100%) invert(52%) sepia(8%) saturate(1234%) hue-rotate(202deg) brightness(94%) contrast(86%)" // #79828A
+                }}
+              />
+            </div>
+          </div>
         </nav>
       </div>
 
