@@ -307,7 +307,7 @@ export default function Home() {
                 {/* Carousel Container */}
                 <div className="flex gap-4 overflow-x-auto scrollbar-hide px-8 carousel-container">
                   {/* Liquid Death Props */}
-                  <div className="bg-[#1e2327] rounded-lg overflow-hidden border border-[#454446] hover:border-[#00DF71] transition-colors flex-shrink-0" style={{ width: "calc(33.333% - 8px)" }}>
+                  <div className="bg-[#1e2327] rounded-lg overflow-hidden border border-[#454446] hover:border-[#00DF71] transition-colors flex-shrink-0 w-full md:w-[calc(33.333%-8px)]">
                     <div className="relative">
                       <img 
                         src="/liquid_death_props.png" 
@@ -328,7 +328,7 @@ export default function Home() {
                   </div>
 
                   {/* Gymshark Props */}
-                  <div className="bg-[#1e2327] rounded-lg overflow-hidden border border-[#454446] hover:border-[#00DF71] transition-colors flex-shrink-0" style={{ width: "calc(33.333% - 8px)" }}>
+                  <div className="bg-[#1e2327] rounded-lg overflow-hidden border border-[#454446] hover:border-[#00DF71] transition-colors flex-shrink-0 w-full md:w-[calc(33.333%-8px)]">
                     <div className="relative">
                       <img 
                         src="/gymshark_props.png" 
@@ -349,7 +349,7 @@ export default function Home() {
                   </div>
 
                   {/* Nike Props (Placeholder) */}
-                  <div className="bg-[#1e2327] rounded-lg overflow-hidden border border-[#454446] hover:border-[#00DF71] transition-colors flex-shrink-0" style={{ width: "calc(33.333% - 8px)" }}>
+                  <div className="bg-[#1e2327] rounded-lg overflow-hidden border border-[#454446] hover:border-[#00DF71] transition-colors flex-shrink-0 w-full md:w-[calc(33.333%-8px)]">
                     <div className="relative">
                       <img 
                         src="/liquid_death_props.png" 
@@ -370,7 +370,7 @@ export default function Home() {
                   </div>
 
                   {/* Adidas Props (Placeholder) */}
-                  <div className="bg-[#1e2327] rounded-lg overflow-hidden border border-[#454446] hover:border-[#00DF71] transition-colors flex-shrink-0" style={{ width: "calc(33.333% - 8px)" }}>
+                  <div className="bg-[#1e2327] rounded-lg overflow-hidden border border-[#454446] hover:border-[#00DF71] transition-colors flex-shrink-0 w-full md:w-[calc(33.333%-8px)]">
                     <div className="relative">
                       <img 
                         src="/gymshark_props.png" 
@@ -436,21 +436,21 @@ export default function Home() {
                 {/* Carousel Container */}
                 <div className="flex gap-4 overflow-x-auto scrollbar-hide px-8 templates-carousel-container">
                   {/* Empty Template Container 1 */}
-                  <div className="bg-[#1e2327] rounded-lg border border-[#454446] flex-shrink-0 flex items-center justify-center" style={{ width: "calc(33.333% - 8px)", aspectRatio: "5/4" }}>
+                  <div className="bg-[#1e2327] rounded-lg border border-[#454446] flex-shrink-0 flex items-center justify-center w-full md:w-[calc(33.333%-8px)]" style={{ aspectRatio: "5/4" }}>
                     <div className="text-center text-gray-400">
                       <p className="text-sm">No templates yet</p>
                     </div>
                   </div>
 
                   {/* Empty Template Container 2 */}
-                  <div className="bg-[#1e2327] rounded-lg border border-[#454446] flex-shrink-0 flex items-center justify-center" style={{ width: "calc(33.333% - 8px)", aspectRatio: "5/4" }}>
+                  <div className="bg-[#1e2327] rounded-lg border border-[#454446] flex-shrink-0 flex items-center justify-center w-full md:w-[calc(33.333%-8px)]" style={{ aspectRatio: "5/4" }}>
                     <div className="text-center text-gray-400">
                       <p className="text-sm">No templates yet</p>
                     </div>
                   </div>
 
                   {/* Empty Template Container 3 */}
-                  <div className="bg-[#1e2327] rounded-lg border border-[#454446] flex-shrink-0 flex items-center justify-center" style={{ width: "calc(33.333% - 8px)", aspectRatio: "5/4" }}>
+                  <div className="bg-[#1e2327] rounded-lg border border-[#454446] flex-shrink-0 flex items-center justify-center w-full md:w-[calc(33.333%-8px)]" style={{ aspectRatio: "5/4" }}>
                     <div className="text-center text-gray-400">
                       <p className="text-sm">No templates yet</p>
                     </div>

@@ -45,7 +45,7 @@ export default function SideNavAuth({ onNavigationClick, isMobileOpen }: SideNav
               <img
                 src="/home_nav.svg"
                 alt="Home"
-                className="h-7 w-7"
+                className="h-7 w-7 flex-shrink-0"
                 style={{
                   filter: currentView === "home" 
                     ? "brightness(0) saturate(100%) invert(84%) sepia(11%) saturate(6382%) hue-rotate(86deg) brightness(101%) contrast(107%)" // #00DF71
@@ -53,7 +53,7 @@ export default function SideNavAuth({ onNavigationClick, isMobileOpen }: SideNav
                 }}
               />
               <span
-                className={`font-medium text-base ${
+                className={`font-medium text-base leading-none ${
                   currentView === "home" ? "text-[#00df71]" : "text-[#79828a]"
                 }`}
               >
@@ -76,7 +76,7 @@ export default function SideNavAuth({ onNavigationClick, isMobileOpen }: SideNav
               <img
                 src="/trophy_nav.svg"
                 alt="Digital Awards"
-                className="h-7 w-7"
+                className="h-7 w-7 flex-shrink-0"
                 style={{
                   filter: currentView === "digital-awards" 
                     ? "brightness(0) saturate(100%) invert(84%) sepia(11%) saturate(6382%) hue-rotate(86deg) brightness(101%) contrast(107%)" // #00DF71
@@ -84,7 +84,7 @@ export default function SideNavAuth({ onNavigationClick, isMobileOpen }: SideNav
                 }}
               />
               <span
-                className={`font-medium text-base ${
+                className={`font-medium text-base leading-none ${
                   currentView === "digital-awards"
                     ? "text-[#00df71]"
                     : "text-[#79828a]"

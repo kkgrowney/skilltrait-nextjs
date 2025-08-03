@@ -26,7 +26,7 @@ export default function SideNavigation() {
         {/* Hamburger Menu Button */}
         <button
           onClick={() => setIsMobileMenuOpen(true)}
-          className="fixed top-4 left-4 z-40 p-2 bg-[#1F2327] rounded-lg border border-[#454446] hover:bg-[#2a2e32] transition-colors"
+          className="fixed top-3 left-3 z-40 p-2 bg-[#1F2327] rounded-lg border border-[#454446] hover:bg-[#2a2e32] transition-colors"
         >
           <img
             src="/skilltrait_icon.svg"
@@ -52,7 +52,7 @@ export default function SideNavigation() {
               {/* Close Button */}
               <button
                 onClick={closeMobileMenu}
-                className="absolute top-4 right-4 p-2 text-white hover:bg-[#2a2e32] rounded-lg transition-colors z-10"
+                className="absolute top-3 right-3 p-2 text-white hover:bg-[#2a2e32] rounded-lg transition-colors z-10"
               >
                 <svg
                   className="w-6 h-6"
@@ -70,7 +70,7 @@ export default function SideNavigation() {
               </button>
 
               {/* Mobile Navigation Content */}
-              <div className="h-full flex flex-col pt-16">
+              <div className="h-full flex flex-col">
                 <SideNavAuth onNavigationClick={closeMobileMenu} isMobileOpen={isMobileMenuOpen} />
               </div>
             </div>
