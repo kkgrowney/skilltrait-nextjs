@@ -158,19 +158,22 @@ export default function Team() {
       <SideNavigation />
       
       <div className="md:ml-60 ml-0 md:ml-[66px] h-full flex flex-col">
-        {/* ViewTitle Container */}
-        <div className="w-full bg-[#1e2327] flex items-center h-16" style={{ height: "64px !important", minHeight: "64px", maxHeight: "64px", paddingLeft: "32px" }}>
-          {/* Title text */}
-          <div className="font-semibold text-[#ffffff] text-[18px] whitespace-nowrap md:ml-0 ml-9 flex items-center">
-            Team
+        {/* Fixed Header Container */}
+        <div className="flex-shrink-0 z-20">
+          {/* ViewTitle Container */}
+          <div className="w-full bg-[#1e2327] flex items-center h-16" style={{ height: "64px !important", minHeight: "64px", maxHeight: "64px", paddingLeft: "32px" }}>
+            {/* Title text */}
+            <div className="font-semibold text-[#ffffff] text-[18px] whitespace-nowrap md:ml-0 ml-9 flex items-center">
+              Team
+            </div>
           </div>
+          
+          {/* ViewTitleTab Component */}
+          <ViewTitleTab activeTab={activeTab} onTabChange={setActiveTab} />
         </div>
         
-        {/* ViewTitleTab Component */}
-        <ViewTitleTab activeTab={activeTab} onTabChange={setActiveTab} />
-        
-        {/* Content Area */}
-        <div className="flex-1 overflow-y-auto p-4 md:p-8" style={{ height: 'calc(100vh - 64px - 48px)' }}>
+        {/* Scrollable Content Area */}
+        <div className="flex-1 overflow-y-auto p-4 md:p-8" style={{ height: 'calc(100vh - 64px - 48px - 48px)' }}>
           {activeTab === 'admin' ? (
             // Admin tab content
             <div className="max-w-4xl">
