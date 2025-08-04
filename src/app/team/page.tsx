@@ -8,6 +8,7 @@ import { useEffect, useState } from 'react';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import ViewTitleTab from '@/components/ViewTitleTab';
+import EmployeesContent from '@/components/EmployeesContent';
 
 export default function Team() {
   const { user, loading } = useAuth();
@@ -140,8 +141,14 @@ export default function Team() {
     );
   }
 
+  // Handle navigation when user is not authenticated
+  useEffect(() => {
+    if (!user && !loading) {
+      router.push('/signin');
+    }
+  }, [user, loading, router]);
+
   if (!user) {
-    router.push('/signin');
     return null;
   }
 
@@ -163,7 +170,7 @@ export default function Team() {
         <ViewTitleTab activeTab={activeTab} onTabChange={setActiveTab} />
         
         {/* Content Area */}
-        <div className="flex-1 overflow-y-auto p-4 md:p-8">
+        <div className="flex-1 overflow-y-auto p-4 md:p-8" style={{ height: 'calc(100vh - 64px - 48px)' }}>
           {activeTab === 'admin' ? (
             // Admin tab content
             <div className="max-w-4xl">
@@ -305,20 +312,8 @@ export default function Team() {
             </div>
           ) : (
             // Employees tab content
-            <div className="max-w-4xl">
-              <div className="bg-[#212327] rounded-lg shadow-sm border border-[#454446] p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-xl font-bold text-white">Employees</h2>
-                  <button className="px-3 py-1 text-xs bg-[#00DF71] text-[#212327] rounded-full hover:bg-[#0AFB84] transition-colors">
-                    Add Employee
-                  </button>
-                </div>
-                
-                <div className="text-center text-gray-400 py-8">
-                  <p className="text-sm">Employees content will be displayed here</p>
-                  <p className="text-xs mt-2">This will show the /employees page content</p>
-                </div>
-              </div>
+            <div className="w-full h-full">
+              <EmployeesContent />
             </div>
           )}
         </div>

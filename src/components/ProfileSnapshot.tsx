@@ -17,7 +17,7 @@ interface ProfileSnapshotProps {
 export default function ProfileSnapshot({ employee }: ProfileSnapshotProps) {
   if (!employee) {
     return (
-      <div className="bg-[#202327] rounded-none p-6 h-full flex items-center justify-center">
+      <div className="bg-[#121417] rounded-none p-6 h-full flex items-center justify-center pb-16 border-l border-[#454446]">
         <div className="text-center text-gray-400">
           <div className="text-2xl mb-2">👤</div>
           <p className="text-sm">Select an employee to view their profile</p>
@@ -27,8 +27,8 @@ export default function ProfileSnapshot({ employee }: ProfileSnapshotProps) {
   }
 
   return (
-    <div className="bg-[#202327] rounded-none border border-[#454446] h-full overflow-hidden">
-      <div className="p-6">
+    <div className="bg-[#121417] rounded-none border border-[#454446] border-l-[#454446] h-screen overflow-hidden">
+      <div className="p-6 pb-16">
         {/* Header */}
         <div className="flex justify-between items-start mb-6">
           <div>
