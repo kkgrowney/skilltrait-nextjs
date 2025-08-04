@@ -47,13 +47,22 @@ export default function AwardsStep({
         );
 
         // Define the specific filters we want to show
-        const allowedFilters = ["Free", "Creative", "Leadership", "Mentor", "Birthday", "Work Anniversary"];
+        const allowedFilters = [
+          "Free",
+          "Creative",
+          "Leadership",
+          "Mentor",
+          "Birthday",
+          "Work Anniversary",
+        ];
 
         // Set filters with only the allowed filters as keys and default value of false
         const filtersObj: { [tag: string]: boolean } = {};
         allowedFilters.forEach((tag) => {
           filtersObj[tag] = false;
         });
+
+        console.log({ templatesWithProps, filtersObj });
         setFilters(filtersObj);
       } catch (error) {
         console.error("Error fetching templates:", error);
@@ -71,8 +80,19 @@ export default function AwardsStep({
   };
 
   return (
-    <div className="h-full flex flex-col w-full" style={{ overflow: "hidden", padding: "8px", maxWidth: "100%", boxSizing: "border-box" }}>
-      <div className="text-center mb-6" style={{ paddingTop: "0px", flexShrink: 0 }}>
+    <div
+      className="h-full flex flex-col w-full"
+      style={{
+        overflow: "hidden",
+        padding: "8px",
+        maxWidth: "100%",
+        boxSizing: "border-box",
+      }}
+    >
+      <div
+        className="text-center mb-6"
+        style={{ paddingTop: "0px", flexShrink: 0 }}
+      >
         <h1 className="text-[30px] font-bold text-white mb-4">Awards</h1>
         <p className="text-md text-gray-300 mb-0">
           Create professional digital awards and certificates to recognize
