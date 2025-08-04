@@ -123,7 +123,7 @@ export default function DigitalAwardsLayout({
         <div className="flex h-full flex-1" style={{ overflow: "hidden" }}>
           {/* Left Container - Fixed and Independent */}
           <div
-            className="w-3/12 flex-shrink-0"
+            className="w-3/12 flex-shrink-0 flex"
             style={{
               backgroundColor: "#212327",
               padding: "0px",
