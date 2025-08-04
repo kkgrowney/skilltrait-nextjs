@@ -2,22 +2,41 @@
 
 import React from "react";
 import { useNavigation } from "@/contexts/NavigationContext";
+import { useRouter } from "next/navigation";
 
 interface SideNavAuthProps {
   onNavigationClick?: () => void;
   isMobileOpen?: boolean;
 }
 
-export default function SideNavAuth({ onNavigationClick, isMobileOpen }: SideNavAuthProps) {
+export default function SideNavAuth({
+  onNavigationClick,
+  isMobileOpen,
+}: SideNavAuthProps) {
   const { toggleCollapsed, currentView, setCurrentView } = useNavigation();
+  const router = useRouter();
 
   const handleNavigationClick = (view: string) => {
     setCurrentView(view as any);
+
+    // Use Next.js routing for navigation
+    if (view === "home") {
+      router.push("/home");
+    } else if (view === "digital-awards") {
+      router.push("/digital-awards-generator");
+    } else if (view === "team") {
+      router.push("/team");
+    }
+
     onNavigationClick?.();
   };
 
   return (
-    <aside className={`bg-[#1F2327] w-60 h-screen fixed left-0 top-0 flex flex-col justify-between ${isMobileOpen ? '' : 'border-r border-[#454446]'}`}>
+    <aside
+      className={`bg-[#1F2327] w-60 h-screen fixed left-0 top-0 flex flex-col justify-between ${
+        isMobileOpen ? "" : "border-r border-[#454446]"
+      }`}
+    >
       {/* Top Section */}
       <div className="flex flex-col gap-2 p-3">
         {/* SkillTrait Logo */}
@@ -34,9 +53,7 @@ export default function SideNavAuth({ onNavigationClick, isMobileOpen }: SideNav
           {/* Home - Active/Inactive State */}
           <div
             className={`flex items-center p-2 rounded-lg cursor-pointer transition-colors ${
-              currentView === "home" 
-                ? "bg-[#181d21]" 
-                : "hover:bg-[#2a2e32]"
+              currentView === "home" ? "bg-[#181d21]" : "hover:bg-[#2a2e32]"
             }`}
             onClick={() => handleNavigationClick("home")}
           >
@@ -47,9 +64,10 @@ export default function SideNavAuth({ onNavigationClick, isMobileOpen }: SideNav
                 alt="Home"
                 className="h-7 w-7 flex-shrink-0"
                 style={{
-                  filter: currentView === "home" 
-                    ? "brightness(0) saturate(100%) invert(84%) sepia(11%) saturate(6382%) hue-rotate(86deg) brightness(101%) contrast(107%)" // #00DF71
-                    : "brightness(0) saturate(100%) invert(52%) sepia(8%) saturate(1234%) hue-rotate(202deg) brightness(94%) contrast(86%)" // #79828A
+                  filter:
+                    currentView === "home"
+                      ? "brightness(0) saturate(100%) invert(84%) sepia(11%) saturate(6382%) hue-rotate(86deg) brightness(101%) contrast(107%)" // #00DF71
+                      : "brightness(0) saturate(100%) invert(52%) sepia(8%) saturate(1234%) hue-rotate(202deg) brightness(94%) contrast(86%)", // #79828A
                 }}
               />
               <span
@@ -78,9 +96,10 @@ export default function SideNavAuth({ onNavigationClick, isMobileOpen }: SideNav
                 alt="Digital Awards"
                 className="h-7 w-7 flex-shrink-0"
                 style={{
-                  filter: currentView === "digital-awards" 
-                    ? "brightness(0) saturate(100%) invert(84%) sepia(11%) saturate(6382%) hue-rotate(86deg) brightness(101%) contrast(107%)" // #00DF71
-                    : "brightness(0) saturate(100%) invert(52%) sepia(8%) saturate(1234%) hue-rotate(202deg) brightness(94%) contrast(86%)" // #79828A
+                  filter:
+                    currentView === "digital-awards"
+                      ? "brightness(0) saturate(100%) invert(84%) sepia(11%) saturate(6382%) hue-rotate(86deg) brightness(101%) contrast(107%)" // #00DF71
+                      : "brightness(0) saturate(100%) invert(52%) sepia(8%) saturate(1234%) hue-rotate(202deg) brightness(94%) contrast(86%)", // #79828A
                 }}
               />
               <span
@@ -98,9 +117,7 @@ export default function SideNavAuth({ onNavigationClick, isMobileOpen }: SideNav
           {/* Team - Active/Inactive State */}
           <div
             className={`flex items-center p-2 rounded-lg cursor-pointer transition-colors ${
-              currentView === "team"
-                ? "bg-[#181d21]"
-                : "hover:bg-[#2a2e32]"
+              currentView === "team" ? "bg-[#181d21]" : "hover:bg-[#2a2e32]"
             }`}
             onClick={() => handleNavigationClick("team")}
           >
@@ -111,16 +128,15 @@ export default function SideNavAuth({ onNavigationClick, isMobileOpen }: SideNav
                 alt="Team"
                 className="h-7 w-7 flex-shrink-0"
                 style={{
-                  filter: currentView === "team" 
-                    ? "brightness(0) saturate(100%) invert(84%) sepia(11%) saturate(6382%) hue-rotate(86deg) brightness(101%) contrast(107%)" // #00DF71
-                    : "brightness(0) saturate(100%) invert(52%) sepia(8%) saturate(1234%) hue-rotate(202deg) brightness(94%) contrast(86%)" // #79828A
+                  filter:
+                    currentView === "team"
+                      ? "brightness(0) saturate(100%) invert(84%) sepia(11%) saturate(6382%) hue-rotate(86deg) brightness(101%) contrast(107%)" // #00DF71
+                      : "brightness(0) saturate(100%) invert(52%) sepia(8%) saturate(1234%) hue-rotate(202deg) brightness(94%) contrast(86%)", // #79828A
                 }}
               />
               <span
                 className={`font-medium text-base leading-none ${
-                  currentView === "team"
-                    ? "text-[#00df71]"
-                    : "text-[#79828a]"
+                  currentView === "team" ? "text-[#00df71]" : "text-[#79828a]"
                 }`}
               >
                 Team

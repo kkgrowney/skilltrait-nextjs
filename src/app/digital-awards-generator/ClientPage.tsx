@@ -840,7 +840,7 @@ export default function DigitalAwardsPage() {
         rightContent={rightContent}
         showViewTitle={false}
         viewTitleText=""
-        isStandalone={true}
+        isStandalone={false}
       />
 
       {/* Alert Message */}
