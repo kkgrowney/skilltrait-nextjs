@@ -38,22 +38,21 @@ export default function ClientLayout({
   const { user, loading } = useAuth();
   const isIframeRoute = IFRAME_ROUTES.includes(pathname);
   const isAuthenticatedRoute = AUTHENTICATED_ROUTES.includes(pathname);
-  
+
   // Show NavPrelogin only if user is not authenticated and not on an iframe route
   const shouldShowNavPrelogin = !user && !loading && !isIframeRoute;
-  
+
   // Show authenticated layout if user is authenticated and on an authenticated route
-  const shouldShowAuthenticatedLayout = user && !loading && isAuthenticatedRoute;
-  
+  const shouldShowAuthenticatedLayout =
+    user && !loading && isAuthenticatedRoute;
+
   return (
     <>
       {shouldShowNavPrelogin && <NavPrelogin />}
       {shouldShowAuthenticatedLayout ? (
-        <div className="min-h-screen" style={{backgroundColor: '#1A1D21'}}>
+        <div className="min-h-screen" style={{ backgroundColor: "#1A1D21" }}>
           <SideNavigation />
-          <div className="md:ml-60 ml-0 md:ml-[66px] h-full flex flex-col">
-            {children}
-          </div>
+          <div className="h-full flex flex-col">{children}</div>
         </div>
       ) : (
         children
