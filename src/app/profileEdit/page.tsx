@@ -145,124 +145,136 @@ export default function ProfileEdit() {
   }
 
   return (
-    <div className="min-h-screen bg-[#1A1D21] flex items-center justify-center p-8">
-      <div className="w-full max-w-md">
-        {/* Header */}
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-white mb-2">Edit Profile</h1>
-          <p className="text-gray-400">Update your profile information</p>
-        </div>
-
-        {/* Form */}
-        <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Avatar Upload */}
-          <div className="text-center">
-            <div
-              className="w-24 h-24 mx-auto rounded-full border-2 border-dashed border-gray-600 flex items-center justify-center cursor-pointer hover:border-[#00DF71] transition-colors"
-              onDrop={handleAvatarDrop}
-              onDragOver={(e) => e.preventDefault()}
-              onClick={handleAvatarClick}
-            >
-              {avatarPreview ? (
-                <img
-                  src={avatarPreview}
-                  alt="Avatar"
-                  className="w-full h-full rounded-full object-cover"
-                />
-              ) : (
-                <div className="text-center">
-                  <div className="text-gray-400 text-sm">Add Image</div>
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Name Field */}
-          <div>
-            <label htmlFor="name" className="block text-sm font-medium text-white mb-2">
-              Name *
-            </label>
-            <input
-              type="text"
-              id="name"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              required
-              className="w-full px-4 py-3 bg-[#212327] border border-[#454446] rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-[#00DF71] transition-colors"
-              placeholder="Enter your name"
-            />
-          </div>
-
-          {/* Username Field */}
-          <div>
-            <label htmlFor="username" className="block text-sm font-medium text-white mb-2">
-              Username *
-            </label>
-            <input
-              type="text"
-              id="username"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              required
-              className="w-full px-4 py-3 bg-[#212327] border border-[#454446] rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-[#00DF71] transition-colors"
-              placeholder="Enter your username"
-            />
-          </div>
-
-          {/* Work Title Field */}
-          <div>
-            <label htmlFor="workTitle" className="block text-sm font-medium text-white mb-2">
-              Work Title
-            </label>
-            <input
-              type="text"
-              id="workTitle"
-              value={workTitle}
-              onChange={(e) => setWorkTitle(e.target.value)}
-              className="w-full px-4 py-3 bg-[#212327] border border-[#454446] rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-[#00DF71] transition-colors"
-              placeholder="Enter your job title"
-            />
-          </div>
-
-          {/* Bio Field */}
-          <div>
-            <label htmlFor="bio" className="block text-sm font-medium text-white mb-2">
-              Bio
-            </label>
-            <textarea
-              id="bio"
-              value={bio}
-              onChange={(e) => setBio(e.target.value)}
-              rows={3}
-              className="w-full px-4 py-3 bg-[#212327] border border-[#454446] rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-[#00DF71] transition-colors resize-none"
-              placeholder="Tell us about yourself"
-            />
-          </div>
-
-          {/* LinkedIn Field */}
-          <div>
-            <label htmlFor="linkedin" className="block text-sm font-medium text-white mb-2">
-              LinkedIn
-            </label>
-            <input
-              type="url"
-              id="linkedin"
-              value={linkedin}
-              onChange={(e) => setLinkedin(e.target.value)}
-              className="w-full px-4 py-3 bg-[#212327] border border-[#454446] rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-[#00DF71] transition-colors"
-              placeholder="https://www.linkedin.com/in/..."
-            />
-          </div>
-
-          {/* Submit Button */}
+    <div className="min-h-screen bg-[#1A1D21]">
+      {/* Top Header */}
+      <div className="bg-[#212327] border-b border-[#454446] px-6 py-4">
+        <div className="flex items-center space-x-4">
           <button
-            type="submit"
-            disabled={isUpdating}
-            className="w-full bg-[#00DF71] text-[#212327] py-3 px-6 rounded-lg font-semibold hover:bg-[#0AFB84] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            onClick={() => router.push('/home')}
+            className="text-gray-400 hover:text-white transition-colors"
           >
-            {isUpdating ? 'Updating...' : 'Update Profile'}
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            </svg>
           </button>
-        </form>
+          <h1 className="text-xl font-semibold text-white">Edit Profile</h1>
+        </div>
+      </div>
+
+      {/* Content */}
+      <div className="flex items-center justify-center p-8">
+        <div className="w-full max-w-md">
+          {/* Form */}
+          <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Avatar Upload */}
+            <div className="text-center">
+              <div
+                className="w-24 h-24 mx-auto rounded-full border-2 border-dashed border-gray-600 flex items-center justify-center cursor-pointer hover:border-[#00DF71] transition-colors"
+                onDrop={handleAvatarDrop}
+                onDragOver={(e) => e.preventDefault()}
+                onClick={handleAvatarClick}
+              >
+                {avatarPreview ? (
+                  <img
+                    src={avatarPreview}
+                    alt="Avatar"
+                    className="w-full h-full rounded-full object-cover"
+                  />
+                ) : (
+                  <div className="text-center">
+                    <div className="text-gray-400 text-sm">Add Image</div>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Name Field */}
+            <div>
+              <label htmlFor="name" className="block text-sm font-medium text-white mb-2">
+                Name *
+              </label>
+              <input
+                type="text"
+                id="name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                required
+                className="w-full px-4 py-3 bg-[#212327] border border-[#454446] rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-[#00DF71] transition-colors"
+                placeholder="Enter your name"
+              />
+            </div>
+
+            {/* Username Field */}
+            <div>
+              <label htmlFor="username" className="block text-sm font-medium text-white mb-2">
+                Username *
+              </label>
+              <input
+                type="text"
+                id="username"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                required
+                className="w-full px-4 py-3 bg-[#212327] border border-[#454446] rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-[#00DF71] transition-colors"
+                placeholder="Enter your username"
+              />
+            </div>
+
+            {/* Work Title Field */}
+            <div>
+              <label htmlFor="workTitle" className="block text-sm font-medium text-white mb-2">
+                Work Title
+              </label>
+              <input
+                type="text"
+                id="workTitle"
+                value={workTitle}
+                onChange={(e) => setWorkTitle(e.target.value)}
+                className="w-full px-4 py-3 bg-[#212327] border border-[#454446] rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-[#00DF71] transition-colors"
+                placeholder="Enter your job title"
+              />
+            </div>
+
+            {/* Bio Field */}
+            <div>
+              <label htmlFor="bio" className="block text-sm font-medium text-white mb-2">
+                Bio
+              </label>
+              <textarea
+                id="bio"
+                value={bio}
+                onChange={(e) => setBio(e.target.value)}
+                rows={3}
+                className="w-full px-4 py-3 bg-[#212327] border border-[#454446] rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-[#00DF71] transition-colors resize-none"
+                placeholder="Tell us about yourself"
+              />
+            </div>
+
+            {/* LinkedIn Field */}
+            <div>
+              <label htmlFor="linkedin" className="block text-sm font-medium text-white mb-2">
+                LinkedIn
+              </label>
+              <input
+                type="url"
+                id="linkedin"
+                value={linkedin}
+                onChange={(e) => setLinkedin(e.target.value)}
+                className="w-full px-4 py-3 bg-[#212327] border border-[#454446] rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-[#00DF71] transition-colors"
+                placeholder="https://www.linkedin.com/in/..."
+              />
+            </div>
+
+            {/* Submit Button */}
+            <button
+              type="submit"
+              disabled={isUpdating}
+              className="w-full bg-[#00DF71] text-[#212327] py-3 px-6 rounded-lg font-semibold hover:bg-[#0AFB84] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isUpdating ? 'Updating...' : 'Update Profile'}
+            </button>
+          </form>
+        </div>
       </div>
 
       {/* Email Verification Modal */}
