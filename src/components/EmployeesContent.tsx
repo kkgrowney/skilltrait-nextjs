@@ -4,72 +4,72 @@ import React, { useState } from 'react';
 import ProfileSnapshot from '@/components/ProfileSnapshot';
 
 const EMPLOYEES = [
-  { id: '#FWB127364372', name: 'Hanna Saris', title: 'VP of Sales', start: '09 Mar 2023', birthday: '09 Mar 2023' },
-  { id: '#FWB125467980', name: 'Omar Dorwart', title: 'Product Manager', start: '12 Mar 2023', birthday: '12 Mar 2023' },
-  { id: '#FWB139485607', name: 'Chance Levin', title: 'Director of UX', start: '19 Mar 2023', birthday: '19 Mar 2023' },
-  { id: '#FWB14628462', name: 'Carla Baptista', title: 'Senior Developer', start: '22 Mar 2023', birthday: '22 Mar 2023' },
-  { id: '#FWB158392847', name: 'Sarah Johnson', title: 'Marketing Manager', start: '25 Mar 2023', birthday: '25 Mar 2023' },
-  { id: '#FWB167483920', name: 'Mike Chen', title: 'Data Analyst', start: '28 Mar 2023', birthday: '28 Mar 2023' },
-  { id: '#FWB176592847', name: 'Emma Wilson', title: 'HR Specialist', start: '01 Apr 2023', birthday: '01 Apr 2023' },
-  { id: '#FWB185601847', name: 'David Brown', title: 'Operations Lead', start: '04 Apr 2023', birthday: '04 Apr 2023' },
-  { id: '#FWB194710847', name: 'Alex Rodriguez', title: 'Software Engineer', start: '07 Apr 2023', birthday: '07 Apr 2023' },
-  { id: '#FWB203819847', name: 'Lisa Thompson', title: 'UX Designer', start: '10 Apr 2023', birthday: '10 Apr 2023' },
-  { id: '#FWB212928847', name: 'James Miller', title: 'Product Analyst', start: '13 Apr 2023', birthday: '13 Apr 2023' },
-  { id: '#FWB222037847', name: 'Maria Garcia', title: 'Content Strategist', start: '16 Apr 2023', birthday: '16 Apr 2023' },
-  { id: '#FWB231146847', name: 'Robert Davis', title: 'DevOps Engineer', start: '19 Apr 2023', birthday: '19 Apr 2023' },
-  { id: '#FWB240255847', name: 'Jennifer Lee', title: 'Business Analyst', start: '22 Apr 2023', birthday: '22 Apr 2023' },
-  { id: '#FWB249364847', name: 'Michael White', title: 'Frontend Developer', start: '25 Apr 2023', birthday: '25 Apr 2023' },
-  { id: '#FWB258473847', name: 'Amanda Taylor', title: 'Project Manager', start: '28 Apr 2023', birthday: '28 Apr 2023' },
-  { id: '#FWB267582847', name: 'Christopher Anderson', title: 'Backend Developer', start: '01 May 2023', birthday: '01 May 2023' },
-  { id: '#FWB276691847', name: 'Jessica Martinez', title: 'UI Designer', start: '04 May 2023', birthday: '04 May 2023' },
-  { id: '#FWB285700847', name: 'Daniel Clark', title: 'Data Scientist', start: '07 May 2023', birthday: '07 May 2023' },
-  { id: '#FWB294809847', name: 'Rachel Green', title: 'Marketing Specialist', start: '10 May 2023', birthday: '10 May 2023' },
-  { id: '#FWB303918847', name: 'Kevin Lewis', title: 'QA Engineer', start: '13 May 2023', birthday: '13 May 2023' },
-  { id: '#FWB313027847', name: 'Nicole Hall', title: 'Product Owner', start: '16 May 2023', birthday: '16 May 2023' },
-  { id: '#FWB322136847', name: 'Steven Allen', title: 'Systems Architect', start: '19 May 2023', birthday: '19 May 2023' },
-  { id: '#FWB331245847', name: 'Michelle Young', title: 'Brand Manager', start: '22 May 2023', birthday: '22 May 2023' },
-  { id: '#FWB340354847', name: 'Ryan King', title: 'Mobile Developer', start: '25 May 2023', birthday: '25 May 2023' },
-  { id: '#FWB349463847', name: 'Stephanie Wright', title: 'Customer Success', start: '28 May 2023', birthday: '28 May 2023' },
-  { id: '#FWB358572847', name: 'Thomas Moore', title: 'Sales Director', start: '01 Jun 2023', birthday: '01 Jun 2023' },
-  { id: '#FWB367681847', name: 'Ashley Johnson', title: 'Product Designer', start: '04 Jun 2023', birthday: '04 Jun 2023' },
-  { id: '#FWB376790847', name: 'Brandon Smith', title: 'Engineering Manager', start: '07 Jun 2023', birthday: '07 Jun 2023' },
-  { id: '#FWB385899847', name: 'Lauren Davis', title: 'Content Manager', start: '10 Jun 2023', birthday: '10 Jun 2023' },
-  { id: '#FWB395008847', name: 'Jason Wilson', title: 'Security Engineer', start: '13 Jun 2023', birthday: '13 Jun 2023' },
-  { id: '#FWB404117847', name: 'Melissa Brown', title: 'Recruitment Specialist', start: '16 Jun 2023', birthday: '16 Jun 2023' },
-  { id: '#FWB413226847', name: 'Andrew Garcia', title: 'Financial Analyst', start: '19 Jun 2023', birthday: '19 Jun 2023' },
-  { id: '#FWB422335847', name: 'Katherine Lee', title: 'Legal Counsel', start: '22 Jun 2023', birthday: '22 Jun 2023' },
-  { id: '#FWB431444847', name: 'Brian Taylor', title: 'Infrastructure Lead', start: '25 Jun 2023', birthday: '25 Jun 2023' },
-  { id: '#FWB440553847', name: 'Samantha Anderson', title: 'Event Coordinator', start: '28 Jun 2023', birthday: '28 Jun 2023' },
-  { id: '#FWB449662847', name: 'Gregory Martinez', title: 'Quality Assurance', start: '01 Jul 2023', birthday: '01 Jul 2023' },
-  { id: '#FWB458771847', name: 'Victoria Clark', title: 'Public Relations', start: '04 Jul 2023', birthday: '04 Jul 2023' },
-  { id: '#FWB467880847', name: 'Nathan Rodriguez', title: 'Research Analyst', start: '07 Jul 2023', birthday: '07 Jul 2023' },
-  { id: '#FWB476989847', name: 'Isabella White', title: 'Training Coordinator', start: '10 Jul 2023', birthday: '10 Jul 2023' },
-  { id: '#FWB486098847', name: 'Jonathan Thompson', title: 'Network Engineer', start: '13 Jul 2023', birthday: '13 Jul 2023' },
-  { id: '#FWB495207847', name: 'Sophia Lewis', title: 'Creative Director', start: '16 Jul 2023', birthday: '16 Jul 2023' },
-  { id: '#FWB504316847', name: 'Matthew Hall', title: 'Supply Chain Manager', start: '19 Jul 2023', birthday: '19 Jul 2023' },
-  { id: '#FWB513425847', name: 'Olivia Allen', title: 'Compliance Officer', start: '22 Jul 2023', birthday: '22 Jul 2023' },
-  { id: '#FWB522534847', name: 'Ethan Young', title: 'Database Administrator', start: '25 Jul 2023', birthday: '25 Jul 2023' },
-  { id: '#FWB531643847', name: 'Ava King', title: 'Business Development', start: '28 Jul 2023', birthday: '28 Jul 2023' },
-  { id: '#FWB540752847', name: 'Noah Wright', title: 'Technical Writer', start: '01 Aug 2023', birthday: '01 Aug 2023' },
-  { id: '#FWB549861847', name: 'Mia Moore', title: 'Customer Support Lead', start: '04 Aug 2023', birthday: '04 Aug 2023' },
-  { id: '#FWB558970847', name: 'Liam Johnson', title: 'Product Marketing', start: '07 Aug 2023', birthday: '07 Aug 2023' },
-  { id: '#FWB568079847', name: 'Emma Smith', title: 'Data Engineer', start: '10 Aug 2023', birthday: '10 Aug 2023' },
-  { id: '#FWB577188847', name: 'William Davis', title: 'UX Researcher', start: '13 Aug 2023', birthday: '13 Aug 2023' },
-  { id: '#FWB586297847', name: 'Sofia Wilson', title: 'Operations Analyst', start: '16 Aug 2023', birthday: '16 Aug 2023' },
-  { id: '#FWB595406847', name: 'James Brown', title: 'Strategic Planner', start: '19 Aug 2023', birthday: '19 Aug 2023' },
-  { id: '#FWB604515847', name: 'Charlotte Garcia', title: 'Performance Manager', start: '22 Aug 2023', birthday: '22 Aug 2023' },
-  { id: '#FWB613624847', name: 'Benjamin Lee', title: 'Innovation Lead', start: '25 Aug 2023', birthday: '25 Aug 2023' },
-  { id: '#FWB622733847', name: 'Harper Taylor', title: 'Sustainability Officer', start: '28 Aug 2023', birthday: '28 Aug 2023' },
-  { id: '#FWB631842847', name: 'Mason Anderson', title: 'Digital Transformation', start: '01 Sep 2023', birthday: '01 Sep 2023' },
-  { id: '#FWB640951847', name: 'Evelyn Martinez', title: 'Change Management', start: '04 Sep 2023', birthday: '04 Sep 2023' },
-  { id: '#FWB650060847', name: 'Logan Clark', title: 'Talent Acquisition', start: '07 Sep 2023', birthday: '07 Sep 2023' },
-  { id: '#FWB659169847', name: 'Abigail Rodriguez', title: 'Knowledge Manager', start: '10 Sep 2023', birthday: '10 Sep 2023' },
-  { id: '#FWB668278847', name: 'Alexander White', title: 'Process Improvement', start: '13 Sep 2023', birthday: '13 Sep 2023' },
-  { id: '#FWB677387847', name: 'Emily Thompson', title: 'Risk Management', start: '16 Sep 2023', birthday: '16 Sep 2023' },
-  { id: '#FWB686496847', name: 'Jacob Lewis', title: 'Corporate Communications', start: '19 Sep 2023', birthday: '19 Sep 2023' },
-  { id: '#FWB695605847', name: 'Madison Hall', title: 'Vendor Relations', start: '22 Sep 2023', birthday: '22 Sep 2023' },
-  { id: '#FWB704714847', name: 'Michael Allen', title: 'Facilities Manager', start: '25 Sep 2023', birthday: '25 Sep 2023' },
-  { id: '#FWB713823847', name: 'Elizabeth Young', title: 'Learning & Development', start: '28 Sep 2023', birthday: '28 Sep 2023' },
+  { id: '#FWB127364372', name: 'Hanna Saris', title: 'VP of Sales', start: '03/09/2023', birthday: '03/09/2023' },
+  { id: '#FWB125467980', name: 'Omar Dorwart', title: 'Product Manager', start: '03/12/2023', birthday: '03/12/2023' },
+  { id: '#FWB139485607', name: 'Chance Levin', title: 'Director of UX', start: '03/19/2023', birthday: '03/19/2023' },
+  { id: '#FWB14628462', name: 'Carla Baptista', title: 'Senior Developer', start: '03/22/2023', birthday: '03/22/2023' },
+  { id: '#FWB158392847', name: 'Sarah Johnson', title: 'Marketing Manager', start: '03/25/2023', birthday: '03/25/2023' },
+  { id: '#FWB167483920', name: 'Mike Chen', title: 'Data Analyst', start: '03/28/2023', birthday: '03/28/2023' },
+  { id: '#FWB176592847', name: 'Emma Wilson', title: 'HR Specialist', start: '04/01/2023', birthday: '04/01/2023' },
+  { id: '#FWB185601847', name: 'David Brown', title: 'Operations Lead', start: '04/04/2023', birthday: '04/04/2023' },
+  { id: '#FWB194710847', name: 'Alex Rodriguez', title: 'Software Engineer', start: '04/07/2023', birthday: '04/07/2023' },
+  { id: '#FWB203819847', name: 'Lisa Thompson', title: 'UX Designer', start: '04/10/2023', birthday: '04/10/2023' },
+  { id: '#FWB212928847', name: 'James Miller', title: 'Product Analyst', start: '04/13/2023', birthday: '04/13/2023' },
+  { id: '#FWB222037847', name: 'Maria Garcia', title: 'Content Strategist', start: '04/16/2023', birthday: '04/16/2023' },
+  { id: '#FWB231146847', name: 'Robert Davis', title: 'DevOps Engineer', start: '04/19/2023', birthday: '04/19/2023' },
+  { id: '#FWB240255847', name: 'Jennifer Lee', title: 'Business Analyst', start: '04/22/2023', birthday: '04/22/2023' },
+  { id: '#FWB249364847', name: 'Michael White', title: 'Frontend Developer', start: '04/25/2023', birthday: '04/25/2023' },
+  { id: '#FWB258473847', name: 'Amanda Taylor', title: 'Project Manager', start: '04/28/2023', birthday: '04/28/2023' },
+  { id: '#FWB267582847', name: 'Christopher Anderson', title: 'Backend Developer', start: '05/01/2023', birthday: '05/01/2023' },
+  { id: '#FWB276691847', name: 'Jessica Martinez', title: 'UI Designer', start: '05/04/2023', birthday: '05/04/2023' },
+  { id: '#FWB285700847', name: 'Daniel Clark', title: 'Data Scientist', start: '05/07/2023', birthday: '05/07/2023' },
+  { id: '#FWB294809847', name: 'Rachel Green', title: 'Marketing Specialist', start: '05/10/2023', birthday: '05/10/2023' },
+  { id: '#FWB303918847', name: 'Kevin Lewis', title: 'QA Engineer', start: '05/13/2023', birthday: '05/13/2023' },
+  { id: '#FWB313027847', name: 'Nicole Hall', title: 'Product Owner', start: '05/16/2023', birthday: '05/16/2023' },
+  { id: '#FWB322136847', name: 'Steven Allen', title: 'Systems Architect', start: '05/19/2023', birthday: '05/19/2023' },
+  { id: '#FWB331245847', name: 'Michelle Young', title: 'Brand Manager', start: '05/22/2023', birthday: '05/22/2023' },
+  { id: '#FWB340354847', name: 'Ryan King', title: 'Mobile Developer', start: '05/25/2023', birthday: '05/25/2023' },
+  { id: '#FWB349463847', name: 'Stephanie Wright', title: 'Customer Success', start: '05/28/2023', birthday: '05/28/2023' },
+  { id: '#FWB358572847', name: 'Thomas Moore', title: 'Sales Director', start: '06/01/2023', birthday: '06/01/2023' },
+  { id: '#FWB367681847', name: 'Ashley Johnson', title: 'Product Designer', start: '06/04/2023', birthday: '06/04/2023' },
+  { id: '#FWB376790847', name: 'Brandon Smith', title: 'Engineering Manager', start: '06/07/2023', birthday: '06/07/2023' },
+  { id: '#FWB385899847', name: 'Lauren Davis', title: 'Content Manager', start: '06/10/2023', birthday: '06/10/2023' },
+  { id: '#FWB395008847', name: 'Jason Wilson', title: 'Security Engineer', start: '06/13/2023', birthday: '06/13/2023' },
+  { id: '#FWB404117847', name: 'Melissa Brown', title: 'Recruitment Specialist', start: '06/16/2023', birthday: '06/16/2023' },
+  { id: '#FWB413226847', name: 'Andrew Garcia', title: 'Financial Analyst', start: '06/19/2023', birthday: '06/19/2023' },
+  { id: '#FWB422335847', name: 'Katherine Lee', title: 'Legal Counsel', start: '06/22/2023', birthday: '06/22/2023' },
+  { id: '#FWB431444847', name: 'Brian Taylor', title: 'Infrastructure Lead', start: '06/25/2023', birthday: '06/25/2023' },
+  { id: '#FWB440553847', name: 'Samantha Anderson', title: 'Event Coordinator', start: '06/28/2023', birthday: '06/28/2023' },
+  { id: '#FWB449662847', name: 'Gregory Martinez', title: 'Quality Assurance', start: '07/01/2023', birthday: '07/01/2023' },
+  { id: '#FWB458771847', name: 'Victoria Clark', title: 'Public Relations', start: '07/04/2023', birthday: '07/04/2023' },
+  { id: '#FWB467880847', name: 'Nathan Rodriguez', title: 'Research Analyst', start: '07/07/2023', birthday: '07/07/2023' },
+  { id: '#FWB476989847', name: 'Isabella White', title: 'Training Coordinator', start: '07/10/2023', birthday: '07/10/2023' },
+  { id: '#FWB486098847', name: 'Jonathan Thompson', title: 'Network Engineer', start: '07/13/2023', birthday: '07/13/2023' },
+  { id: '#FWB495207847', name: 'Sophia Lewis', title: 'Creative Director', start: '07/16/2023', birthday: '07/16/2023' },
+  { id: '#FWB504316847', name: 'Matthew Hall', title: 'Supply Chain Manager', start: '07/19/2023', birthday: '07/19/2023' },
+  { id: '#FWB513425847', name: 'Olivia Allen', title: 'Compliance Officer', start: '07/22/2023', birthday: '07/22/2023' },
+  { id: '#FWB522534847', name: 'Ethan Young', title: 'Database Administrator', start: '07/25/2023', birthday: '07/25/2023' },
+  { id: '#FWB531643847', name: 'Ava King', title: 'Business Development', start: '07/28/2023', birthday: '07/28/2023' },
+  { id: '#FWB540752847', name: 'Noah Wright', title: 'Technical Writer', start: '08/01/2023', birthday: '08/01/2023' },
+  { id: '#FWB549861847', name: 'Mia Moore', title: 'Customer Support Lead', start: '08/04/2023', birthday: '08/04/2023' },
+  { id: '#FWB558970847', name: 'Liam Johnson', title: 'Product Marketing', start: '08/07/2023', birthday: '08/07/2023' },
+  { id: '#FWB568079847', name: 'Emma Smith', title: 'Data Engineer', start: '08/10/2023', birthday: '08/10/2023' },
+  { id: '#FWB577188847', name: 'William Davis', title: 'UX Researcher', start: '08/13/2023', birthday: '08/13/2023' },
+  { id: '#FWB586297847', name: 'Sofia Wilson', title: 'Operations Analyst', start: '08/16/2023', birthday: '08/16/2023' },
+  { id: '#FWB595406847', name: 'James Brown', title: 'Strategic Planner', start: '08/19/2023', birthday: '08/19/2023' },
+  { id: '#FWB604515847', name: 'Charlotte Garcia', title: 'Performance Manager', start: '08/22/2023', birthday: '08/22/2023' },
+  { id: '#FWB613624847', name: 'Benjamin Lee', title: 'Innovation Lead', start: '08/25/2023', birthday: '08/25/2023' },
+  { id: '#FWB622733847', name: 'Harper Taylor', title: 'Sustainability Officer', start: '08/28/2023', birthday: '08/28/2023' },
+  { id: '#FWB631842847', name: 'Mason Anderson', title: 'Digital Transformation', start: '09/01/2023', birthday: '09/01/2023' },
+  { id: '#FWB640951847', name: 'Evelyn Martinez', title: 'Change Management', start: '09/04/2023', birthday: '09/04/2023' },
+  { id: '#FWB650060847', name: 'Logan Clark', title: 'Talent Acquisition', start: '09/07/2023', birthday: '09/07/2023' },
+  { id: '#FWB659169847', name: 'Abigail Rodriguez', title: 'Knowledge Manager', start: '09/10/2023', birthday: '09/10/2023' },
+  { id: '#FWB668278847', name: 'Alexander White', title: 'Process Improvement', start: '09/13/2023', birthday: '09/13/2023' },
+  { id: '#FWB677387847', name: 'Emily Thompson', title: 'Risk Management', start: '09/16/2023', birthday: '09/16/2023' },
+  { id: '#FWB686496847', name: 'Jacob Lewis', title: 'Corporate Communications', start: '09/19/2023', birthday: '09/19/2023' },
+  { id: '#FWB695605847', name: 'Madison Hall', title: 'Vendor Relations', start: '09/22/2023', birthday: '09/22/2023' },
+  { id: '#FWB704714847', name: 'Michael Allen', title: 'Facilities Manager', start: '09/25/2023', birthday: '09/25/2023' },
+  { id: '#FWB713823847', name: 'Elizabeth Young', title: 'Learning & Development', start: '09/28/2023', birthday: '09/28/2023' },
 ];
 
 export default function EmployeesContent() {
@@ -77,6 +77,7 @@ export default function EmployeesContent() {
   const [filter, setFilter] = useState('all');
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedEmployee, setSelectedEmployee] = useState<typeof EMPLOYEES[0] | null>(null);
+  const [selectedEmployees, setSelectedEmployees] = useState<Set<string>>(new Set());
 
   const filteredEmployees = EMPLOYEES.filter(employee => {
     const matchesSearch = employee.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -94,6 +95,28 @@ export default function EmployeesContent() {
   const handleEmployeeClick = (employee: typeof EMPLOYEES[0]) => {
     setSelectedEmployee(employee);
   };
+
+  const handleSelectEmployee = (employeeId: string, checked: boolean) => {
+    const newSelected = new Set(selectedEmployees);
+    if (checked) {
+      newSelected.add(employeeId);
+    } else {
+      newSelected.delete(employeeId);
+    }
+    setSelectedEmployees(newSelected);
+  };
+
+  const handleSelectAll = (checked: boolean) => {
+    if (checked) {
+      const allIds = currentEmployees.map(emp => emp.id);
+      setSelectedEmployees(new Set(allIds));
+    } else {
+      setSelectedEmployees(new Set());
+    }
+  };
+
+  const isAllSelected = currentEmployees.length > 0 && currentEmployees.every(emp => selectedEmployees.has(emp.id));
+  const isIndeterminate = currentEmployees.some(emp => selectedEmployees.has(emp.id)) && !isAllSelected;
 
   return (
     <div className="h-full bg-[#1A1D21] text-white flex font-poppins overflow-hidden">
@@ -174,6 +197,15 @@ export default function EmployeesContent() {
                         <thead className="bg-[#1B1D21] border-b border-[#3D3C3E] sticky top-0 z-10">
                           <tr>
                             <th className="pl-3 pr-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+                              <input
+                                type="checkbox"
+                                checked={isAllSelected}
+                                onChange={(e) => handleSelectAll(e.target.checked)}
+                                className="h-4 w-4 text-[#00DF71] focus:ring-[#00DF71] border-gray-600 rounded bg-[#1B1D21]"
+                                style={{ accentColor: '#00DF71' }}
+                              />
+                            </th>
+                            <th className="pl-3 pr-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
                               EMPLOYEE ID
                             </th>
                             <th className="pl-3 pr-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
@@ -199,6 +231,16 @@ export default function EmployeesContent() {
                               }`}
                               onClick={() => handleEmployeeClick(employee)}
                             >
+                              <td className="pl-3 pr-6 py-4 whitespace-nowrap text-sm text-gray-300">
+                                <input
+                                  type="checkbox"
+                                  checked={selectedEmployees.has(employee.id)}
+                                  onChange={(e) => handleSelectEmployee(employee.id, e.target.checked)}
+                                  className="h-4 w-4 text-[#00DF71] focus:ring-[#00DF71] border-gray-600 rounded bg-[#1B1D21]"
+                                  style={{ accentColor: '#00DF71' }}
+                                  onClick={(e) => e.stopPropagation()}
+                                />
+                              </td>
                               <td className="pl-3 pr-6 py-4 whitespace-nowrap text-sm text-gray-300">
                                 {employee.id}
                               </td>
