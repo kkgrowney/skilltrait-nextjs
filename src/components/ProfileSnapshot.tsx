@@ -29,7 +29,7 @@ export default function ProfileSnapshot({ employee }: ProfileSnapshotProps) {
   return (
     <div className="bg-[#121417] box-border content-stretch flex flex-col items-center justify-center p-0 relative size-full">
       {/* Card wrapper with side nav background color */}
-      <div className="m-9 bg-[#1F2327] border border-[#1F2327] rounded-[12px] h-full overflow-hidden">
+      <div className="m-9 p-6 bg-[#1F2327] border border-[#1F2327] rounded-[12px] h-full overflow-hidden">
         {/* Header with name and employee ID */}
         <div className="box-border content-stretch flex flex-row font-['Inter:Medium',_sans-serif] font-medium gap-3 items-start justify-start leading-[0] not-italic overflow-clip px-3 py-[18px] relative shrink-0 text-[#ffffff] text-[14px] w-full">
           <div className="basis-0 grow h-7 min-h-px min-w-px relative shrink-0 text-left">

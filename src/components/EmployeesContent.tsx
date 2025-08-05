@@ -123,7 +123,7 @@ export default function EmployeesContent() {
       {/* Main Content - full width without sidebar */}
       <div className="flex-1 flex flex-col h-full min-h-0 overflow-hidden">
         {/* Fixed Header */}
-        <div className="border-b border-[#414042] bg-[#1A1D21] flex-shrink-0">
+        <div className="border-b border-[#414042] bg-[#1A1D21] flex-shrink-0 relative">
           <div className="w-full px-8 pr-0 pl-0">
             <div className="flex items-center pt-2 pb-6">
               {/* Search Component */}
@@ -177,6 +177,27 @@ export default function EmployeesContent() {
                 >
                   Inactive
                 </button>
+              </div>
+            </div>
+          </div>
+          
+          {/* Send Props Button - Positioned at left edge of ProfileSnapshot container */}
+          <div className="absolute z-50 pl-3" style={{ top: '50%', transform: 'translateY(-50%)', left: 'calc(66.666667% - 24px)', marginTop: '-8px' }}>
+            <div className="relative group">
+              <button
+                className={`px-3 py-1.5 text-xs font-medium rounded transition-colors ${
+                  selectedEmployees.size > 0
+                    ? 'bg-[#00DF71] text-[#212327] hover:bg-[#00E676]'
+                    : 'bg-gray-300 text-[#212327] opacity-50 cursor-not-allowed'
+                }`}
+                disabled={selectedEmployees.size === 0}
+              >
+                Send Props
+              </button>
+              {/* Tooltip */}
+              <div className="absolute top-1/2 transform -translate-y-1/2 left-full ml-2 px-3 py-2 bg-[#1F2327] text-white text-xs rounded shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-[99999]">
+                Select one or more users to send props.
+                <div className="absolute top-1/2 left-0 transform -translate-x-full -translate-y-1/2 w-0 h-0 border-t-4 border-b-4 border-r-4 border-transparent border-r-[#1F2327]"></div>
               </div>
             </div>
           </div>
@@ -281,7 +302,7 @@ export default function EmployeesContent() {
                   <button
                     onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
                     disabled={currentPage === totalPages}
-                    className="px-3 py-2 text-sm font-medium text-gray-300 bg-[#1B1D21] border border-[#454446] rounded hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="px-3 py-2 text-sm font-medium text-sm font-medium text-gray-300 bg-[#1B1D21] border border-[#454446] rounded hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     Next
                   </button>
