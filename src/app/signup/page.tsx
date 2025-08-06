@@ -6,6 +6,8 @@ import {
   signInWithPopup,
   GoogleAuthProvider,
   sendEmailVerification,
+  signInWithRedirect,
+  getRedirectResult,
 } from "firebase/auth";
 import { auth, db } from "@/lib/firebase";
 import { doc, getDoc, setDoc } from "firebase/firestore";
@@ -26,6 +28,36 @@ export default function SignUpPage() {
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  // Handle redirect result
+  useEffect(() => {
+    const handleRedirectResult = async () => {
+      try {
+        const result = await getRedirectResult(auth);
+        if (result) {
+          console.log("Redirect sign-up successful:", result.user.email);
+          
+          // Check if user already has a profile
+          const userDoc = await getDoc(doc(db, "users", result.user.uid));
+          if (!userDoc.exists()) {
+            // Create basic profile for Google user
+            await setDoc(doc(db, "users", result.user.uid), {
+              display_name: result.user.displayName || "",
+              email: result.user.email || "",
+              photo_url: result.user.photoURL || "",
+              created_time: new Date(),
+              didInitProfile: false,
+            });
+          }
+          router.push("/onboarding");
+        }
+      } catch (error) {
+        console.error("Redirect result error:", error);
+      }
+    };
+
+    handleRedirectResult();
+  }, [router]);
 
   const handleEmailSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -64,12 +96,32 @@ export default function SignUpPage() {
     setLoading(true);
 
     try {
+      console.log("Starting Google sign-up process...");
       const provider = new GoogleAuthProvider();
-      const result = await signInWithPopup(auth, provider);
+      
+      // Add scopes if needed
+      provider.addScope('email');
+      provider.addScope('profile');
+      
+      console.log("Calling signInWithPopup...");
+      let result;
+      
+      try {
+        result = await signInWithPopup(auth, provider);
+      } catch (popupError) {
+        console.log("Popup failed, trying redirect:", popupError);
+        // Fallback to redirect if popup is blocked
+        await signInWithRedirect(auth, provider);
+        return; // Redirect will handle the rest
+      }
+      
+      console.log("Google sign-up successful:", result.user.email);
 
       // Check if user already has a profile
+      console.log("Checking if user profile exists...");
       const userDoc = await getDoc(doc(db, "users", result.user.uid));
       if (!userDoc.exists()) {
+        console.log("Creating new user profile...");
         // Create basic profile for Google user
         await setDoc(doc(db, "users", result.user.uid), {
           display_name: result.user.displayName || "",
@@ -78,13 +130,34 @@ export default function SignUpPage() {
           created_time: new Date(),
           didInitProfile: false,
         });
+        console.log("User profile created, redirecting to onboarding");
+      } else {
+        console.log("User profile already exists");
       }
 
       router.push("/onboarding");
     } catch (error: unknown) {
-      const errorMessage =
-        error instanceof Error ? error.message : "An error occurred";
-      console.error("Google sign up error:", errorMessage);
+      console.error("Google sign up error details:", error);
+      
+      if (error instanceof Error) {
+        const errorMessage = error.message;
+        console.error("Error message:", errorMessage);
+        
+        // Handle specific Firebase auth errors
+        if (errorMessage.includes('popup-closed-by-user')) {
+          alert("Sign-up was cancelled. Please try again.");
+        } else if (errorMessage.includes('popup-blocked')) {
+          alert("Pop-up was blocked. Please allow pop-ups for this site and try again.");
+        } else if (errorMessage.includes('auth/unauthorized-domain')) {
+          alert("This domain is not authorized for Google sign-in. Please contact support.");
+        } else if (errorMessage.includes('auth/network-request-failed')) {
+          alert("Network error. Please check your internet connection and try again.");
+        } else {
+          alert(`Sign-up failed: ${errorMessage}`);
+        }
+      } else {
+        alert("An unexpected error occurred during sign-up. Please try again.");
+      }
     } finally {
       setLoading(false);
     }

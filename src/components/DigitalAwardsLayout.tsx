@@ -5,6 +5,8 @@ import DigitalAwardsSideNav, {
   StepType,
 } from "@/components/DigitalAwardsSideNav";
 import { useNavigation } from "@/contexts/NavigationContext";
+import { useAuth } from "@/contexts/AuthContext";
+import { useRouter } from "next/navigation";
 
 interface DigitalAwardsLayoutProps {
   currentStep: StepType;
@@ -26,8 +28,31 @@ export default function DigitalAwardsLayout({
   isStandalone = false,
 }: DigitalAwardsLayoutProps) {
   const { isCollapsed } = useNavigation();
+  const { logout, isLoggingOut } = useAuth();
+  const router = useRouter();
   const navWidth = isCollapsed ? 64 : 240;
   const navMargin = isCollapsed ? "64px" : "240px";
+
+  const handleLogout = async () => {
+    console.log("Digital awards layout logout button clicked");
+    
+    const confirmed = window.confirm("Are you sure you want to sign out?");
+    console.log("User confirmed:", confirmed);
+    
+    if (!confirmed) return;
+
+    console.log("Calling logout function...");
+    const success = await logout();
+    console.log("Logout result:", success);
+    
+    if (success) {
+      console.log("Successfully signed out");
+      router.push("/signin");
+    } else {
+      console.error("Failed to sign out");
+      alert("Failed to sign out. Please try again.");
+    }
+  };
 
   // Force re-render when navigation state changes
   const [navState, setNavState] = React.useState({
@@ -104,18 +129,28 @@ export default function DigitalAwardsLayout({
         {/* ViewTitle Container */}
         {showViewTitle && (
           <div
-            className="w-full bg-[#1e2327] flex items-center border-b border-[#454446] h-16"
+            className="w-full bg-[#1e2327] flex items-center justify-between border-b border-[#454446] h-16"
             style={{
               height: "64px !important",
               minHeight: "64px",
               maxHeight: "64px",
               paddingLeft: "12px",
+              paddingRight: "32px",
             }}
           >
             {/* Title text */}
             <div className="font-semibold text-[#ffffff] text-[18px] whitespace-nowrap">
               {viewTitleText}
             </div>
+            
+            {/* Logout Button */}
+            <button
+              onClick={handleLogout}
+              disabled={isLoggingOut}
+              className="px-4 py-2 text-sm font-medium transition-colors bg-gray-600 text-white rounded hover:bg-gray-500 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isLoggingOut ? "Signing out..." : "Logout"}
+            </button>
           </div>
         )}
 

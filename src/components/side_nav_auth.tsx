@@ -146,8 +146,9 @@ export default function SideNavAuth({
         </nav>
       </div>
 
-      {/* Bottom CTA */}
-      <div className="p-3 mt-auto mb-6">
+      {/* Bottom Section */}
+      <div className="p-3 mt-auto">
+        {/* Premium CTA */}
         <button className="w-full bg-[#00dc79] text-[#2b2a2d] font-medium text-xs rounded-lg py-2">
           Try Premium for 30 days
         </button>

@@ -21,6 +21,7 @@ export default function Home() {
   const [isLoadingProfile, setIsLoadingProfile] = useState(true);
   const [carouselPosition, setCarouselPosition] = useState(0);
   const [templatesCarouselPosition, setTemplatesCarouselPosition] = useState(0);
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
 
 
 
@@ -72,27 +73,57 @@ export default function Home() {
     }
   }, [userProfile, router]);
 
-  const handleSignOut = async () => {
-    console.log("Logout button clicked");
-    
-    const confirmed = window.confirm("Are you sure you want to sign out?");
-    console.log("User confirmed:", confirmed);
-    
-    if (!confirmed) return;
+  // Test logout button functionality
+  const testLogoutButton = () => {
+    console.log("=== LOGOUT BUTTON TEST ===");
+    console.log("1. Testing logout button click...");
+    console.log("2. Current user:", user?.email);
+    console.log("3. isLoggingOut state:", isLoggingOut);
+    console.log("4. logout function available:", !!logout);
+    console.log("5. Router available:", !!router);
+    console.log("=== END TEST ===");
+  };
 
-    console.log("Calling logout function...");
-    const success = await logout();
-    console.log("Logout result:", success);
+  const handleSignOut = async () => {
+    console.log("=== LOGOUT PROCESS STARTED ===");
+    console.log("1. Logout button clicked");
+    console.log("2. Current user:", user?.email);
     
-    if (success) {
-      // Show success feedback (you can add a toast library later)
-      console.log("Successfully signed out");
-      router.push("/signin");
-    } else {
-      // Show error feedback
-      console.error("Failed to sign out");
-      alert("Failed to sign out. Please try again.");
+    try {
+      console.log("3. Calling logout function...");
+      const success = await logout();
+      console.log("4. Logout result:", success);
+      
+      if (success) {
+        console.log("5. Successfully signed out");
+        console.log("6. Redirecting to signin page");
+        router.push("/signin");
+      } else {
+        console.error("5. Failed to sign out");
+        alert("Failed to sign out. Please try again.");
+      }
+    } catch (error) {
+      console.error("5. Logout error:", error);
+      alert("An error occurred during logout. Please try again.");
     }
+    
+    console.log("=== LOGOUT PROCESS ENDED ===");
+  };
+
+  const openLogoutModal = () => {
+    console.log("Opening logout modal");
+    setShowLogoutModal(true);
+  };
+
+  const closeLogoutModal = () => {
+    console.log("Closing logout modal");
+    setShowLogoutModal(false);
+  };
+
+  const confirmLogout = async () => {
+    console.log("User confirmed logout");
+    closeLogoutModal();
+    await handleSignOut();
   };
 
   const handleCarouselScroll = (direction: "left" | "right") => {
@@ -191,7 +222,11 @@ export default function Home() {
           
           {/* Logout Button */}
           <button
-            onClick={handleSignOut}
+            onClick={(e) => {
+              console.log("Home header logout button clicked");
+              testLogoutButton();
+              openLogoutModal();
+            }}
             disabled={isLoggingOut}
             className="px-4 py-2 text-sm font-medium transition-colors bg-gray-600 text-white rounded hover:bg-gray-500 disabled:opacity-50 disabled:cursor-not-allowed"
           >
@@ -603,6 +638,37 @@ export default function Home() {
           </div>
         </div>
       </div>
+
+      {/* Logout Modal */}
+      {showLogoutModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-[#212327] rounded-lg p-6 max-w-md w-full mx-4 border border-[#454446]">
+            <div className="text-center">
+              <h3 className="text-lg font-semibold text-white mb-4">
+                Sign Out
+              </h3>
+              <p className="text-gray-300 mb-6">
+                Are you sure you want to sign out? You will need to sign in again to access your account.
+              </p>
+              <div className="flex gap-3 justify-center">
+                <button
+                  onClick={closeLogoutModal}
+                  className="px-4 py-2 text-sm font-medium transition-colors bg-gray-600 text-white rounded hover:bg-gray-500"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={confirmLogout}
+                  disabled={isLoggingOut}
+                  className="px-4 py-2 text-sm font-medium transition-colors bg-red-600 text-white rounded hover:bg-red-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isLoggingOut ? "Signing out..." : "Sign Out"}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
