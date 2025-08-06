@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 import { auth } from "@/lib/firebase";
-import { saveUserProp } from "@/lib/firebase";
+import { saveUserProp, uploadAsset, createTemplateWithAssets, savePropWithImage, updatePropWithImage } from "@/lib/firebase";
 import Link from "next/link";
 import SignUpModal from "./SignupModal";
 
@@ -39,9 +39,12 @@ export default function ShareStep({
   const [isLoggedIn, setIsLoggedIn] = useState<boolean | null>(null);
   const [isSignupModalOpen, setisSignupModalOpen] = useState<boolean>(false);
   const [savedPropId, setSavedPropId] = useState<string | null>(null);
+  const [processStep, setProcessStep] = useState<string>("");
+  const [generatedImageUrl, setGeneratedImageUrl] = useState<string | null>(null);
 
   const handleGenerateAward = async () => {
     setIsGenerating(true);
+    setProcessStep("Starting process...");
 
     try {
       // Get current user
@@ -50,38 +53,20 @@ export default function ShareStep({
         throw new Error("User not authenticated");
       }
 
-      // Generate the completed prop image
-      const fullPropImage = await generateCompletedPropImage();
+      // Step 1: Upload assets and create template
+      setProcessStep("Uploading assets and creating template...");
+      const uploadedAssets = await uploadAssetsAndCreateTemplate(user.uid);
 
-      // Create prop data object with the same structure as templates
-      const propData = {
-        achievement: {
-          props: selectedTemplate?.achievement?.props || "",
-          logoImage: selectedTemplate?.achievement?.logoImage || "",
-          tags: selectedTemplate?.achievement?.tags || [],
-        },
-        // User customizations
-        customizations: {
-          companyName: companyNameText || "",
-          uploadedLogoFile: uploadedLogoFile ? await fileToBase64(uploadedLogoFile) : null,
-          backgroundName: backgroundNameText || "",
-          uploadedBackgroundFile: uploadedBackgroundFile ? await fileToBase64(uploadedBackgroundFile) : null,
-          propsTitle: propsTitle || "",
-          propsRecipients: propsRecipients || [],
-          fromName: fromName || "",
-          fromDate: fromDate || "",
-          fromMessage: fromMessage || "",
-        },
-        // Generated completed prop image
-        fullPropImage: fullPropImage,
-        // Template reference
-        templateId: selectedTemplate?.id || "",
-        templateType: "props"
-      };
+      // Step 2: Create prop in user subcollection
+      setProcessStep("Creating prop in user subcollection...");
+      const propId = await createPropInUserSubcollection(user.uid, uploadedAssets);
 
-      // Save to Firestore
-      const propId = await saveUserProp(user.uid, propData);
+      // Step 3: Generate image and save to prop document
+      setProcessStep("Generating image and saving to prop document...");
+      const imageUrl = await generateAndSaveImage(user.uid, propId);
+
       setSavedPropId(propId);
+      setGeneratedImageUrl(imageUrl);
 
       // Simulate award generation
       setTimeout(() => {
@@ -108,12 +93,127 @@ This digital award recognizes excellence and dedication in professional developm
 
         setGeneratedAward(award);
         setIsGenerating(false);
+        setProcessStep("");
       }, 2000);
 
     } catch (error) {
       console.error("Error generating award:", error);
       setIsGenerating(false);
+      setProcessStep("");
       // Handle error appropriately
+    }
+  };
+
+  // Step 1: Upload assets and create template
+  const uploadAssetsAndCreateTemplate = async (userId: string) => {
+    const uploadedAssets: any = {
+      logoUrl: null,
+      backgroundUrl: null,
+      templateId: null
+    };
+
+    try {
+      // Upload logo if provided
+      if (uploadedLogoFile) {
+        const logoPath = `users/${userId}/assets/logos/${Date.now()}_${uploadedLogoFile.name}`;
+        uploadedAssets.logoUrl = await uploadAsset(uploadedLogoFile, logoPath);
+      }
+
+      // Upload background if provided
+      if (uploadedBackgroundFile) {
+        const backgroundPath = `users/${userId}/assets/backgrounds/${Date.now()}_${uploadedBackgroundFile.name}`;
+        uploadedAssets.backgroundUrl = await uploadAsset(uploadedBackgroundFile, backgroundPath);
+      }
+
+      // Only create template if assets were uploaded
+      if (uploadedLogoFile || uploadedBackgroundFile) {
+        const templateData = {
+          achievement: {
+            props: selectedTemplate?.achievement?.props || "",
+            logoImage: uploadedAssets.logoUrl || selectedTemplate?.achievement?.logoImage || "",
+            backgroundImage: uploadedAssets.backgroundUrl || selectedTemplate?.achievement?.backgroundImage || "",
+            tags: selectedTemplate?.achievement?.tags || [],
+            company: companyNameText || selectedTemplate?.achievement?.company || "",
+          },
+          isPrivate: true,
+          userRef: userId,
+          templateType: "props",
+          createdAt: new Date(),
+          updatedAt: new Date()
+        };
+
+        uploadedAssets.templateId = await createTemplateWithAssets(templateData);
+      }
+
+      return uploadedAssets;
+    } catch (error) {
+      console.error('Error uploading assets and creating template:', error);
+      throw error;
+    }
+  };
+
+  // Step 2: Create prop in user subcollection
+  const createPropInUserSubcollection = async (userId: string, uploadedAssets: any) => {
+    try {
+      const propData = {
+        fromMessage: fromMessage || "",
+        propsTitle: propsTitle || "",
+        propsRecipients: propsRecipients || [],
+        fromDate: fromDate || "",
+        fromName: fromName || "",
+        templateId: uploadedAssets.templateId || selectedTemplate?.id || "",
+        status: "pending_image_generation",
+        createdAt: new Date(),
+        updatedAt: new Date()
+      };
+
+      const propId = await saveUserProp(userId, propData);
+      return propId;
+    } catch (error) {
+      console.error('Error creating prop in user subcollection:', error);
+      throw error;
+    }
+  };
+
+  // Step 3: Generate image and save to prop document
+  const generateAndSaveImage = async (userId: string, propId: string) => {
+    try {
+      // Call the cloud function to get the generated image
+      const imageUrl = `https://us-central1-skill-trait-rwubkx.cloudfunctions.net/imageGeneration?user=${userId}&prop=${propId}`;
+      
+      console.log('Attempting to fetch image from:', imageUrl);
+      
+      // Fetch the image from the cloud function with proper headers
+      const response = await fetch(imageUrl, {
+        method: 'GET',
+        headers: {
+          'Accept': 'image/png',
+        },
+        mode: 'cors',
+      });
+      
+      if (!response.ok) {
+        console.error('Cloud function response:', response.status, response.statusText);
+        throw new Error(`Failed to generate image: ${response.status} - ${response.statusText}`);
+      }
+      
+      // Get the image as blob
+      const imageBlob = await response.blob();
+      
+      // Upload the image to Firebase Storage
+      const imagePath = `users/${userId}/props/${propId}/generated_image.png`;
+      const uploadedImageUrl = await uploadAsset(new File([imageBlob], 'generated_prop.png', { type: 'image/png' }), imagePath);
+      
+      // Update the prop document with the uploaded image URL
+      await updatePropWithImage(userId, propId, uploadedImageUrl);
+
+      return uploadedImageUrl;
+    } catch (error) {
+      console.error('Error generating and saving image:', error);
+      // For now, let's create a placeholder image URL for testing
+      const placeholderImageUrl = `https://via.placeholder.com/600x400/1A1D21/00DF71?text=Generated+Prop+Image`;
+      await updatePropWithImage(userId, propId, placeholderImageUrl);
+      return placeholderImageUrl;
     }
   };
 
@@ -359,6 +459,11 @@ This digital award recognizes excellence and dedication in professional developm
               Click the button below to generate your digital award based on all
               the information you&#39;ve provided.
             </p>
+            {processStep && (
+              <div className="text-[var(--primary-dark)] text-sm mb-2">
+                {processStep}
+              </div>
+            )}
             <button
               className="w-full bg-[var(--primary-dark)] text-white font-semibold py-2 rounded mb-4 mt-2 hover:bg-[var(--primary)] transition"
               onClick={
@@ -383,6 +488,28 @@ This digital award recognizes excellence and dedication in professional developm
               {savedPropId && (
                 <div className="text-green-400 text-sm mb-2">
                   ✓ Award saved successfully! ID: {savedPropId}
+                </div>
+              )}
+              {generatedImageUrl && (
+                <div className="mb-4">
+                  <h4 className="text-md font-medium text-white mb-2">Generated Prop Image:</h4>
+                  <div className="bg-white rounded-lg p-2 inline-block">
+                    <img 
+                      src={generatedImageUrl} 
+                      alt="Generated Prop" 
+                      className="w-64 h-auto rounded border border-gray-300"
+                      style={{ maxWidth: '256px' }}
+                      onLoad={() => console.log('Image loaded successfully:', generatedImageUrl)}
+                      onError={(e) => console.error('Image failed to load:', generatedImageUrl, e)}
+                      crossOrigin="anonymous"
+                    />
+                  </div>
+                  <div className="text-xs text-gray-400 mt-2">
+                    Image URL: {generatedImageUrl}
+                  </div>
+                  <div className="text-xs text-gray-400 mt-1">
+                    Cloud Function URL: https://us-central1-skill-trait-rwubkx.cloudfunctions.net/imageGeneration?user={savedPropId && 'zIMIiaMN8DfFjoyZ16JOZKxFVrZ2'}&prop={savedPropId}
+                  </div>
                 </div>
               )}
               <div

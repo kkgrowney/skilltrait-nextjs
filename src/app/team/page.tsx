@@ -9,6 +9,7 @@ import { doc, getDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import ViewTitleTab from '@/components/ViewTitleTab';
 import EmployeesContent from '@/components/EmployeesContent';
+import DragDropUpload from '@/components/DragDropUpload';
 
 export default function Team() {
   const { user, loading } = useAuth();
@@ -20,6 +21,10 @@ export default function Team() {
   const [teamMembers, setTeamMembers] = useState<any[]>([]);
   const [isLoadingMembers, setIsLoadingMembers] = useState(true);
   const [activeTab, setActiveTab] = useState('admin');
+  const [logoFile, setLogoFile] = useState<File | null>(null);
+  const [backgroundFile, setBackgroundFile] = useState<File | null>(null);
+  const [logoPreview, setLogoPreview] = useState<string | null>(null);
+  const [backgroundPreview, setBackgroundPreview] = useState<string | null>(null);
 
   // Fetch team profile data from Firebase
   const fetchTeamProfile = async () => {
@@ -120,6 +125,41 @@ export default function Team() {
   useEffect(() => {
     setCurrentView('team');
   }, []);
+
+  // File upload handlers
+  const handleLogoUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      setLogoFile(file);
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setLogoPreview(e.target?.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleBackgroundUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      setBackgroundFile(file);
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setBackgroundPreview(e.target?.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const removeLogo = () => {
+    setLogoFile(null);
+    setLogoPreview(null);
+  };
+
+  const removeBackground = () => {
+    setBackgroundFile(null);
+    setBackgroundPreview(null);
+  };
 
   // Fetch data when user changes
   useEffect(() => {
@@ -311,6 +351,49 @@ export default function Team() {
                     </div>
                   )}
                 </div>
+              </div>
+            </div>
+          ) : activeTab === 'brand-assets' ? (
+            // Brand Assets tab content
+            <div className="w-full h-full">
+              <div className="max-w-4xl space-y-6">
+                {/* Logo Upload Section */}
+                <DragDropUpload
+                  onFileUpload={(file) => {
+                    setLogoFile(file);
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                      setLogoPreview(e.target?.result as string);
+                    };
+                    reader.readAsDataURL(file);
+                  }}
+                  onFileRemove={removeLogo}
+                  uploadedFile={logoFile}
+                  title="Logo"
+                  description="Upload your team's logo. Recommended size: 40px x 250px"
+                  maxDimensions="H 40 X W 250"
+                  previewWidth="w-[250px]"
+                  previewHeight="h-[40px]"
+                />
+
+                {/* Background Image Upload Section */}
+                <DragDropUpload
+                  onFileUpload={(file) => {
+                    setBackgroundFile(file);
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                      setBackgroundPreview(e.target?.result as string);
+                    };
+                    reader.readAsDataURL(file);
+                  }}
+                  onFileRemove={removeBackground}
+                  uploadedFile={backgroundFile}
+                  title="Background Image"
+                  description="Upload a background image for your team. Recommended size: 600x400px"
+                  maxDimensions="H 400 X W 600"
+                  previewWidth="w-[300px]"
+                  previewHeight="h-[200px]"
+                />
               </div>
             </div>
           ) : (

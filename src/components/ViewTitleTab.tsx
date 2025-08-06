@@ -31,6 +31,16 @@ export default function ViewTitleTab({ activeTab, onTabChange }: ViewTitleTabPro
         >
           Employees
         </button>
+        <button
+          onClick={() => onTabChange('brand-assets')}
+          className={`py-2 px-1 border-b-2 font-medium text-sm transition-colors ${
+            activeTab === 'brand-assets'
+              ? 'border-[#00DF71] text-[#00DF71]'
+              : 'border-transparent text-gray-400 hover:text-gray-300'
+          }`}
+        >
+          Brand Assets
+        </button>
       </div>
     </div>
   );

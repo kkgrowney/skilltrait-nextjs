@@ -199,7 +199,21 @@ export default function DigitalAwardsPage() {
           />
         );
       case "share":
-        return <ShareStep onPrevious={handlePrevious} />;
+        return (
+          <ShareStep 
+            onPrevious={handlePrevious}
+            selectedTemplate={selectedTemplate}
+            companyNameText={companyNameText}
+            uploadedLogoFile={uploadedLogoFile}
+            backgroundNameText={backgroundNameText}
+            uploadedBackgroundFile={uploadedBackgroundFile}
+            propsTitle={propsTitle}
+            propsRecipients={propsRecipients}
+            fromName={fromName}
+            fromDate={fromDate}
+            fromMessage={fromMessage}
+          />
+        );
       default:
         return (
           <AwardsStep
