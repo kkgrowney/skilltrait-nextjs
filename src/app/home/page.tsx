@@ -1,7 +1,6 @@
 "use client";
 
 import { useAuth } from "@/contexts/AuthContext";
-import { signOut } from "firebase/auth";
 import { auth, db } from "@/lib/firebase";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -11,8 +10,10 @@ import { useNavigation } from "@/contexts/NavigationContext";
 import { useEffect, useState } from "react";
 import { doc, getDoc } from "firebase/firestore";
 
+
+
 export default function Home() {
-  const { user, loading } = useAuth();
+  const { user, loading, logout, isLoggingOut } = useAuth();
   const router = useRouter();
   const sideNavMargin = useSideNavMargin();
   const { currentView, setCurrentView } = useNavigation();
@@ -20,6 +21,8 @@ export default function Home() {
   const [isLoadingProfile, setIsLoadingProfile] = useState(true);
   const [carouselPosition, setCarouselPosition] = useState(0);
   const [templatesCarouselPosition, setTemplatesCarouselPosition] = useState(0);
+
+
 
   // Fetch user profile data from Firebase
   const fetchUserProfile = async () => {
@@ -70,11 +73,25 @@ export default function Home() {
   }, [userProfile, router]);
 
   const handleSignOut = async () => {
-    try {
-      await signOut(auth);
+    console.log("Logout button clicked");
+    
+    const confirmed = window.confirm("Are you sure you want to sign out?");
+    console.log("User confirmed:", confirmed);
+    
+    if (!confirmed) return;
+
+    console.log("Calling logout function...");
+    const success = await logout();
+    console.log("Logout result:", success);
+    
+    if (success) {
+      // Show success feedback (you can add a toast library later)
+      console.log("Successfully signed out");
       router.push("/signin");
-    } catch (error) {
-      console.error("Error signing out:", error);
+    } else {
+      // Show error feedback
+      console.error("Failed to sign out");
+      alert("Failed to sign out. Please try again.");
     }
   };
 
@@ -137,8 +154,16 @@ export default function Home() {
     );
   }
 
+  // Handle authentication redirect in useEffect to avoid setState during render
+  useEffect(() => {
+    if (!loading && !user) {
+      console.log("Redirecting to signin - no user");
+      router.push("/signin");
+    }
+  }, [user, loading, router]);
+
   if (!user) {
-    router.push("/signin");
+    console.log("No user, returning null");
     return null;
   }
 
@@ -150,18 +175,28 @@ export default function Home() {
       <div className="md:ml-60 ml-0 md:ml-[66px] h-full flex flex-col">
         {/* ViewTitle Container */}
         <div
-          className="w-full bg-[#1e2327] flex items-center border-b border-[#454446] h-16"
+          className="w-full bg-[#1e2327] flex items-center justify-between border-b border-[#454446] h-16"
           style={{
             height: "64px !important",
             minHeight: "64px",
             maxHeight: "64px",
             paddingLeft: "32px",
+            paddingRight: "32px",
           }}
         >
           {/* Title text */}
           <div className="font-semibold text-[#ffffff] text-[18px] whitespace-nowrap md:ml-0 ml-9 flex items-center">
             Home
           </div>
+          
+          {/* Logout Button */}
+          <button
+            onClick={handleSignOut}
+            disabled={isLoggingOut}
+            className="px-4 py-2 text-sm font-medium transition-colors bg-gray-600 text-white rounded hover:bg-gray-500 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {isLoggingOut ? "Signing out..." : "Logout"}
+          </button>
         </div>
 
         {/* Content Area */}
