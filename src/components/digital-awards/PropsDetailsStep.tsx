@@ -87,14 +87,14 @@ export default function PropsDetailsStep({
 
   return (
     <div className="h-full flex flex-col">
-      <div className="text-center mb-6">
+      <div className="text-center mb-6 flex-shrink-0">
         <h1 className="text-[30px] font-bold text-white mb-1">Details</h1>
         <p className="text-md text-gray-300 mb-[-2]">
           Add details to personalize your props template.
         </p>
       </div>
 
-      <div className="space-y-6">
+      <div className="space-y-6 flex-1 overflow-y-auto">
         {/* Props Title Section */}
         <div>
           <h3 className="text-lg font-medium text-white mb-4">Props Title *</h3>
@@ -311,7 +311,7 @@ export default function PropsDetailsStep({
       </div>
 
       {/* Next button - right justified below container */}
-      <div className="flex justify-end" style={{ marginTop: "24px" }}>
+      <div className="flex justify-end flex-shrink-0" style={{ marginTop: "24px" }}>
         <button
           onClick={handleNext}
           className="px-6 py-3 text-sm font-medium transition-colors bg-[var(--primary-dark)] text-[#212327] rounded hover:bg-[#0AFB84]"

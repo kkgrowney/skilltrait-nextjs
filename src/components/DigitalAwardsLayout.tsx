@@ -28,23 +28,26 @@ export default function DigitalAwardsLayout({
   isStandalone = false,
 }: DigitalAwardsLayoutProps) {
   const { isCollapsed } = useNavigation();
-  const { logout, isLoggingOut } = useAuth();
+  const { logout, isLoggingOut, user } = useAuth();
   const router = useRouter();
   const navWidth = isCollapsed ? 64 : 240;
   const navMargin = isCollapsed ? "64px" : "240px";
 
+  // Determine the height based on authentication status
+  const containerHeight = user ? "100vh" : "calc(100vh - var(--nav-height))";
+
   const handleLogout = async () => {
     console.log("Digital awards layout logout button clicked");
-    
+
     const confirmed = window.confirm("Are you sure you want to sign out?");
     console.log("User confirmed:", confirmed);
-    
+
     if (!confirmed) return;
 
     console.log("Calling logout function...");
     const success = await logout();
     console.log("Logout result:", success);
-    
+
     if (success) {
       console.log("Successfully signed out");
       router.push("/signin");
@@ -72,7 +75,7 @@ export default function DigitalAwardsLayout({
         style={{
           backgroundColor: "#1B1D21",
           overflow: "hidden",
-          height: "calc(100vh - var(--nav-height))",
+          height: containerHeight,
         }}
       >
         {/* Fixed Side Navigation */}
@@ -118,13 +121,16 @@ export default function DigitalAwardsLayout({
       style={{
         backgroundColor: "#1B1D21",
         overflow: "hidden",
-        height: "calc(100vh - var(--nav-height))",
+        height: containerHeight,
       }}
     >
       {/* Main Content Area */}
       <div
         className="h-full flex flex-col"
-        style={{ marginLeft: navState.navMargin, overflow: "hidden" }}
+        style={{ 
+          marginLeft: user ? navState.navMargin : "0px", 
+          overflow: "hidden" 
+        }}
       >
         {/* ViewTitle Container */}
         {showViewTitle && (
@@ -142,7 +148,7 @@ export default function DigitalAwardsLayout({
             <div className="font-semibold text-[#ffffff] text-[18px] whitespace-nowrap">
               {viewTitleText}
             </div>
-            
+
             {/* Logout Button */}
             <button
               onClick={handleLogout}
@@ -167,7 +173,7 @@ export default function DigitalAwardsLayout({
             }}
           >
             {/* Awards Generator Side Navigation - Now inside left container */}
-            <div className="w-[94px] h-full" style={{ marginTop: "20px" }}>
+            <div className="w-[94px] h-full">
               <DigitalAwardsSideNav
                 currentStep={currentStep}
                 onStepChange={onStepChange}

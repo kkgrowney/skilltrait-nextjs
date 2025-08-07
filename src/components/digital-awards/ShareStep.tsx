@@ -3,7 +3,13 @@
 import { useEffect, useState } from "react";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 import { auth } from "@/lib/firebase";
-import { saveUserProp, uploadAsset, createTemplateWithAssets, savePropWithImage, updatePropWithImage } from "@/lib/firebase";
+import {
+  saveUserProp,
+  uploadAsset,
+  createTemplateWithAssets,
+  savePropWithImage,
+  updatePropWithImage,
+} from "@/lib/firebase";
 import Link from "next/link";
 import SignUpModal from "./SignupModal";
 
@@ -21,8 +27,8 @@ interface ShareStepProps {
   fromMessage?: string;
 }
 
-export default function ShareStep({ 
-  onPrevious, 
+export default function ShareStep({
+  onPrevious,
   selectedTemplate,
   companyNameText,
   uploadedLogoFile,
@@ -32,7 +38,7 @@ export default function ShareStep({
   propsRecipients,
   fromName,
   fromDate,
-  fromMessage
+  fromMessage,
 }: ShareStepProps) {
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedAward, setGeneratedAward] = useState("");
@@ -40,7 +46,9 @@ export default function ShareStep({
   const [isSignupModalOpen, setisSignupModalOpen] = useState<boolean>(false);
   const [savedPropId, setSavedPropId] = useState<string | null>(null);
   const [processStep, setProcessStep] = useState<string>("");
-  const [generatedImageUrl, setGeneratedImageUrl] = useState<string | null>(null);
+  const [generatedImageUrl, setGeneratedImageUrl] = useState<string | null>(
+    null
+  );
 
   const handleGenerateAward = async () => {
     setIsGenerating(true);
@@ -59,7 +67,10 @@ export default function ShareStep({
 
       // Step 2: Create prop in user subcollection
       setProcessStep("Creating prop in user subcollection...");
-      const propId = await createPropInUserSubcollection(user.uid, uploadedAssets);
+      const propId = await createPropInUserSubcollection(
+        user.uid,
+        uploadedAssets
+      );
 
       // Step 3: Generate image and save to prop document
       setProcessStep("Generating image and saving to prop document...");
@@ -95,7 +106,6 @@ This digital award recognizes excellence and dedication in professional developm
         setIsGenerating(false);
         setProcessStep("");
       }, 2000);
-
     } catch (error) {
       console.error("Error generating award:", error);
       setIsGenerating(false);
@@ -109,20 +119,27 @@ This digital award recognizes excellence and dedication in professional developm
     const uploadedAssets: any = {
       logoUrl: null,
       backgroundUrl: null,
-      templateId: null
+      templateId: null,
     };
 
     try {
       // Upload logo if provided
       if (uploadedLogoFile) {
-        const logoPath = `users/${userId}/assets/logos/${Date.now()}_${uploadedLogoFile.name}`;
+        const logoPath = `users/${userId}/assets/logos/${Date.now()}_${
+          uploadedLogoFile.name
+        }`;
         uploadedAssets.logoUrl = await uploadAsset(uploadedLogoFile, logoPath);
       }
 
       // Upload background if provided
       if (uploadedBackgroundFile) {
-        const backgroundPath = `users/${userId}/assets/backgrounds/${Date.now()}_${uploadedBackgroundFile.name}`;
-        uploadedAssets.backgroundUrl = await uploadAsset(uploadedBackgroundFile, backgroundPath);
+        const backgroundPath = `users/${userId}/assets/backgrounds/${Date.now()}_${
+          uploadedBackgroundFile.name
+        }`;
+        uploadedAssets.backgroundUrl = await uploadAsset(
+          uploadedBackgroundFile,
+          backgroundPath
+        );
       }
 
       // Only create template if assets were uploaded
@@ -130,30 +147,42 @@ This digital award recognizes excellence and dedication in professional developm
         const templateData = {
           achievement: {
             props: selectedTemplate?.achievement?.props || "",
-            logoImage: uploadedAssets.logoUrl || selectedTemplate?.achievement?.logoImage || "",
-            backgroundImage: uploadedAssets.backgroundUrl || selectedTemplate?.achievement?.backgroundImage || "",
+            logoImage:
+              uploadedAssets.logoUrl ||
+              selectedTemplate?.achievement?.logoImage ||
+              "",
+            backgroundImage:
+              uploadedAssets.backgroundUrl ||
+              selectedTemplate?.achievement?.backgroundImage ||
+              "",
             tags: selectedTemplate?.achievement?.tags || [],
-            company: companyNameText || selectedTemplate?.achievement?.company || "",
+            company:
+              companyNameText || selectedTemplate?.achievement?.company || "",
           },
           isPrivate: true,
           userRef: userId,
           templateType: "props",
           createdAt: new Date(),
-          updatedAt: new Date()
+          updatedAt: new Date(),
         };
 
-        uploadedAssets.templateId = await createTemplateWithAssets(templateData);
+        uploadedAssets.templateId = await createTemplateWithAssets(
+          templateData
+        );
       }
 
       return uploadedAssets;
     } catch (error) {
-      console.error('Error uploading assets and creating template:', error);
+      console.error("Error uploading assets and creating template:", error);
       throw error;
     }
   };
 
   // Step 2: Create prop in user subcollection
-  const createPropInUserSubcollection = async (userId: string, uploadedAssets: any) => {
+  const createPropInUserSubcollection = async (
+    userId: string,
+    uploadedAssets: any
+  ) => {
     try {
       const propData = {
         fromMessage: fromMessage || "",
@@ -164,13 +193,13 @@ This digital award recognizes excellence and dedication in professional developm
         templateId: uploadedAssets.templateId || selectedTemplate?.id || "",
         status: "pending_image_generation",
         createdAt: new Date(),
-        updatedAt: new Date()
+        updatedAt: new Date(),
       };
 
       const propId = await saveUserProp(userId, propData);
       return propId;
     } catch (error) {
-      console.error('Error creating prop in user subcollection:', error);
+      console.error("Error creating prop in user subcollection:", error);
       throw error;
     }
   };
@@ -178,38 +207,46 @@ This digital award recognizes excellence and dedication in professional developm
   // Step 3: Generate image and save to prop document
   const generateAndSaveImage = async (userId: string, propId: string) => {
     try {
-      // Call the cloud function to get the generated image
-      const imageUrl = `https://us-central1-skill-trait-rwubkx.cloudfunctions.net/imageGeneration?user=${userId}&prop=${propId}`;
-      
-      console.log('Attempting to fetch image from:', imageUrl);
-      
-      // Fetch the image from the cloud function with proper headers
+      // Call our proxy API route instead of the cloud function directly
+      const imageUrl = `/api/generate-image?user=${userId}&prop=${propId}`;
+
+      console.log("Attempting to fetch image from:", imageUrl);
+
+      // Fetch the image from our proxy API route
       const response = await fetch(imageUrl, {
-        method: 'GET',
+        method: "GET",
         headers: {
-          'Accept': 'image/png',
+          Accept: "image/png",
         },
-        mode: 'cors',
       });
-      
+
       if (!response.ok) {
-        console.error('Cloud function response:', response.status, response.statusText);
-        throw new Error(`Failed to generate image: ${response.status} - ${response.statusText}`);
+        console.error(
+          "API route response:",
+          response.status,
+          response.statusText
+        );
+        throw new Error(
+          `Failed to generate image: ${response.status} - ${response.statusText}`
+        );
       }
-      
+
       // Get the image as blob
       const imageBlob = await response.blob();
-      
+
       // Upload the image to Firebase Storage
       const imagePath = `users/${userId}/props/${propId}/generated_image.png`;
-      const uploadedImageUrl = await uploadAsset(new File([imageBlob], 'generated_prop.png', { type: 'image/png' }), imagePath);
-      
+      const uploadedImageUrl = await uploadAsset(
+        new File([imageBlob], "generated_prop.png", { type: "image/png" }),
+        imagePath
+      );
+
       // Update the prop document with the uploaded image URL
       await updatePropWithImage(userId, propId, uploadedImageUrl);
 
       return uploadedImageUrl;
     } catch (error) {
-      console.error('Error generating and saving image:', error);
+      console.error("Error generating and saving image:", error);
       // For now, let's create a placeholder image URL for testing
       const placeholderImageUrl = `https://via.placeholder.com/600x400/1A1D21/00DF71?text=Generated+Prop+Image`;
       await updatePropWithImage(userId, propId, placeholderImageUrl);
@@ -221,31 +258,51 @@ This digital award recognizes excellence and dedication in professional developm
   const generateCompletedPropImage = async (): Promise<string> => {
     try {
       // Prepare parameters for the cloud function
-      const recipientArray = propsRecipients?.join(',') || 'Team Members';
-      const message = fromMessage || 'Thank you for your outstanding work and dedication!';
-      const sender = fromName || 'Management';
-      const category = 'props';
-      const template = selectedTemplate?.id || '';
-      const teamId = 'default'; // You can customize this as needed
-      
+      const recipientArray = propsRecipients?.join(",") || "Team Members";
+      const message =
+        fromMessage || "Thank you for your outstanding work and dedication!";
+      const sender = fromName || "Management";
+      const category = "props";
+      const template = selectedTemplate?.id || "";
+      const teamId = "default"; // You can customize this as needed
+
       // Determine company parameter
       let companyParam;
       if (uploadedLogoFile) {
         // If user uploaded a logo, use "other" and pass custom company name
-        companyParam = 'other';
-        const customCompany = companyNameText || 'Company Name';
-        const imageUrl = `https://us-central1-skill-trait-rwubkx.cloudfunctions.net/imageGeneration?rec=${encodeURIComponent(recipientArray)}&message=${encodeURIComponent(message)}&sen=${encodeURIComponent(sender)}&com=${encodeURIComponent(customCompany)}&cat=${category}&tem=${template}&tid=${teamId}`;
+        companyParam = "other";
+        const customCompany = companyNameText || "Company Name";
+        const imageUrl = `/api/generate-image?rec=${encodeURIComponent(
+          recipientArray
+        )}&message=${encodeURIComponent(message)}&sen=${encodeURIComponent(
+          sender
+        )}&com=${encodeURIComponent(
+          customCompany
+        )}&cat=${category}&tem=${template}&tid=${teamId}`;
         return imageUrl;
       } else {
         // If no logo uploaded, use the template's company
-        companyParam = selectedTemplate?.achievement?.company || 'default';
-        const imageUrl = `https://us-central1-skill-trait-rwubkx.cloudfunctions.net/imageGeneration?rec=${encodeURIComponent(recipientArray)}&message=${encodeURIComponent(message)}&sen=${encodeURIComponent(sender)}&com=${companyParam}&cat=${category}&tem=${template}&tid=${teamId}`;
+        companyParam = selectedTemplate?.achievement?.company || "default";
+        const imageUrl = `/api/generate-image?rec=${encodeURIComponent(
+          recipientArray
+        )}&message=${encodeURIComponent(message)}&sen=${encodeURIComponent(
+          sender
+        )}&com=${companyParam}&cat=${category}&tem=${template}&tid=${teamId}`;
         return imageUrl;
       }
     } catch (error) {
-      console.error('Error generating image URL:', error);
-      return '';
+      console.error("Error generating image URL:", error);
+      return "";
     }
+  };
+
+  // Helper function to proxy Firebase Storage URLs
+  const getProxiedImageUrl = (imageUrl: string): string => {
+    // Check if it's a Firebase Storage URL
+    if (imageUrl.includes("firebasestorage.googleapis.com")) {
+      return `/api/proxy-image?url=${encodeURIComponent(imageUrl)}`;
+    }
+    return imageUrl;
   };
 
   // Helper function to convert File to base64
@@ -254,7 +311,7 @@ This digital award recognizes excellence and dedication in professional developm
       const reader = new FileReader();
       reader.readAsDataURL(file);
       reader.onload = () => resolve(reader.result as string);
-      reader.onerror = error => reject(error);
+      reader.onerror = (error) => reject(error);
     });
   };
 
@@ -437,7 +494,7 @@ This digital award recognizes excellence and dedication in professional developm
 
   return (
     <div className="h-full flex flex-col">
-      <div className="text-center">
+      <div className="text-center flex-shrink-0">
         <h1 className="text-[30px] font-bold text-white mb-4">Share</h1>
       </div>
 
@@ -446,7 +503,7 @@ This digital award recognizes excellence and dedication in professional developm
         setIsOpen={setisSignupModalOpen}
       />
 
-      <div className="space-y-4 flex-1">
+      <div className="space-y-4 flex-1 overflow-y-auto">
         {!generatedAward ? (
           <div
             className="p-4 rounded-sm border"
@@ -492,23 +549,33 @@ This digital award recognizes excellence and dedication in professional developm
               )}
               {generatedImageUrl && (
                 <div className="mb-4">
-                  <h4 className="text-md font-medium text-white mb-2">Generated Prop Image:</h4>
+                  <h4 className="text-md font-medium text-white mb-2">
+                    Generated Prop Image:
+                  </h4>
                   <div className="bg-white rounded-lg p-2 inline-block">
-                    <img 
-                      src={generatedImageUrl} 
-                      alt="Generated Prop" 
+                    <img
+                      src={getProxiedImageUrl(generatedImageUrl)}
+                      alt="Generated Prop"
                       className="w-64 h-auto rounded border border-gray-300"
-                      style={{ maxWidth: '256px' }}
-                      onLoad={() => console.log('Image loaded successfully:', generatedImageUrl)}
-                      onError={(e) => console.error('Image failed to load:', generatedImageUrl, e)}
+                      style={{ maxWidth: "256px" }}
+                      onLoad={() =>
+                        console.log(
+                          "Image loaded successfully:",
+                          getProxiedImageUrl(generatedImageUrl)
+                        )
+                      }
+                      onError={(e) =>
+                        console.error(
+                          "Image failed to load:",
+                          getProxiedImageUrl(generatedImageUrl),
+                          e
+                        )
+                      }
                       crossOrigin="anonymous"
                     />
                   </div>
                   <div className="text-xs text-gray-400 mt-2">
                     Image URL: {generatedImageUrl}
-                  </div>
-                  <div className="text-xs text-gray-400 mt-1">
-                    Cloud Function URL: https://us-central1-skill-trait-rwubkx.cloudfunctions.net/imageGeneration?user={savedPropId && 'zIMIiaMN8DfFjoyZ16JOZKxFVrZ2'}&prop={savedPropId}
                   </div>
                 </div>
               )}
@@ -543,7 +610,10 @@ This digital award recognizes excellence and dedication in professional developm
       </div>
 
       {/* Navigation buttons */}
-      <div className="flex justify-between" style={{ marginTop: "12px" }}>
+      <div
+        className="flex justify-between flex-shrink-0"
+        style={{ marginTop: "12px" }}
+      >
         <button
           onClick={onPrevious}
           className="px-6 py-3 text-sm font-medium transition-colors bg-gray-600 text-white rounded hover:bg-gray-500"

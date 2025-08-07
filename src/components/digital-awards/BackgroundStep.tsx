@@ -125,14 +125,14 @@ export default function BackgroundStep({
 
   return (
     <div className="h-full flex flex-col">
-      <div className="text-center">
+      <div className="text-center flex-shrink-0">
         <h1 className="text-[30px] font-bold text-white mb-4">Background</h1>
         <p className="text-md text-gray-300 mb-0">
           Add background information to personalize your digital award.
         </p>
       </div>
 
-      <div className="space-y-6">
+      <div className="space-y-6 flex-1 overflow-y-auto">
         {/* Drag to upload background section */}
         <div>
           <h3 className="text-lg font-medium text-white mb-4">
@@ -240,7 +240,7 @@ export default function BackgroundStep({
       </div>
 
       {/* Next button - right justified below container */}
-      <div className="flex justify-end" style={{ marginTop: "24px" }}>
+      <div className="flex justify-end flex-shrink-0" style={{ marginTop: "24px" }}>
         <button
           onClick={onNext}
           className="px-6 py-3 text-sm font-medium transition-colors bg-[var(--primary-dark)] text-[#212327] rounded hover:bg-[#0AFB84]"
