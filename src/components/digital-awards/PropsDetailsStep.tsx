@@ -63,27 +63,20 @@ export default function PropsDetailsStep({
   };
 
   const handleNext = () => {
+    // Validate that a date is selected
+    if (!date) {
+      alert("Please select a date before proceeding.");
+      return;
+    }
+    
     if (setPropsTitle) setPropsTitle(title);
-    if (setFromName) setName(name);
+    if (setFromName) setFromName(name);
     if (setFromDate) setFromDate(date);
     if (setFromMessage) setFromMessage(message);
     onNext();
   };
 
-  useEffect(() => {
-    // Get current date in US Eastern Time
-    const formatter = new Intl.DateTimeFormat("en-CA", {
-      timeZone: "America/New_York", // or any US zone like "America/Los_Angeles"
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit",
-    });
-
-    const parts = formatter.formatToParts(new Date());
-    const dateObj = Object.fromEntries(parts.map((p) => [p.type, p.value]));
-    const formattedDate = `${dateObj.year}-${dateObj.month}-${dateObj.day}`;
-    setDate(formattedDate);
-  }, []);
+  // Remove the useEffect that sets default date - user must choose a date
 
   return (
     <div className="h-full flex flex-col">
@@ -239,11 +232,17 @@ export default function PropsDetailsStep({
                   />
                 </div>
                 <div className="basis-1/3">
-                  <label className="block text-white text-sm mb-2">Date</label>
+                  <label className="block text-white text-sm mb-2">Date *</label>
                   <input
                     type="date"
                     value={date}
-                    onChange={(e) => setDate(e.target.value)}
+                    onChange={(e) => {
+                      // Ensure the date is stored exactly as selected, without timezone conversion
+                      const selectedDate = e.target.value;
+                      console.log('Selected date:', selectedDate);
+                      setDate(selectedDate);
+                    }}
+                    required
                     className="w-full px-2 py-2 text-sm bg-[#1B1D21] border rounded focus:outline-none focus:border-[var(--primary-dark)] cursor-pointer text-white"
                     style={{
                       borderColor: "#454446",
@@ -253,6 +252,7 @@ export default function PropsDetailsStep({
                       textAlign: "center",
                       colorScheme: "dark", // keeps it consistent with dark UI
                     }}
+                    placeholder="dd/mm/yyyy"
                   />
 
                   <style jsx>{`

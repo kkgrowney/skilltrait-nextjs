@@ -7,6 +7,7 @@ import ViewTitle from "@/components/ViewTitle";
 
 const IFRAME_ROUTES = [
   "/",
+  "/slackapp",
   "/achievements",
   "/award-templates",
   "/pricing",

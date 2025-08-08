@@ -555,14 +555,10 @@ export default function DigitalAwardsView() {
                                     className="text-white text-sm font-medium"
                                     style={{ color: "white", opacity: 1 }}
                                   >
-                                    {new Date(fromDate).toLocaleDateString(
-                                      "en-US",
-                                      {
-                                        month: "2-digit",
-                                        day: "2-digit",
-                                        year: "2-digit",
-                                      }
-                                    )}
+                                    {(() => { 
+                                      const [year, month, day] = fromDate.split('-'); 
+                                      return `${month}/${day}/${year.slice(2)}`; 
+                                    })()}
                                   </p>
                                 )}
                               </div>

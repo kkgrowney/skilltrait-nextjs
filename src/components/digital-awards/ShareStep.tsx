@@ -96,7 +96,7 @@ for outstanding achievement in
 
 ${fromMessage || "Excellence in customer service and team collaboration"}
 
-Date: ${fromDate || new Date().toLocaleDateString()}
+Date: ${fromDate ? (() => { const [year, month, day] = fromDate.split('-'); return `${month}/${day}/${year.slice(2)}`; })() : new Date().toLocaleDateString()}
 Certificate ID: ${propId}
 
 This digital award recognizes excellence and dedication in professional development.
