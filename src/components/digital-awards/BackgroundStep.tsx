@@ -124,8 +124,8 @@ export default function BackgroundStep({
   console.log({ selectedTemplate });
 
   return (
-    <div className="h-full flex flex-col">
-      <div className="text-center flex-shrink-0">
+    <div className="h-full flex flex-col" style={{ marginLeft: "8px", marginRight: "8px" }}>
+      <div className="text-center flex-shrink-0" style={{ marginTop: "24px" }}>
         <h1 className="text-[30px] font-bold text-white mb-4">Background</h1>
         <p className="text-md text-gray-300 mb-0">
           Add background information to personalize your digital award.

@@ -347,8 +347,9 @@ export default function DigitalAwardsPage() {
                 className="relative bg-white rounded"
                 style={{
                   borderRadius: "4px",
-                  width: "600px",
-                  height: "480px",
+                  width: "100%",
+                  maxWidth: "600px",
+                  aspectRatio: "5 / 4",
                 }}
               >
                 <div
@@ -430,8 +431,6 @@ export default function DigitalAwardsPage() {
                     className="absolute inset-0 z-10 overflow-hidden"
                     style={{
                       borderRadius: "4px",
-                      width: "600px",
-                      height: "480px",
                     }}
                   >
                     <img
@@ -444,8 +443,8 @@ export default function DigitalAwardsPage() {
                       className="w-full h-full object-cover rounded"
                       style={{
                         borderRadius: "4px",
-                        minWidth: "600px",
-                        minHeight: "480px",
+                        width: "100%",
+                        height: "100%",
                         objectFit: "cover",
                         objectPosition: "center",
                       }}
@@ -455,11 +454,11 @@ export default function DigitalAwardsPage() {
                 <img
                   src={selectedTemplate?.achievement?.props || ""}
                   alt="Selected Template"
-                  className="object-contain rounded relative z-20"
+                  className="object-contain rounded relative z-20 w-full h-full"
                   style={{
                     borderRadius: "4px",
-                    width: "600px",
-                    height: "480px",
+                    width: "100%",
+                    height: "100%",
                     objectPosition: "bottom",
                   }}
                 />

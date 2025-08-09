@@ -91,7 +91,7 @@ export default function AwardsStep({
     >
       <div
         className="text-center mb-6"
-        style={{ paddingTop: "0px", flexShrink: 0 }}
+        style={{ paddingTop: "0px", flexShrink: 0, marginTop: "16px" }}
       >
         <h1 className="text-[30px] font-bold text-white mb-4">Awards</h1>
         <p className="text-md text-gray-300 mb-0">

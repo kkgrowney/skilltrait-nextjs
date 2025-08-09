@@ -293,10 +293,10 @@ export default function DigitalAwardsView() {
         {/* Parent Container for Left and Right */}
         <div
           className="w-full flex"
-          style={{ marginLeft: "-64px", width: "calc(100vw - 64px)" }}
+          style={{ marginLeft: "-64px", width: "calc(100vw - 64px)", minWidth: "1200px" }}
         >
           {/* Left Container - Fixed Height (3 parts) */}
-          <div className="w-3/12 h-full overflow-y-auto flex">
+          <div className="w-3/12 h-full overflow-y-auto flex" style={{ minWidth: "400px", marginLeft: "8px", marginRight: "8px" }}>
             {/* Awards Generator Side Navigation - Now inside left container */}
             <div className="w-[94px] h-full" style={{ marginTop: "20px" }}>
               <DigitalAwardsSideNav
@@ -327,7 +327,7 @@ export default function DigitalAwardsView() {
           </div>
 
           {/* Right Container - Fixed, Full Height (9 parts) */}
-          <div className="w-9/12 h-full flex flex-col">
+          <div className="flex-1 h-full flex flex-col">
             {/* Content Area */}
             <div
               className="flex-1 overflow-y-auto px-6"
@@ -375,8 +375,9 @@ export default function DigitalAwardsView() {
                         className="relative bg-white rounded"
                         style={{
                           borderRadius: "4px",
-                          width: "600px",
-                          height: "480px",
+                          width: "100%",
+                          maxWidth: "600px",
+                          aspectRatio: "5 / 4",
                         }}
                       >
                         {/* White Overlay with Stroke Line */}
@@ -463,8 +464,6 @@ export default function DigitalAwardsView() {
                             className="absolute inset-0 z-10 overflow-hidden"
                             style={{
                               borderRadius: "4px",
-                              width: "600px",
-                              height: "480px",
                             }}
                           >
                             <img
@@ -478,8 +477,8 @@ export default function DigitalAwardsView() {
                               className="w-full h-full object-cover rounded"
                               style={{
                                 borderRadius: "4px",
-                                minWidth: "600px",
-                                minHeight: "480px",
+                                width: "100%",
+                                height: "100%",
                                 objectFit: "cover",
                                 objectPosition: "center",
                               }}
@@ -489,11 +488,11 @@ export default function DigitalAwardsView() {
                         <img
                           src={selectedTemplate?.achievement?.props || ""}
                           alt="Selected Template"
-                          className="object-contain rounded relative z-20"
+                          className="object-contain rounded relative z-20 w-full h-full"
                           style={{
                             borderRadius: "4px",
-                            width: "600px",
-                            height: "480px",
+                            width: "100%",
+                            height: "100%",
                             objectPosition: "bottom",
                           }}
                         />

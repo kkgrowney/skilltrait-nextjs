@@ -49,6 +49,12 @@ export default function ShareStep({
   const [generatedImageUrl, setGeneratedImageUrl] = useState<string | null>(
     null
   );
+  // Toggle to show/hide the raw image URL in the UI (kept in code for debugging)
+  const showImageUrlDebug = false;
+  // Toggle to show/hide the generated award text block in the UI
+  const showGeneratedAwardText = false;
+  // Toggle to show/hide the login notice link
+  const showLoginNotice = false;
 
   const handleGenerateAward = async () => {
     setIsGenerating(true);
@@ -462,7 +468,9 @@ This digital award recognizes excellence and dedication in professional developm
                 <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
               ),
             },
-          ].map(({ label, bg, icon }, idx) => (
+          ]
+            .filter(({ label }) => label !== "Link")
+            .map(({ label, bg, icon }, idx) => (
             <button
               key={idx}
               type="button"
@@ -483,7 +491,7 @@ This digital award recognizes excellence and dedication in professional developm
           ))}
         </div>
 
-        {!isLoggedIn && (
+        {showLoginNotice && !isLoggedIn && (
           <Link href="/signin" className="font-bold text-[var(--primary-dark)]">
             Please Login To Share Props And Email Receipents
           </Link>
@@ -493,8 +501,8 @@ This digital award recognizes excellence and dedication in professional developm
   }
 
   return (
-    <div className="h-full flex flex-col">
-      <div className="text-center flex-shrink-0">
+    <div className="h-full flex flex-col" style={{ paddingLeft: "8px", paddingRight: "8px" }}>
+      <div className="text-center flex-shrink-0" style={{ marginTop: "24px" }}>
         <h1 className="text-[30px] font-bold text-white mb-4">Share</h1>
       </div>
 
@@ -574,19 +582,10 @@ This digital award recognizes excellence and dedication in professional developm
                       crossOrigin="anonymous"
                     />
                   </div>
-                  <div className="text-xs text-gray-400 mt-2">
-                    Image URL: {generatedImageUrl}
-                  </div>
+                  
                 </div>
               )}
-              <div
-                className="bg-[#212327] p-4 rounded border"
-                style={{ borderColor: "#454446" }}
-              >
-                <pre className="text-gray-300 text-sm whitespace-pre-wrap font-sans">
-                  {generatedAward}
-                </pre>
-              </div>
+              
             </div>
 
             <div className="flex gap-2">
