@@ -272,28 +272,6 @@ This digital award recognizes excellence and dedication in professional developm
       // Update the prop document with the uploaded image URL
       await updatePropWithImage(userId, propId, uploadedImageUrl);
 
-      // Optionally save the asset combo as a reusable template for this user
-      if (saveAsTemplate) {
-        const basePropsUrl = selectedTemplate?.achievement?.props || "";
-        try {
-          await saveUserTemplateAssets(userId, {
-            logoUrl:
-              uploadedLogoFile
-                ? uploadedAssets?.logoUrl || null
-                : selectedTemplate?.achievement?.logoImage || null,
-            backgroundUrl:
-              uploadedBackgroundFile
-                ? uploadedAssets?.backgroundUrl || null
-                : selectedTemplate?.achievement?.backgroundImage || null,
-            company: companyNameText || selectedTemplate?.achievement?.company || "",
-            templateId: uploadedAssets?.templateId || selectedTemplate?.id || null,
-            basePropsUrl,
-          });
-        } catch (e) {
-          console.error("Failed to save user template assets:", e);
-        }
-      }
-
       return uploadedImageUrl;
     } catch (error) {
       console.warn("Error generating and saving image:", error);
@@ -301,48 +279,6 @@ This digital award recognizes excellence and dedication in professional developm
       const placeholderImageUrl = `/generated_placeholder.png`;
       await updatePropWithImage(userId, propId, placeholderImageUrl);
       return placeholderImageUrl;
-    }
-  };
-
-  // Function to generate completed prop image
-  const generateCompletedPropImage = async (): Promise<string> => {
-    try {
-      // Prepare parameters for the cloud function
-      const recipientArray = propsRecipients?.join(",") || "Team Members";
-      const message =
-        fromMessage || "Thank you for your outstanding work and dedication!";
-      const sender = fromName || "Management";
-      const category = "props";
-      const template = selectedTemplate?.id || "";
-      const teamId = "default"; // You can customize this as needed
-
-      // Determine company parameter
-      let companyParam;
-      if (uploadedLogoFile) {
-        // If user uploaded a logo, use "other" and pass custom company name
-        companyParam = "other";
-        const customCompany = companyNameText || "Company Name";
-        const imageUrl = `/api/generate-image?rec=${encodeURIComponent(
-          recipientArray
-        )}&message=${encodeURIComponent(message)}&sen=${encodeURIComponent(
-          sender
-        )}&com=${encodeURIComponent(
-          customCompany
-        )}&cat=${category}&tem=${template}&tid=${teamId}`;
-        return imageUrl;
-      } else {
-        // If no logo uploaded, use the template's company
-        companyParam = selectedTemplate?.achievement?.company || "default";
-        const imageUrl = `/api/generate-image?rec=${encodeURIComponent(
-          recipientArray
-        )}&message=${encodeURIComponent(message)}&sen=${encodeURIComponent(
-          sender
-        )}&com=${companyParam}&cat=${category}&tem=${template}&tid=${teamId}`;
-        return imageUrl;
-      }
-    } catch (error) {
-      console.error("Error generating image URL:", error);
-      return "";
     }
   };
 
@@ -631,28 +567,57 @@ This digital award recognizes excellence and dedication in professional developm
                   <h4 className="text-md font-medium text-white mb-2">
                     Generated Prop Image:
                   </h4>
-                  <div className="bg-white rounded-lg p-2 inline-block">
-                    <img
-                      src={getProxiedImageUrl(generatedImageUrl)}
-                      alt="Generated Prop"
-                      className="w-64 h-auto rounded border border-gray-300"
-                      style={{ maxWidth: "256px" }}
-                      onLoad={() =>
-                        console.log(
-                          "Image loaded successfully:",
-                          getProxiedImageUrl(generatedImageUrl)
-                        )
-                      }
-                      onError={(e) =>
-                        console.error(
-                          "Image failed to load:",
-                          getProxiedImageUrl(generatedImageUrl),
-                          e
-                        )
-                      }
-                      crossOrigin="anonymous"
-                    />
-                  </div>
+                  {savedPropId ? (
+                    <Link
+                      href={`/props/${savedPropId}`}
+                      className="bg-white rounded-lg p-2 inline-block"
+                      title="View Prop Detail"
+                    >
+                      <img
+                        src={getProxiedImageUrl(generatedImageUrl)}
+                        alt="Generated Prop"
+                        className="w-64 h-auto rounded border border-gray-300"
+                        style={{ maxWidth: "256px" }}
+                        onLoad={() =>
+                          console.log(
+                            "Image loaded successfully:",
+                            getProxiedImageUrl(generatedImageUrl)
+                          )
+                        }
+                        onError={(e) =>
+                          console.error(
+                            "Image failed to load:",
+                            getProxiedImageUrl(generatedImageUrl),
+                            e
+                          )
+                        }
+                        crossOrigin="anonymous"
+                      />
+                    </Link>
+                  ) : (
+                    <div className="bg-white rounded-lg p-2 inline-block">
+                      <img
+                        src={getProxiedImageUrl(generatedImageUrl)}
+                        alt="Generated Prop"
+                        className="w-64 h-auto rounded border border-gray-300"
+                        style={{ maxWidth: "256px" }}
+                        onLoad={() =>
+                          console.log(
+                            "Image loaded successfully:",
+                            getProxiedImageUrl(generatedImageUrl)
+                          )
+                        }
+                        onError={(e) =>
+                          console.error(
+                            "Image failed to load:",
+                            getProxiedImageUrl(generatedImageUrl),
+                            e
+                          )
+                        }
+                        crossOrigin="anonymous"
+                      />
+                    </div>
+                  )}
                   
                 </div>
               )}
