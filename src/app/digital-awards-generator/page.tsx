@@ -1,11 +1,13 @@
-import React from "react";
+import React, { Suspense } from "react";
 import DigitalAwardsPage from "./ClientPage";
 import { Metadata } from "next";
 
 const page = () => {
   return (
     <>
-      <DigitalAwardsPage />
+      <Suspense fallback={null}>
+        <DigitalAwardsPage />
+      </Suspense>
     </>
   );
 };

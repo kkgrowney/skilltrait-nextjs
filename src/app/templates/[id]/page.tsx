@@ -54,28 +54,46 @@ export default function TemplateDetailPage() {
           ) : (
             <div className="space-y-4">
               <div className="w-full flex justify-center">
-                <div className="relative bg-white rounded" style={{ borderRadius: "4px", width: "100%", maxWidth: "600px", aspectRatio: "5 / 4" }}>
+                <div
+                  className="relative bg-white rounded"
+                  style={{ borderRadius: "4px", width: "100%", maxWidth: "600px", aspectRatio: "5 / 4" }}
+                >
+                  {/* Background layer (props background 600x400) */}
+                  <div className="absolute inset-0 z-10 overflow-hidden" style={{ borderRadius: "4px" }}>
+                    <img
+                      src={tpl.backgroundUrl || "/liquid_death_props.png"}
+                      alt={tpl.company || ""}
+                      className="w-full h-full object-cover rounded"
+                      style={{ borderRadius: "4px", width: "100%", height: "100%", objectFit: "cover", objectPosition: "center" }}
+                    />
+                  </div>
+                  {/* Foreground props image */}
                   <img
-                    src={tpl.backgroundUrl || "/liquid_death_props.png"}
-                    alt={tpl.company || "Template"}
-                    className="object-cover rounded relative z-20 w-full h-full"
-                    style={{ borderRadius: "4px", width: "100%", height: "100%", objectPosition: "center" }}
+                    src={tpl.basePropsUrl || ""}
+                    alt={tpl.company || ""}
+                    className="object-contain rounded relative z-20 w-full h-full"
+                    style={{ borderRadius: "4px", width: "100%", height: "100%", objectPosition: "bottom" }}
                   />
-                  <div className="absolute top-0 left-0 right-0 bg-white border-b-2 border-gray-200" style={{ height: "20%", zIndex: 50, borderRadius: "4px 4px 0 0" }}>
-                    <div className="absolute flex items-center gap-2 px-3" style={{ height: "60%", width: "100%", left: 0, top: "50%", transform: "translateY(-50%)" }}>
+                  {/* Header with logo/company (80px) */}
+                  <div
+                    className="absolute top-0 left-0 right-0 bg-white border-b-2 border-gray-200 z-30"
+                    style={{ height: "80px", borderRadius: "4px 4px 0 0" }}
+                  >
+                    <div
+                      className="absolute flex items-center gap-2 px-3"
+                      style={{ height: "60%", width: "100%", left: 0, top: "50%", transform: "translateY(-50%)" }}
+                    >
                       {tpl.logoUrl ? (
                         <img src={tpl.logoUrl} alt="Logo" className="h-full max-h-full w-auto object-contain" />
-                      ) : (
-                        <div className="text-xs text-gray-700">No Logo</div>
-                      )}
-                      <div className="text-black font-medium truncate" style={{ maxWidth: "70%" }}>{tpl.company || "Template"}</div>
+                      ) : null}
+                      <div className="text-black font-medium truncate" style={{ maxWidth: "70%" }}>{tpl.company || ""}</div>
                     </div>
                   </div>
                 </div>
               </div>
 
               <div className="bg-[#212327] rounded-lg shadow-sm border border-[#454446] p-4">
-                <h3 className="text-lg font-medium text-white mb-3">Use this Template</h3>
+                <h3 className="text-lg font-medium text-white mb-3">Use this</h3>
                 <p className="text-gray-300 text-sm mb-3">Open the wizard prefilled with this logo/background.</p>
                 <button
                   className="px-4 py-2 text-sm font-medium transition-colors bg-[var(--primary-dark)] text-[#212327] rounded hover:bg-[#0AFB84]"

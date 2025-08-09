@@ -473,24 +473,14 @@ export default function Home() {
                     <div className="text-gray-400 text-sm">No props yet</div>
                   )}
                   {recentProps.map((prop) => (
-                    <Link key={prop.id} href={`/props/${prop.id}`} className="bg-[#1e2327] rounded-lg overflow-hidden border border-[#454446] hover:border-[#00DF71] transition-colors flex-shrink-0 w-full md:w-[calc(33.333%-8px)]">
-                      <div className="relative">
+                    <Link key={prop.id} href={`/props/${prop.id}`} className="rounded overflow-hidden border border-[#454446] hover:border-[#00DF71] transition-colors flex-shrink-0 w-full md:w-[calc(33.333%-8px)]" style={{ borderRadius: "4px" }}>
+                      <div className="relative" style={{ aspectRatio: "5 / 4" }}>
                         <img
                           src={prop.fullPropImage || "/liquid_death_props.png"}
                           alt={prop.propsTitle || "Recent Prop"}
-                          className="w-full object-cover"
-                          style={{ aspectRatio: "5/4" }}
+                          className="object-contain relative z-20 w-full h-full"
+                          style={{ borderRadius: "4px", width: "100%", height: "100%", objectPosition: "bottom" }}
                         />
-                      </div>
-                      <div className="p-4">
-                        <div className="flex items-center justify-between mb-1">
-                          <h3 className="text-white font-semibold text-sm truncate" title={prop.propsTitle || "Prop"}>
-                            {prop.propsTitle || "Prop"}
-                          </h3>
-                        </div>
-                        <p className="text-gray-400 text-xs">
-                          {prop.createdAt?.toDate ? new Date(prop.createdAt.toDate()).toLocaleDateString() : new Date(prop.createdAt).toLocaleDateString()}
-                        </p>
                       </div>
                     </Link>
                   ))}
@@ -569,22 +559,52 @@ export default function Home() {
                     <div className="text-gray-400 text-sm">No templates yet</div>
                   )}
                   {recentTemplates.map((t) => (
-                    <Link key={t.id} href={`/templates/${t.id}`} className="bg-[#1e2327] rounded-lg overflow-hidden border border-[#454446] hover:border-[#00DF71] transition-colors flex-shrink-0 w-full md:w-[calc(33.333%-8px)]">
-                      <div className="relative" style={{ aspectRatio: "5/4" }}>
-                        <img
-                          src={t.backgroundUrl || "/liquid_death_props.png"}
-                          alt={t.company || "Saved Template"}
-                          className="w-full h-full object-cover"
+                    <Link
+                      key={t.id}
+                      href={`/templates/${t.id}`}
+                      className="rounded overflow-hidden border border-[#454446] hover:border-[#00DF71] transition-colors flex-shrink-0 w-full md:w-[calc(33.333%-8px)]"
+                      style={{ borderRadius: "4px" }}
+                    >
+                      <div className="relative" style={{ aspectRatio: "5 / 4" }}>
+                        {/* White background fill */}
+                        <div
+                          className="absolute inset-0 z-5 bg-white"
+                          style={{ borderRadius: "4px" }}
                         />
-                        {/* Top bar with logo and company */}
-                        <div className="absolute top-0 left-0 right-0 bg-white border-b-2 border-gray-200" style={{ height: "20%", zIndex: 50, borderRadius: "4px 4px 0 0" }}>
-                          <div className="absolute flex items-center gap-2 px-3" style={{ height: "60%", width: "100%", left: 0, top: "50%", transform: "translateY(-50%)" }}>
+                        {/* Background layer (props background 600x400) */}
+                        <div
+                          className="absolute inset-0 z-10 overflow-hidden"
+                          style={{ borderRadius: "4px" }}
+                        >
+                          <img
+                            src={t.backgroundUrl || "/liquid_death_props.png"}
+                            alt={t.company || ""}
+                            className="w-full h-full object-cover"
+                            style={{ borderRadius: "4px", objectFit: "cover", objectPosition: "center" }}
+                          />
+                        </div>
+                        {/* Foreground props image */}
+                        <img
+                          src={t.basePropsUrl || ""}
+                          alt={t.company || ""}
+                          className="object-contain relative z-20 w-full h-full"
+                          style={{ borderRadius: "4px", width: "100%", height: "100%", objectPosition: "bottom" }}
+                        />
+                        {/* White header with logo/company (scaled proportionally) */}
+                        <div
+                          className="absolute top-0 left-0 right-0 bg-white border-b-2 border-gray-200 z-30"
+                          style={{ height: "33px", borderRadius: "4px 4px 0 0" }}
+                        >
+                          <div
+                            className="absolute flex items-center gap-1 px-2"
+                            style={{ height: "60%", width: "100%", left: 0, top: "50%", transform: "translateY(-50%)" }}
+                          >
                             {t.logoUrl ? (
-                              <img src={t.logoUrl} alt="Logo" className="h-full max-h-full w-auto object-contain" />
-                            ) : (
-                              <div className="text-xs text-gray-700">No Logo</div>
-                            )}
-                            <div className="text-black font-medium truncate" style={{ maxWidth: "70%" }}>{t.company || "Template"}</div>
+                              <img src={t.logoUrl} alt="Logo" className="object-contain relative z-20" style={{ borderRadius: "4px", height: "17px", width: "auto", objectPosition: "left" }} />
+                            ) : null}
+                            <div className="text-black font-medium truncate text-xs" style={{ maxWidth: "70%" }}>
+                              {t.company || ""}
+                            </div>
                           </div>
                         </div>
                       </div>
