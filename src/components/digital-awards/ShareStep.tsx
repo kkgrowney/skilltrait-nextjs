@@ -9,6 +9,7 @@ import {
   createTemplateWithAssets,
   savePropWithImage,
   updatePropWithImage,
+  saveUserTemplateAssets,
 } from "@/lib/firebase";
 import Link from "next/link";
 import SignUpModal from "./SignupModal";
@@ -51,6 +52,7 @@ export default function ShareStep({
   const [generatedImageUrl, setGeneratedImageUrl] = useState<string | null>(
     null
   );
+  const [saveAsTemplate, setSaveAsTemplate] = useState<boolean>(true);
   // Toggle to show/hide the raw image URL in the UI (kept in code for debugging)
   const showImageUrlDebug = false;
   // Toggle to show/hide the generated award text block in the UI
@@ -82,7 +84,7 @@ export default function ShareStep({
 
       // Step 3: Generate image and save to prop document
       setProcessStep("Generating image and saving to prop document...");
-      const imageUrl = await generateAndSaveImage(user.uid, propId);
+      const imageUrl = await generateAndSaveImage(user.uid, propId, uploadedAssets);
 
       setSavedPropId(propId);
       setGeneratedImageUrl(imageUrl);
@@ -213,7 +215,11 @@ This digital award recognizes excellence and dedication in professional developm
   };
 
   // Step 3: Generate image and save to prop document
-  const generateAndSaveImage = async (userId: string, propId: string) => {
+  const generateAndSaveImage = async (
+    userId: string,
+    propId: string,
+    uploadedAssets: { logoUrl?: string | null; backgroundUrl?: string | null; templateId?: string | null } = {}
+  ) => {
     try {
       // Call our proxy API route instead of the cloud function directly
       const imageUrl = `/api/generate-image?user=${userId}&prop=${propId}`;
@@ -229,18 +235,32 @@ This digital award recognizes excellence and dedication in professional developm
       });
 
       if (!response.ok) {
-        console.error(
+        let errorBody = "";
+        try {
+          errorBody = await response.text();
+        } catch {}
+        console.warn(
           "API route response:",
           response.status,
-          response.statusText
+          response.statusText,
+          errorBody
         );
-        throw new Error(
-          `Failed to generate image: ${response.status} - ${response.statusText}`
-        );
+        // Gracefully fall back to placeholder and continue UI flow
+        const placeholderImageUrl = `/generated_placeholder.png`;
+        await updatePropWithImage(userId, propId, placeholderImageUrl);
+        return placeholderImageUrl;
       }
 
       // Get the image as blob
-      const imageBlob = await response.blob();
+      let imageBlob: Blob;
+      try {
+        imageBlob = await response.blob();
+      } catch (e) {
+        console.warn("Failed reading image blob:", e);
+        const placeholderImageUrl = `/generated_placeholder.png`;
+        await updatePropWithImage(userId, propId, placeholderImageUrl);
+        return placeholderImageUrl;
+      }
 
       // Upload the image to Firebase Storage
       const imagePath = `users/${userId}/props/${propId}/generated_image.png`;
@@ -252,11 +272,33 @@ This digital award recognizes excellence and dedication in professional developm
       // Update the prop document with the uploaded image URL
       await updatePropWithImage(userId, propId, uploadedImageUrl);
 
+      // Optionally save the asset combo as a reusable template for this user
+      if (saveAsTemplate) {
+        const basePropsUrl = selectedTemplate?.achievement?.props || "";
+        try {
+          await saveUserTemplateAssets(userId, {
+            logoUrl:
+              uploadedLogoFile
+                ? uploadedAssets?.logoUrl || null
+                : selectedTemplate?.achievement?.logoImage || null,
+            backgroundUrl:
+              uploadedBackgroundFile
+                ? uploadedAssets?.backgroundUrl || null
+                : selectedTemplate?.achievement?.backgroundImage || null,
+            company: companyNameText || selectedTemplate?.achievement?.company || "",
+            templateId: uploadedAssets?.templateId || selectedTemplate?.id || null,
+            basePropsUrl,
+          });
+        } catch (e) {
+          console.error("Failed to save user template assets:", e);
+        }
+      }
+
       return uploadedImageUrl;
     } catch (error) {
-      console.error("Error generating and saving image:", error);
+      console.warn("Error generating and saving image:", error);
       // For now, let's create a placeholder image URL for testing
-      const placeholderImageUrl = `https://via.placeholder.com/600x400/1A1D21/00DF71?text=Generated+Prop+Image`;
+      const placeholderImageUrl = `/generated_placeholder.png`;
       await updatePropWithImage(userId, propId, placeholderImageUrl);
       return placeholderImageUrl;
     }
@@ -306,11 +348,12 @@ This digital award recognizes excellence and dedication in professional developm
 
   // Helper function to proxy Firebase Storage URLs
   const getProxiedImageUrl = (imageUrl: string): string => {
-    // Check if it's a Firebase Storage URL
-    if (imageUrl.includes("firebasestorage.googleapis.com")) {
+    // Proxy any absolute URL to avoid CORS issues
+    if (!imageUrl) return imageUrl;
+    if (imageUrl.startsWith("http://") || imageUrl.startsWith("https://")) {
       return `/api/proxy-image?url=${encodeURIComponent(imageUrl)}`;
     }
-    return imageUrl;
+    return imageUrl; // already relative (e.g., from our API)
   };
 
   // Helper function to convert File to base64
@@ -530,9 +573,31 @@ This digital award recognizes excellence and dedication in professional developm
               Click the button below to generate your digital award based on all
               the information you&#39;ve provided.
             </p>
+            <label className="flex items-center gap-2 text-sm text-gray-300 mt-2">
+              <input
+                type="checkbox"
+                checked={saveAsTemplate}
+                onChange={(e) => setSaveAsTemplate(e.target.checked)}
+              />
+              Save logo/background as a reusable template
+            </label>
             {processStep && (
               <div className="text-[var(--primary-dark)] text-sm mb-2">
                 {processStep}
+                <div className="flex justify-end mt-2">
+                  <button
+                    type="button"
+                    className="px-3 py-1 text-xs bg-gray-600 text-white rounded hover:bg-gray-500"
+                    onClick={async () => {
+                      if (!auth.currentUser || !savedPropId) return;
+                      setProcessStep("Retrying image generation...");
+                      await generateAndSaveImage(auth.currentUser.uid, savedPropId);
+                      setProcessStep("");
+                    }}
+                  >
+                    Regenerate Image
+                  </button>
+                </div>
               </div>
             )}
             <button

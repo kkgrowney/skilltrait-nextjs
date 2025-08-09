@@ -24,6 +24,8 @@ export default function Home() {
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [recentProps, setRecentProps] = useState<any[]>([]);
   const [isLoadingRecentProps, setIsLoadingRecentProps] = useState<boolean>(true);
+  const [recentTemplates, setRecentTemplates] = useState<any[]>([]);
+  const [isLoadingRecentTemplates, setIsLoadingRecentTemplates] = useState<boolean>(true);
 
 
 
@@ -82,6 +84,24 @@ export default function Home() {
       });
       setRecentProps(items);
       setIsLoadingRecentProps(false);
+    });
+    return () => unsubscribe();
+  }, [user?.uid]);
+
+  // Subscribe to user's recent saved template assets
+  useEffect(() => {
+    if (!user?.uid) return;
+    setIsLoadingRecentTemplates(true);
+    const templatesRef = collection(db, "users", user.uid, "templates");
+    const q = query(templatesRef, orderBy("createdAt", "desc"), limit(12));
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const items: any[] = [];
+      snapshot.forEach((doc) => {
+        const data = doc.data();
+        items.push({ id: doc.id, ...data });
+      });
+      setRecentTemplates(items);
+      setIsLoadingRecentTemplates(false);
     });
     return () => unsubscribe();
   }, [user?.uid]);
@@ -453,7 +473,7 @@ export default function Home() {
                     <div className="text-gray-400 text-sm">No props yet</div>
                   )}
                   {recentProps.map((prop) => (
-                    <div key={prop.id} className="bg-[#1e2327] rounded-lg overflow-hidden border border-[#454446] hover:border-[#00DF71] transition-colors flex-shrink-0 w-full md:w-[calc(33.333%-8px)]">
+                    <Link key={prop.id} href={`/props/${prop.id}`} className="bg-[#1e2327] rounded-lg overflow-hidden border border-[#454446] hover:border-[#00DF71] transition-colors flex-shrink-0 w-full md:w-[calc(33.333%-8px)]">
                       <div className="relative">
                         <img
                           src={prop.fullPropImage || "/liquid_death_props.png"}
@@ -467,15 +487,12 @@ export default function Home() {
                           <h3 className="text-white font-semibold text-sm truncate" title={prop.propsTitle || "Prop"}>
                             {prop.propsTitle || "Prop"}
                           </h3>
-                          <div className="bg-[#00DF71] text-[#212327] text-xs px-2 py-1 rounded-full font-medium" style={{ marginRight: "8px" }}>
-                            New
-                          </div>
                         </div>
                         <p className="text-gray-400 text-xs">
                           {prop.createdAt?.toDate ? new Date(prop.createdAt.toDate()).toLocaleDateString() : new Date(prop.createdAt).toLocaleDateString()}
                         </p>
                       </div>
-                    </div>
+                    </Link>
                   ))}
                 </div>
               </div>
@@ -487,9 +504,9 @@ export default function Home() {
                 <h2 className="text-xl font-bold text-white">
                   Recent Templates
                 </h2>
-                <button className="px-3 py-1 text-xs bg-[#00DF71] text-[#212327] rounded-full hover:bg-[#0AFB84] transition-colors">
+                <Link href="/templates" className="px-3 py-1 text-xs bg-[#00DF71] text-[#212327] rounded-full hover:bg-[#0AFB84] transition-colors">
                   View All
-                </button>
+                </Link>
               </div>
 
               <div className="relative">
@@ -545,35 +562,34 @@ export default function Home() {
 
                 {/* Carousel Container */}
                 <div className="flex gap-4 overflow-x-auto scrollbar-hide px-8 templates-carousel-container">
-                  {/* Empty Template Container 1 */}
-                  <div
-                    className="bg-[#1e2327] rounded-lg border border-[#454446] flex-shrink-0 flex items-center justify-center w-full md:w-[calc(33.333%-8px)]"
-                    style={{ aspectRatio: "5/4" }}
-                  >
-                    <div className="text-center text-gray-400">
-                      <p className="text-sm">No templates yet</p>
-                    </div>
-                  </div>
-
-                  {/* Empty Template Container 2 */}
-                  <div
-                    className="bg-[#1e2327] rounded-lg border border-[#454446] flex-shrink-0 flex items-center justify-center w-full md:w-[calc(33.333%-8px)]"
-                    style={{ aspectRatio: "5/4" }}
-                  >
-                    <div className="text-center text-gray-400">
-                      <p className="text-sm">No templates yet</p>
-                    </div>
-                  </div>
-
-                  {/* Empty Template Container 3 */}
-                  <div
-                    className="bg-[#1e2327] rounded-lg border border-[#454446] flex-shrink-0 flex items-center justify-center w-full md:w-[calc(33.333%-8px)]"
-                    style={{ aspectRatio: "5/4" }}
-                  >
-                    <div className="text-center text-gray-400">
-                      <p className="text-sm">No templates yet</p>
-                    </div>
-                  </div>
+                  {isLoadingRecentTemplates && (
+                    <div className="text-gray-400 text-sm">Loading...</div>
+                  )}
+                  {!isLoadingRecentTemplates && recentTemplates.length === 0 && (
+                    <div className="text-gray-400 text-sm">No templates yet</div>
+                  )}
+                  {recentTemplates.map((t) => (
+                    <Link key={t.id} href={`/templates/${t.id}`} className="bg-[#1e2327] rounded-lg overflow-hidden border border-[#454446] hover:border-[#00DF71] transition-colors flex-shrink-0 w-full md:w-[calc(33.333%-8px)]">
+                      <div className="relative" style={{ aspectRatio: "5/4" }}>
+                        <img
+                          src={t.backgroundUrl || "/liquid_death_props.png"}
+                          alt={t.company || "Saved Template"}
+                          className="w-full h-full object-cover"
+                        />
+                        {/* Top bar with logo and company */}
+                        <div className="absolute top-0 left-0 right-0 bg-white border-b-2 border-gray-200" style={{ height: "20%", zIndex: 50, borderRadius: "4px 4px 0 0" }}>
+                          <div className="absolute flex items-center gap-2 px-3" style={{ height: "60%", width: "100%", left: 0, top: "50%", transform: "translateY(-50%)" }}>
+                            {t.logoUrl ? (
+                              <img src={t.logoUrl} alt="Logo" className="h-full max-h-full w-auto object-contain" />
+                            ) : (
+                              <div className="text-xs text-gray-700">No Logo</div>
+                            )}
+                            <div className="text-black font-medium truncate" style={{ maxWidth: "70%" }}>{t.company || "Template"}</div>
+                          </div>
+                        </div>
+                      </div>
+                    </Link>
+                  ))}
                 </div>
               </div>
             </div>

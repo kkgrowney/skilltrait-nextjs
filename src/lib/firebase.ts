@@ -50,6 +50,35 @@ export const createTemplateWithAssets = async (templateData: any) => {
   }
 };
 
+// Save a user's template asset combo (logo/background) for reuse in the wizard
+export const saveUserTemplateAssets = async (
+  userId: string,
+  data: {
+    logoUrl?: string | null;
+    backgroundUrl?: string | null;
+    company?: string;
+    templateId?: string | null;
+    basePropsUrl?: string | null;
+  }
+) => {
+  try {
+    const userTemplatesRef = collection(db, 'users', userId, 'templates');
+    const docRef = await addDoc(userTemplatesRef, {
+      logoUrl: data.logoUrl || null,
+      backgroundUrl: data.backgroundUrl || null,
+      company: data.company || '',
+      templateId: data.templateId || null,
+      basePropsUrl: data.basePropsUrl || null,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    });
+    return docRef.id;
+  } catch (error) {
+    console.error('Error saving user template assets:', error);
+    throw error;
+  }
+};
+
 // Function to save user prop to Firestore with enhanced process
 export const saveUserProp = async (userId: string, propData: any) => {
   try {

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import {
   AwardsStep,
   CompanyStep,
@@ -16,6 +17,7 @@ import DigitalAwardsLayout from "@/components/DigitalAwardsLayout";
 import { StepType } from "@/components/DigitalAwardsSideNav";
 
 export default function DigitalAwardsPage() {
+  const searchParams = useSearchParams();
   // Function to get consistent company name based on template index
   const getCompanyName = (templateIndex: number) => {
     return companyNames[templateIndex % companyNames.length];
@@ -44,6 +46,38 @@ export default function DigitalAwardsPage() {
   const [filteredTemplates, setFilteredTemplates] = useState<any[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [showAchievementsModal, setShowAchievementsModal] = useState(false);
+
+  // Prefill from query params (logo/bg/company/base, step)
+  useEffect(() => {
+    if (!searchParams) return;
+    const step = searchParams.get("step");
+    const logo = searchParams.get("logo");
+    const bg = searchParams.get("bg");
+    const company = searchParams.get("company");
+    const base = searchParams.get("base");
+
+    if (company) setCompanyNameText(decodeURIComponent(company));
+
+    // If we have a base props URL or bg/logo, synthesize a minimal selectedTemplate
+    if (base || bg || logo || company) {
+      setSelectedTemplate({
+        achievement: {
+          props: base ? decodeURIComponent(base) : undefined,
+          logoImage: logo ? decodeURIComponent(logo) : undefined,
+          backgroundImage: bg ? decodeURIComponent(bg) : undefined,
+          company: company ? decodeURIComponent(company) : undefined,
+          tags: [],
+        },
+      });
+      setShowTemplateDetail(true);
+      setLogoVisible(true);
+      setBackgroundVisible(true);
+    }
+
+    if (step === "props-details") {
+      setCurrentStep("props-details");
+    }
+  }, [searchParams]);
 
   const handleStepChange = (step: StepType) => {
     // Check if user can navigate to this step
