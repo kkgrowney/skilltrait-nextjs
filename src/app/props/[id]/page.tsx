@@ -5,7 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import SideNavigation from "@/components/SideNavigation";
 import { db } from "@/lib/firebase";
-import { doc, getDoc } from "firebase/firestore";
+import { doc, getDoc, deleteDoc } from "firebase/firestore";
 
 export default function PropDetailPage() {
   const params = useParams();
@@ -13,6 +13,8 @@ export default function PropDetailPage() {
   const { user } = useAuth();
   const [prop, setProp] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     const load = async () => {
@@ -81,7 +83,7 @@ export default function PropDetailPage() {
                     </button>
                   ))}
                 </div>
-                <div className="flex justify-end mt-2">
+                <div className="flex justify-end mt-2 gap-2">
                   <button
                     type="button"
                     className="px-3 py-1 text-xs bg-gray-600 text-white rounded hover:bg-gray-500"
@@ -92,8 +94,57 @@ export default function PropDetailPage() {
                   >
                     Regenerate Image
                   </button>
+                  <button
+                    type="button"
+                    className="px-3 py-1 text-xs text-white rounded hover:opacity-90"
+                    style={{ backgroundColor: "#ED6568" }}
+                    onClick={() => setShowDeleteModal(true)}
+                  >
+                    Delete Prop
+                  </button>
                 </div>
               </div>
+
+              {showDeleteModal && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                  <div className="bg-[#212327] rounded-lg p-6 max-w-md w-full mx-4 border border-[#454446]">
+                    <div className="text-center">
+                      <h3 className="text-lg font-semibold text-white mb-4">Delete Prop</h3>
+                      <p className="text-gray-300 mb-6">Are you sure you want to delete this prop? This action cannot be undone.</p>
+                      <div className="flex gap-3 justify-center">
+                        <button
+                          onClick={() => setShowDeleteModal(false)}
+                          className="px-4 py-2 text-sm font-medium transition-colors bg-gray-600 text-white rounded hover:bg-gray-500"
+                        >
+                          Cancel
+                        </button>
+                        <button
+                          onClick={async () => {
+                            if (!user?.uid || !params?.id) return;
+                            try {
+                              setIsDeleting(true);
+                              const ref = doc(db, "users", user.uid, "props", params.id as string);
+                              await deleteDoc(ref);
+                              setIsDeleting(false);
+                              setShowDeleteModal(false);
+                              router.push("/props");
+                            } catch (e) {
+                              console.error("Failed to delete prop:", e);
+                              setIsDeleting(false);
+                              alert("Failed to delete prop. Please try again.");
+                            }
+                          }}
+                          disabled={isDeleting}
+                          className="px-4 py-2 text-sm font-medium text-white rounded disabled:opacity-50 disabled:cursor-not-allowed hover:opacity-90"
+                          style={{ backgroundColor: "#ED6568" }}
+                        >
+                          {isDeleting ? "Deleting..." : "Delete"}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </div>
