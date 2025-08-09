@@ -202,6 +202,7 @@ export default function DigitalAwardsPage() {
         return (
           <ShareStep 
             onPrevious={handlePrevious}
+            onAuthSuccess={() => setCurrentStep("share")}
             selectedTemplate={selectedTemplate}
             companyNameText={companyNameText}
             uploadedLogoFile={uploadedLogoFile}

@@ -12,9 +12,10 @@ import { useRouter } from "next/navigation";
 interface SignUpModalProps {
   isOpen: boolean;
   setIsOpen: (open: boolean) => void;
+  onSuccess?: () => void;
 }
 
-export default function SignUpModal({ isOpen, setIsOpen }: SignUpModalProps) {
+export default function SignUpModal({ isOpen, setIsOpen, onSuccess }: SignUpModalProps) {
   const [mounted, setMounted] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -48,7 +49,11 @@ export default function SignUpModal({ isOpen, setIsOpen }: SignUpModalProps) {
     try {
       await createUserWithEmailAndPassword(auth, email, password);
       setIsOpen(false);
-      router.push("/home");
+      if (onSuccess) {
+        onSuccess();
+      } else {
+        router.push("/home");
+      }
     } catch (error: unknown) {
       const errorMessage =
         error instanceof Error ? error.message : "An error occurred";
@@ -65,7 +70,11 @@ export default function SignUpModal({ isOpen, setIsOpen }: SignUpModalProps) {
       const provider = new GoogleAuthProvider();
       await signInWithPopup(auth, provider);
       setIsOpen(false);
-      router.push("/home");
+      if (onSuccess) {
+        onSuccess();
+      } else {
+        router.push("/home");
+      }
     } catch (error: unknown) {
       const errorMessage =
         error instanceof Error ? error.message : "An error occurred";
@@ -78,7 +87,7 @@ export default function SignUpModal({ isOpen, setIsOpen }: SignUpModalProps) {
   if (!mounted || !isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
+    <div className="fixed inset-0 flex items-center justify-center" style={{ zIndex: 10000 }}>
       {/* Overlay */}
       <div
         className="fixed inset-0 bg-black/50"

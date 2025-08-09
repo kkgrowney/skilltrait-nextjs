@@ -116,6 +116,71 @@ export default function DigitalAwardsView() {
     }
   };
 
+  // Persist wizard state to localStorage
+  useEffect(() => {
+    const state = {
+      currentStep,
+      activeTab,
+      selectedTemplate,
+      showTemplateDetail,
+      logoVisible,
+      companyNameText,
+      backgroundVisible,
+      backgroundNameText,
+      propsTitle,
+      propsRecipients,
+      fromName,
+      fromDate,
+      fromMessage,
+    };
+    try {
+      localStorage.setItem("digitalAwardsWizardState", JSON.stringify(state));
+    } catch {}
+  }, [
+    currentStep,
+    activeTab,
+    selectedTemplate,
+    showTemplateDetail,
+    logoVisible,
+    companyNameText,
+    backgroundVisible,
+    backgroundNameText,
+    propsTitle,
+    propsRecipients,
+    fromName,
+    fromDate,
+    fromMessage,
+  ]);
+
+  // Rehydrate from localStorage
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem("digitalAwardsWizardState");
+      if (!raw) return;
+      const saved = JSON.parse(raw);
+      if (saved.activeTab) setActiveTab(saved.activeTab);
+      if (saved.selectedTemplate) setSelectedTemplate(saved.selectedTemplate);
+      if (typeof saved.showTemplateDetail === "boolean")
+        setShowTemplateDetail(saved.showTemplateDetail);
+      if (typeof saved.logoVisible === "boolean") setLogoVisible(saved.logoVisible);
+      if (saved.companyNameText) setCompanyNameText(saved.companyNameText);
+      if (typeof saved.backgroundVisible === "boolean")
+        setBackgroundVisible(saved.backgroundVisible);
+      if (saved.backgroundNameText) setBackgroundNameText(saved.backgroundNameText);
+      if (saved.propsTitle) setPropsTitle(saved.propsTitle);
+      if (Array.isArray(saved.propsRecipients)) setPropsRecipients(saved.propsRecipients);
+      if (saved.fromName) setFromName(saved.fromName);
+      if (saved.fromDate) setFromDate(saved.fromDate);
+      if (saved.fromMessage) setFromMessage(saved.fromMessage);
+      if (saved.currentStep) setCurrentStep(saved.currentStep);
+    } catch {}
+  }, []);
+
+  // Callback when auth succeeds (from modal): jump to Share
+  const handleAuthSuccess = () => {
+    setCurrentStep("share");
+  };
+
   const handleTemplateSelect = (templateObj: any) => {
     setSelectedTemplate(templateObj);
     setShowTemplateDetail(true);
@@ -204,6 +269,7 @@ export default function DigitalAwardsView() {
         return (
           <ShareStep
             onPrevious={handlePrevious}
+            onAuthSuccess={handleAuthSuccess}
             selectedTemplate={selectedTemplate}
             companyNameText={companyNameText}
             uploadedLogoFile={uploadedLogoFile}

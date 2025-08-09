@@ -8,7 +8,7 @@ import SideNavigation, { useSideNavMargin } from "@/components/SideNavigation";
 import { useNavigation } from "@/contexts/NavigationContext";
 
 import { useEffect, useState } from "react";
-import { doc, getDoc } from "firebase/firestore";
+import { doc, getDoc, collection, query, orderBy, limit, onSnapshot } from "firebase/firestore";
 
 
 
@@ -22,6 +22,8 @@ export default function Home() {
   const [carouselPosition, setCarouselPosition] = useState(0);
   const [templatesCarouselPosition, setTemplatesCarouselPosition] = useState(0);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
+  const [recentProps, setRecentProps] = useState<any[]>([]);
+  const [isLoadingRecentProps, setIsLoadingRecentProps] = useState<boolean>(true);
 
 
 
@@ -64,6 +66,24 @@ export default function Home() {
     if (user?.uid) {
       fetchUserProfile();
     }
+  }, [user?.uid]);
+
+  // Subscribe to user's recent props
+  useEffect(() => {
+    if (!user?.uid) return;
+    setIsLoadingRecentProps(true);
+    const propsRef = collection(db, "users", user.uid, "props");
+    const q = query(propsRef, orderBy("createdAt", "desc"), limit(10));
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const items: any[] = [];
+      snapshot.forEach((doc) => {
+        const data = doc.data();
+        items.push({ id: doc.id, ...data });
+      });
+      setRecentProps(items);
+      setIsLoadingRecentProps(false);
+    });
+    return () => unsubscribe();
   }, [user?.uid]);
 
   // Check if user has completed onboarding
@@ -368,9 +388,9 @@ export default function Home() {
             <div className="bg-[#212327] rounded-lg shadow-sm border border-[#454446] p-6 mb-6">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-xl font-bold text-white">Recent Props</h2>
-                <button className="px-3 py-1 text-xs bg-[#00DF71] text-[#212327] rounded-full hover:bg-[#0AFB84] transition-colors">
+                <Link href="/props" className="px-3 py-1 text-xs bg-[#00DF71] text-[#212327] rounded-full hover:bg-[#0AFB84] transition-colors">
                   View All
-                </button>
+                </Link>
               </div>
 
               <div className="relative">
@@ -426,115 +446,37 @@ export default function Home() {
 
                 {/* Carousel Container */}
                 <div className="flex gap-4 overflow-x-auto scrollbar-hide px-8 carousel-container">
-                  {/* Liquid Death Props */}
-                  <div className="bg-[#1e2327] rounded-lg overflow-hidden border border-[#454446] hover:border-[#00DF71] transition-colors flex-shrink-0 w-full md:w-[calc(33.333%-8px)]">
-                    <div className="relative">
-                      <img
-                        src="/liquid_death_props.png"
-                        alt="Recent Prop"
-                        className="w-full object-cover"
-                        style={{ aspectRatio: "5/4" }}
-                      />
-                    </div>
-                    <div className="p-4">
-                      <div className="flex items-center justify-between mb-1">
-                        <h3 className="text-white font-semibold text-sm">
-                          Liquid Death Props
-                        </h3>
-                        <div
-                          className="bg-[#00DF71] text-[#212327] text-xs px-2 py-1 rounded-full font-medium"
-                          style={{ marginRight: "8px" }}
-                        >
-                          New
-                        </div>
+                  {isLoadingRecentProps && (
+                    <div className="text-gray-400 text-sm">Loading...</div>
+                  )}
+                  {!isLoadingRecentProps && recentProps.length === 0 && (
+                    <div className="text-gray-400 text-sm">No props yet</div>
+                  )}
+                  {recentProps.map((prop) => (
+                    <div key={prop.id} className="bg-[#1e2327] rounded-lg overflow-hidden border border-[#454446] hover:border-[#00DF71] transition-colors flex-shrink-0 w-full md:w-[calc(33.333%-8px)]">
+                      <div className="relative">
+                        <img
+                          src={prop.fullPropImage || "/liquid_death_props.png"}
+                          alt={prop.propsTitle || "Recent Prop"}
+                          className="w-full object-cover"
+                          style={{ aspectRatio: "5/4" }}
+                        />
                       </div>
-                      <p className="text-gray-400 text-xs">
-                        Created 2 days ago
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Gymshark Props */}
-                  <div className="bg-[#1e2327] rounded-lg overflow-hidden border border-[#454446] hover:border-[#00DF71] transition-colors flex-shrink-0 w-full md:w-[calc(33.333%-8px)]">
-                    <div className="relative">
-                      <img
-                        src="/gymshark_props.png"
-                        alt="Recent Prop"
-                        className="w-full object-cover"
-                        style={{ aspectRatio: "5/4" }}
-                      />
-                    </div>
-                    <div className="p-4">
-                      <div className="flex items-center justify-between mb-1">
-                        <h3 className="text-white font-semibold text-sm">
-                          Gymshark Props
-                        </h3>
-                        <div
-                          className="bg-[#00DF71] text-[#212327] text-xs px-2 py-1 rounded-full font-medium"
-                          style={{ marginRight: "8px" }}
-                        >
-                          New
+                      <div className="p-4">
+                        <div className="flex items-center justify-between mb-1">
+                          <h3 className="text-white font-semibold text-sm truncate" title={prop.propsTitle || "Prop"}>
+                            {prop.propsTitle || "Prop"}
+                          </h3>
+                          <div className="bg-[#00DF71] text-[#212327] text-xs px-2 py-1 rounded-full font-medium" style={{ marginRight: "8px" }}>
+                            New
+                          </div>
                         </div>
+                        <p className="text-gray-400 text-xs">
+                          {prop.createdAt?.toDate ? new Date(prop.createdAt.toDate()).toLocaleDateString() : new Date(prop.createdAt).toLocaleDateString()}
+                        </p>
                       </div>
-                      <p className="text-gray-400 text-xs">Created 1 day ago</p>
                     </div>
-                  </div>
-
-                  {/* Nike Props (Placeholder) */}
-                  <div className="bg-[#1e2327] rounded-lg overflow-hidden border border-[#454446] hover:border-[#00DF71] transition-colors flex-shrink-0 w-full md:w-[calc(33.333%-8px)]">
-                    <div className="relative">
-                      <img
-                        src="/liquid_death_props.png"
-                        alt="Recent Prop"
-                        className="w-full object-cover"
-                        style={{ aspectRatio: "5/4" }}
-                      />
-                    </div>
-                    <div className="p-4">
-                      <div className="flex items-center justify-between mb-1">
-                        <h3 className="text-white font-semibold text-sm">
-                          Nike Props
-                        </h3>
-                        <div
-                          className="bg-[#00DF71] text-[#212327] text-xs px-2 py-1 rounded-full font-medium"
-                          style={{ marginRight: "8px" }}
-                        >
-                          New
-                        </div>
-                      </div>
-                      <p className="text-gray-400 text-xs">
-                        Created 3 hours ago
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Adidas Props (Placeholder) */}
-                  <div className="bg-[#1e2327] rounded-lg overflow-hidden border border-[#454446] hover:border-[#00DF71] transition-colors flex-shrink-0 w-full md:w-[calc(33.333%-8px)]">
-                    <div className="relative">
-                      <img
-                        src="/gymshark_props.png"
-                        alt="Recent Prop"
-                        className="w-full object-cover"
-                        style={{ aspectRatio: "5/4" }}
-                      />
-                    </div>
-                    <div className="p-4">
-                      <div className="flex items-center justify-between mb-1">
-                        <h3 className="text-white font-semibold text-sm">
-                          Adidas Props
-                        </h3>
-                        <div
-                          className="bg-[#00DF71] text-[#212327] text-xs px-2 py-1 rounded-full font-medium"
-                          style={{ marginRight: "8px" }}
-                        >
-                          New
-                        </div>
-                      </div>
-                      <p className="text-gray-400 text-xs">
-                        Created 1 hour ago
-                      </p>
-                    </div>
-                  </div>
+                  ))}
                 </div>
               </div>
             </div>

@@ -15,6 +15,7 @@ import SignUpModal from "./SignupModal";
 
 interface ShareStepProps {
   onPrevious: () => void;
+  onAuthSuccess?: () => void;
   selectedTemplate?: any;
   companyNameText?: string;
   uploadedLogoFile?: File | null;
@@ -29,6 +30,7 @@ interface ShareStepProps {
 
 export default function ShareStep({
   onPrevious,
+  onAuthSuccess,
   selectedTemplate,
   companyNameText,
   uploadedLogoFile,
@@ -509,6 +511,10 @@ This digital award recognizes excellence and dedication in professional developm
       <SignUpModal
         isOpen={isSignupModalOpen}
         setIsOpen={setisSignupModalOpen}
+        onSuccess={() => {
+          setisSignupModalOpen(false);
+          if (onAuthSuccess) onAuthSuccess();
+        }}
       />
 
       <div className="space-y-4 flex-1 overflow-y-auto">
