@@ -112,32 +112,12 @@ export default function PropsListPage() {
                   border: isSelected ? "2px solid #00DF71" : undefined,
                 };
                 const content = (
-                  <div className="relative w-full h-full">
-                    <img
-                      src={prop.fullPropImage || "/liquid_death_props.png"}
-                      alt={prop.propsTitle || "Prop"}
-                      className="w-full h-full object-cover"
-                      style={{ borderRadius: "4px" }}
-                    />
-                    <div
-                      className="absolute top-0 left-0 right-0 bg-white border-b-2 border-gray-200"
-                      style={{ height: "20%", zIndex: 50, borderRadius: "4px 4px 0 0" }}
-                    >
-                      <div
-                        className="absolute flex items-center justify-between px-3"
-                        style={{ height: "60%", width: "100%", left: 0, top: "50%", transform: "translateY(-50%)" }}
-                      >
-                        <div className="text-black font-medium truncate" style={{ maxWidth: "70%" }}>
-                          {prop.propsTitle || "Prop"}
-                        </div>
-                        <div className="text-xs text-gray-600">
-                          {prop.createdAt?.toDate
-                            ? new Date(prop.createdAt.toDate()).toLocaleDateString()
-                            : new Date(prop.createdAt).toLocaleDateString()}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
+                  <img
+                    src={prop.fullPropImage || "/liquid_death_props.png"}
+                    alt={prop.propsTitle || "Prop"}
+                    className="object-contain rounded relative z-20 w-full h-full"
+                    style={{ borderRadius: "4px", width: "100%", height: "100%", objectPosition: "bottom" }}
+                  />
                 );
                 return selectMode ? (
                   <div
