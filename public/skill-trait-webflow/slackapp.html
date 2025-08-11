@@ -234,11 +234,14 @@ margin: 0rem !important;
         <div class="container-large-hero">
           <div class="padding-top padding-medium">
             <div class="w-layout-grid header1_component">
-              <div class="header1_image-wrapper"><img sizes="(max-width: 565px) 100vw, 565px" srcset="images/webflow_share5-p-500.png 500w, images/webflow_share5.png 565w" alt="" src="images/webflow_share5.png" loading="eager" class="header1_image"></div>
+              <div class="header1_image-wrapper" style="position: relative; padding-bottom: 48px;">
+                <video id="heroVideo" muted playsinline class="header1_image" style="width: 100%; height: auto; max-width: 565px; border: 2px solid #323437; border-radius: 8px;"><source src="/slack_app.mp4" type="video/mp4">Your browser does not support the video tag.</video>
+                <button id="playButton" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(0,223,113,0.7); color: white; border: none; border-radius: 50%; width: 80px; height: 80px; font-size: 24px; cursor: pointer; display: flex; align-items: center; justify-content: center; z-index: 10;">▶</button>
+              </div>
               <div class="header1_content">
                 <div class="margin-bottom margin-small">
-                  <p class="text-color-primary hero">SEND FREE</p>
-                  <h1 class="heading-style-h1-2 gradient">Digital Awards for Work</h1>
+                  <p class="text-color-primary hero">SEND FREE PROPS</p>
+                  <h1 class="heading-style-h1-2 gradient">Try our free Slack App</h1>
                 </div>
                 <p class="text-size-medium-3">Celebrate team achievements by sending branded digital awards; employee recommendations, issuing education certificates, and recognizing milestones like work anniversaries.</p>
                 <div class="margin-top margin-medium">
@@ -478,5 +481,30 @@ margin: 0rem !important;
   <script src="js/webflow.js" type="text/javascript"></script>
   <script type="text/javascript">!function(e,t,n){function a(){var e=t.getElementsByTagName("script")[0],n=t.createElement("script");n.type="text/javascript",n.async=!0,n.src="https://beacon-v2.helpscout.net",e.parentNode.insertBefore(n,e)}if(e.Beacon=n=function(t,n,a){e.Beacon.readyQueue.push({method:t,options:n,data:a})},n.readyQueue=[],"complete"===t.readyState)return a();e.attachEvent?e.attachEvent("onload",a):e.addEventListener("load",a,!1)}(window,document,window.Beacon||function(){});</script>
   <script type="text/javascript">window.Beacon('init', '5ddcd004-087e-4c8c-9124-cb00d0862184')</script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const video = document.getElementById('heroVideo');
+      const playButton = document.getElementById('playButton');
+      
+      // Show play button initially
+      playButton.style.display = 'flex';
+      
+      // When play button is clicked
+      playButton.addEventListener('click', function() {
+        video.play();
+        playButton.style.display = 'none'; // Hide play button
+      });
+      
+      // When video ends, show play button again
+      video.addEventListener('ended', function() {
+        playButton.style.display = 'flex';
+      });
+      
+      // When video is paused, show play button
+      video.addEventListener('pause', function() {
+        playButton.style.display = 'flex';
+      });
+    });
+  </script>
 </body>
 </html>

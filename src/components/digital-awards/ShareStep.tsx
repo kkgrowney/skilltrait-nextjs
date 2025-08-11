@@ -82,8 +82,12 @@ export default function ShareStep({
         uploadedAssets
       );
 
-      // Step 3: Generate image and save to prop document
+      // Step 3: Generate image and saving to prop document
       setProcessStep("Generating image and saving to prop document...");
+      
+      // Add a small delay to ensure the prop document is fully written to Firestore
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
       const imageUrl = await generateAndSaveImage(user.uid, propId, uploadedAssets);
 
       setSavedPropId(propId);
@@ -152,11 +156,24 @@ This digital award recognizes excellence and dedication in professional developm
         );
       }
 
+      // Always ensure we have the base template data, even if no custom assets are uploaded
+      if (selectedTemplate?.achievement) {
+        uploadedAssets.baseTemplateData = {
+          // props should contain the actual props text, not the template image URL
+          props: propsTitle || "",
+          logoImage: selectedTemplate.achievement.logoImage || "",
+          backgroundImage: selectedTemplate.achievement.backgroundImage || "",
+          tags: selectedTemplate.achievement.tags || [],
+          company: selectedTemplate.achievement.company || "",
+        };
+      }
+
       // Only create template if assets were uploaded
       if (uploadedLogoFile || uploadedBackgroundFile) {
         const templateData = {
           achievement: {
-            props: selectedTemplate?.achievement?.props || "",
+            // props should contain the actual props text, not the template image URL
+            props: propsTitle || "",
             logoImage:
               uploadedAssets.logoUrl ||
               selectedTemplate?.achievement?.logoImage ||
@@ -202,6 +219,15 @@ This digital award recognizes excellence and dedication in professional developm
         fromName: fromName || "",
         templateId: uploadedAssets.templateId || selectedTemplate?.id || "",
         status: "pending_image_generation",
+        // Include the achievement data that the cloud function needs - EXACTLY like props
+        achievement: {
+          // props should contain the actual props text, not the template image URL
+          props: propsTitle || "",
+          logoImage: uploadedAssets.logoUrl || selectedTemplate?.achievement?.logoImage || "",
+          backgroundImage: uploadedAssets.backgroundUrl || selectedTemplate?.achievement?.backgroundImage || "",
+          tags: selectedTemplate?.achievement?.tags || [],
+          company: companyNameText || selectedTemplate?.achievement?.company || "",
+        },
         createdAt: new Date(),
         updatedAt: new Date(),
       };
@@ -221,6 +247,8 @@ This digital award recognizes excellence and dedication in professional developm
     uploadedAssets: { logoUrl?: string | null; backgroundUrl?: string | null; templateId?: string | null } = {}
   ) => {
     try {
+
+      
       // Call our proxy API route instead of the cloud function directly
       const imageUrl = `/api/generate-image?user=${userId}&prop=${propId}`;
 
