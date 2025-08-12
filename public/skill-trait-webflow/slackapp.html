@@ -31,6 +31,24 @@
   -o-font-smoothing: antialiased;
 }
 </style>
+  <style>
+    /* Mobile-specific padding adjustment and layout reordering */
+    @media (max-width: 767px) {
+      .header1_image-wrapper {
+        padding-bottom: 8px !important;
+      }
+      .header1_component {
+        display: flex !important;
+        flex-direction: column !important;
+      }
+      .header1_content {
+        order: 1 !important;
+      }
+      .header1_image-wrapper {
+        order: 2 !important;
+      }
+    }
+  </style>
 </head>
 <body>
   <div class="page-wrapper">
@@ -240,14 +258,13 @@ margin: 0rem !important;
               </div>
               <div class="header1_content">
                 <div class="margin-bottom margin-small">
-                  <p class="text-color-primary hero">SEND FREE PROPS</p>
+                  <p class="text-color-primary hero">SEND PROPS</p>
                   <h1 class="heading-style-h1-2 gradient">Try our free Slack App</h1>
                 </div>
-                <p class="text-size-medium-3">Celebrate team achievements by sending branded digital awards; employee recommendations, issuing education certificates, and recognizing milestones like work anniversaries.</p>
+                <p class="text-size-medium-3">SkillTrait props are a free way to thank a co-worker or team for doing an outstanding job. Choose from our library of branded props, or add your company's name in text. If you don't see your company, just send an email and we will add it to our library. team@skilltrait.com</p>
                 <div class="margin-top margin-medium">
                   <div class="button-group">
-                    <a href="/slackapp" class="button-r_light is-small is-alternate round w-button">Slack App</a>
-                    <a href="#help" class="button-r is-secondary is-small is-alternate round button-black-stroke w-button">Download</a>
+                    <a href="https://slack.com/oauth/v2/authorize?client_id=6065766542231.8787683961942&scope=chat:write,im:write,users:read,channels:write.invites&user_scope=" target="_blank" class="button-r_light is-small is-alternate round w-button">Slack App</a>
                   </div>
                 </div>
               </div>
@@ -276,22 +293,7 @@ margin: 0rem !important;
           </div>
         </div>
       </section>
-      <div id="achievement" class="achievements">
-        <div class="container-large">
-          <div class="padding-section-large">
-            <div class="w-layout-grid cta2_component">
-              <div class="cta2_content">
-                <div class="margin-bottom margin-small">
-                  <h2 class="title">Send &amp; receive branded, digital awards</h2>
-                </div>
-                <p class="text-size-medium dark">1) Companies can send verified digital awards to employees to celebrate work successes and achievements.<br><br>2) Employees that have verified their work email, can write a list of accomplishments, and request a recommendation from their manager.<br><br>3) Job applicants can link company achievements to their resumes, allowing recruiters to quickly verify their work success and key hiring qualifications.</p>
-                <a href="achievements.html" class="buttons-_tieriary w-button">Achievements</a>
-              </div>
-              <div class="cta2_image-wrapper"><img sizes="(max-width: 600px) 100vw, 600px" srcset="images/reddit_achievement-p-500.png 500w, images/reddit_achievement.png 600w" alt="reddit_achievement" src="images/reddit_achievement.png" loading="lazy" class="cta2_image"></div>
-            </div>
-          </div>
-        </div>
-      </div>
+
       <section class="resume-citations">
         <div class="container-large">
           <section class="section_cta31">

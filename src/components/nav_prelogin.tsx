@@ -82,9 +82,9 @@ export default function NavPrelogin() {
                   Awards Generator
                 </Link>
                 <Link
-                  href="/slack-app"
+                  href="/slackapp"
                   className={`px-2 py-2 text-sm transition-colors relative ${
-                    pathname === "/slack-app"
+                    pathname === "/slackapp"
                       ? 'text-white font-bold after:content-[""] after:absolute after:left-0 after:right-0 after:bottom-[-14px] after:h-0.5 after:bg-[var(--primary-dark)] after:z-10'
                       : 'text-gray-300 hover:text-white hover:after:content-[""] hover:after:absolute hover:after:left-0 hover:after:right-0 hover:after:bottom-[-14px] hover:after:h-0.5 hover:after:bg-[var(--primary-dark)] hover:after:opacity-50 hover:after:z-10 font-medium'
                   }`}
@@ -207,9 +207,9 @@ export default function NavPrelogin() {
               Awards Generator
             </Link>
             <Link
-              href="/slack-app"
+              href="/slackapp"
               className={`block px-3 py-2 text-base font-medium transition-colors ${
-                pathname === "/slack-app"
+                pathname === "/slackapp"
                   ? "text-white font-bold"
                   : "text-gray-300 hover:text-white"
               }`}
