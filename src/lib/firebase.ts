@@ -59,6 +59,9 @@ export const saveUserTemplateAssets = async (
     company?: string;
     templateId?: string | null;
     basePropsUrl?: string | null;
+    achievement?: any;
+    isPrivate?: boolean;
+    templateType?: string;
   }
 ) => {
   try {
@@ -69,6 +72,9 @@ export const saveUserTemplateAssets = async (
       company: data.company || '',
       templateId: data.templateId || null,
       basePropsUrl: data.basePropsUrl || null,
+      achievement: data.achievement || null,
+      isPrivate: data.isPrivate !== undefined ? data.isPrivate : true,
+      templateType: data.templateType || 'props',
       createdAt: new Date(),
       updatedAt: new Date(),
     });

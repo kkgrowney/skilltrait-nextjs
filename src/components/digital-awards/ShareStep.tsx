@@ -159,10 +159,11 @@ This digital award recognizes excellence and dedication in professional developm
       // Always ensure we have the base template data, even if no custom assets are uploaded
       if (selectedTemplate?.achievement) {
         uploadedAssets.baseTemplateData = {
-          // props should contain the actual props text, not the template image URL
-          props: propsTitle || "",
+          // props should contain the background image, not the props text
+          props: uploadedAssets.backgroundUrl || selectedTemplate.achievement.backgroundImage || "",
           logoImage: selectedTemplate.achievement.logoImage || "",
-          backgroundImage: selectedTemplate.achievement.backgroundImage || "",
+          // backgroundImage should contain the props title text
+          backgroundImage: propsTitle || "",
           tags: selectedTemplate.achievement.tags || [],
           company: selectedTemplate.achievement.company || "",
         };
@@ -172,16 +173,14 @@ This digital award recognizes excellence and dedication in professional developm
       if (uploadedLogoFile || uploadedBackgroundFile) {
         const templateData = {
           achievement: {
-            // props should contain the actual props text, not the template image URL
-            props: propsTitle || "",
+            // props should contain the background image, not the props text
+            props: uploadedAssets.backgroundUrl || selectedTemplate?.achievement?.backgroundImage || "",
             logoImage:
               uploadedAssets.logoUrl ||
               selectedTemplate?.achievement?.logoImage ||
               "",
-            backgroundImage:
-              uploadedAssets.backgroundUrl ||
-              selectedTemplate?.achievement?.backgroundImage ||
-              "",
+            // backgroundImage should contain the props title text
+            backgroundImage: propsTitle || "",
             tags: selectedTemplate?.achievement?.tags || [],
             company:
               companyNameText || selectedTemplate?.achievement?.company || "",
@@ -211,20 +210,64 @@ This digital award recognizes excellence and dedication in professional developm
     uploadedAssets: any
   ) => {
     try {
+      let templateId = uploadedAssets.templateId || selectedTemplate?.id || "";
+      let isPrivateTemplate = false;
+
+      // If user wants to save as template, create a template in their subcollection
+      if (saveAsTemplate) {
+        try {
+          const templateData = {
+            achievement: {
+              props: uploadedAssets.backgroundUrl || selectedTemplate?.achievement?.backgroundImage || "",
+              logoImage: uploadedAssets.logoUrl || selectedTemplate?.achievement?.logoImage || "",
+              backgroundImage: propsTitle || "",
+              tags: selectedTemplate?.achievement?.tags || [],
+              company: companyNameText || selectedTemplate?.achievement?.company || "",
+            },
+            isPrivate: true,
+            userRef: userId,
+            templateType: "props",
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          };
+
+          // Save template to user's subcollection
+          const userTemplateId = await saveUserTemplateAssets(userId, {
+            logoUrl: uploadedAssets.logoUrl || null,
+            backgroundUrl: uploadedAssets.backgroundUrl || null,
+            company: companyNameText || selectedTemplate?.achievement?.company || "",
+            templateId: templateId,
+            basePropsUrl: selectedTemplate?.achievement?.props || null,
+            achievement: templateData.achievement,
+            isPrivate: true,
+            templateType: "props",
+          });
+
+          // Update templateId to the newly created user template
+          templateId = userTemplateId;
+          isPrivateTemplate = true;
+        } catch (error) {
+          console.error("Error saving user template:", error);
+          // Continue without template saving if it fails
+        }
+      }
+
       const propData = {
         fromMessage: fromMessage || "",
         propsTitle: propsTitle || "",
         propsRecipients: propsRecipients || [],
         fromDate: fromDate || "",
         fromName: fromName || "",
-        templateId: uploadedAssets.templateId || selectedTemplate?.id || "",
+        templateId: templateId,
+        isPrivateTemplate: isPrivateTemplate,
         status: "pending_image_generation",
         // Include the achievement data that the cloud function needs - EXACTLY like props
         achievement: {
-          // props should contain the actual props text, not the template image URL
-          props: propsTitle || "",
+          // props should contain the background image, not the props text
+          props: uploadedAssets.backgroundUrl || selectedTemplate?.achievement?.backgroundImage || "",
           logoImage: uploadedAssets.logoUrl || selectedTemplate?.achievement?.logoImage || "",
-          backgroundImage: uploadedAssets.backgroundUrl || selectedTemplate?.achievement?.backgroundImage || "",
+          // backgroundImage should contain the props title text
+          backgroundImage: propsTitle || "",
           tags: selectedTemplate?.achievement?.tags || [],
           company: companyNameText || selectedTemplate?.achievement?.company || "",
         },
@@ -543,7 +586,7 @@ This digital award recognizes excellence and dedication in professional developm
                 checked={saveAsTemplate}
                 onChange={(e) => setSaveAsTemplate(e.target.checked)}
               />
-              Save logo/background as a reusable template
+              Save as reusable template
             </label>
             {processStep && (
               <div className="text-[var(--primary-dark)] text-sm mb-2">
