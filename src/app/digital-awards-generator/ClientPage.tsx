@@ -234,7 +234,7 @@ export default function DigitalAwardsPage() {
         );
       case "share":
         return (
-          <ShareStep 
+          <ShareStep
             onPrevious={handlePrevious}
             onAuthSuccess={() => setCurrentStep("share")}
             selectedTemplate={selectedTemplate}
@@ -553,9 +553,9 @@ export default function DigitalAwardsPage() {
                             className="text-white text-sm font-medium"
                             style={{ color: "white", opacity: 1 }}
                           >
-                            {(() => { 
-                              const [year, month, day] = fromDate.split('-'); 
-                              return `${month}/${day}/${year.slice(2)}`; 
+                            {(() => {
+                              const [year, month, day] = fromDate.split("-");
+                              return `${month}/${day}/${year.slice(2)}`;
                             })()}
                           </p>
                         )}
@@ -890,7 +890,6 @@ export default function DigitalAwardsPage() {
         isStandalone={false}
       />
 
-      {/* Alert Message */}
       {showAlert && (
         <div className="fixed bottom-4 left-0 right-0 flex justify-center z-50">
           <div
