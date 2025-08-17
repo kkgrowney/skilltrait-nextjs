@@ -41,6 +41,7 @@
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
+  --nav-height: 65px;
 }
 
 :root {
@@ -76,7 +77,7 @@
   --sidebar-accent-foreground: oklch(0.205 0 0);
   --sidebar-border: oklch(0.922 0 0);
   --sidebar-ring: oklch(0.708 0 0);
-  --primary-dark: #00DF71;
+  --primary-dark: #00df71;
 }
 
 .dark {
@@ -111,7 +112,7 @@
   --sidebar-accent-foreground: oklch(0.985 0 0);
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.556 0 0);
-  --primary-dark: #00DF71;
+  --primary-dark: #00df71;
 }
 
 @layer base {
@@ -127,7 +128,7 @@
   .animate-slide-up {
     animation: slideUp 0.3s ease-out;
   }
-  
+
   @keyframes slideUp {
     from {
       transform: translateY(100%);
@@ -137,5 +138,12 @@
       transform: translateY(0);
       opacity: 1;
     }
+  }
+}
+
+/* Hide signup image when screen width is less than 1360px */
+@media (max-width: 1359px) {
+  .signup-image {
+    display: none !important;
   }
 }

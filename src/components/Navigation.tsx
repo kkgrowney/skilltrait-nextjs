@@ -44,8 +44,8 @@ export default function Navigation() {
           <Link href="/achievements" className="navbar-link is-alternate w-nav-link">
             Digital Awards
           </Link>
-          <Link href="/award-templates" className="navbar-link is-alternate w-nav-link">
-            Templates
+          <Link href="/digital-awards-generator" className="navbar-link is-alternate w-nav-link">
+            Digital Awards Generator
           </Link>
           <Link href="/pricing" className="navbar-link is-alternate w-nav-link">
             Pricing
@@ -59,8 +59,8 @@ export default function Navigation() {
               Download app
             </a>
             {user ? (
-              <Link href="/dashboard" className="button-r is-secondary is-small is-alternate round w-button">
-                Dashboard
+                      <Link href="/home" className="button-r is-secondary is-small is-alternate round w-button">
+          Home
               </Link>
             ) : (
               <Link href="/signin" className="button-r is-secondary is-small is-alternate round w-button">

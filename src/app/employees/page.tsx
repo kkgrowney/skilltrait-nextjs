@@ -39,56 +39,8 @@ export default function EmployeesPage() {
 
   return (
     <div className="h-screen bg-[#1A1D21] text-white flex font-poppins overflow-hidden">
-      {/* Fixed Side Navigation */}
-      <aside className="fixed left-0 top-0 bg-[#212327] w-60 h-screen flex flex-col border-r border-[#454446] z-10">
-        {/* Top Section */}
-        <div className="flex flex-col gap-4 p-3">
-          {/* Skill#Trait Logo - negative margin to move up by 51px */}
-          <div className="flex items-end justify-center h-24" style={{ marginTop: '-51px' }}>
-            <img 
-              src="/skilltrait_dark.svg" 
-              alt="Skill#Trait" 
-              className="h-6 w-auto"
-            />
-          </div>
-          {/* Company Name */}
-          <div className="text-center text-gray-300 font-semibold text-base mb-2">Acme, Inc</div>
-          {/* Nav Links */}
-          <nav className="flex flex-col gap-1">
-            <a href="#" className="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-300 font-medium text-base hover:bg-gray-800">
-              <span className="inline-block w-5 h-5 bg-[#D2D5DB] rounded" />
-              Dashboard
-            </a>
-            <a href="#" className="flex items-center gap-3 px-3 py-2 rounded-lg bg-[#1A1D21] text-[#00df71] font-medium text-base">
-              <span className="inline-block w-5 h-5 bg-[#D2D5DB] rounded" />
-              Employees
-            </a>
-            <a href="#" className="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-300 font-medium text-base hover:bg-gray-800">
-              <span className="inline-block w-5 h-5 bg-[#D2D5DB] rounded" />
-              Companies
-            </a>
-            <a href="#" className="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-300 font-medium text-base hover:bg-gray-800">
-              <span className="inline-block w-5 h-5 bg-[#D2D5DB] rounded" />
-              Contacts
-            </a>
-            <a href="#" className="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-300 font-medium text-base hover:bg-gray-800">
-              <span className="inline-block w-5 h-5 bg-[#D2D5DB] rounded" />
-              Notifications
-            </a>
-            <a href="#" className="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-300 font-medium text-base hover:bg-gray-800">
-              <span className="inline-block w-5 h-5 bg-[#D2D5DB] rounded" />
-              Team
-            </a>
-            <a href="#" className="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-300 font-medium text-base hover:bg-gray-800">
-              <span className="inline-block w-5 h-5 bg-[#D2D5DB] rounded" />
-              Admin Settings
-            </a>
-          </nav>
-        </div>
-      </aside>
-
-      {/* Main Content - with left margin to account for fixed sidebar */}
-      <div className="flex-1 flex flex-col h-screen min-h-0 overflow-hidden ml-60">
+      {/* Main Content - full width without sidebar */}
+      <div className="flex-1 flex flex-col h-screen min-h-0 overflow-hidden">
         {/* Header */}
         <div className="border-b border-[#414042] bg-[#1A1D21] flex-shrink-0">
           <div className="w-full px-8">

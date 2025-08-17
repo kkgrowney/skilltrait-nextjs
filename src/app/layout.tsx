@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Poppins } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { NavigationProvider } from "@/contexts/NavigationContext";
 import ClientLayout from "@/components/ClientLayout";
 
 const poppins = Poppins({
@@ -13,6 +14,7 @@ const poppins = Poppins({
 export const metadata: Metadata = {
   title: "SkillTrait",
   description: "SkillTrait - Professional skill verification platform",
+  viewport: "width=device-width, initial-scale=1, maximum-scale=1",
 };
 
 export default function RootLayout({
@@ -24,7 +26,9 @@ export default function RootLayout({
     <html lang="en" className="dark">
       <body className={`${poppins.variable} antialiased`}>
         <AuthProvider>
-          <ClientLayout>{children}</ClientLayout>
+          <NavigationProvider>
+            <ClientLayout>{children}</ClientLayout>
+          </NavigationProvider>
         </AuthProvider>
       </body>
     </html>
