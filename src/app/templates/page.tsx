@@ -55,7 +55,12 @@ export default function TemplatesListPage() {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 justify-start pb-6 h-full">
               {templates.map((t) => (
-                <div key={t.id} className="w-full cursor-pointer hover:opacity-80 transition-opacity bg-white rounded" style={{ borderRadius: "4px", aspectRatio: "5/4" }}>
+                <div 
+                  key={t.id} 
+                  className="w-full cursor-pointer hover:opacity-80 transition-opacity bg-white rounded" 
+                  style={{ borderRadius: "4px", aspectRatio: "5/4" }}
+                  onClick={() => router.push(`/templates/${t.id}`)}
+                >
                   <div className="relative w-full h-full">
                     <img
                       src={t.backgroundUrl || "/liquid_death_props.png"}

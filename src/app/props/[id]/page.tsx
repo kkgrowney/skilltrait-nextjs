@@ -66,7 +66,7 @@ export default function PropDetailPage() {
                 </div>
               </div>
 
-              <div className="bg-[#212327] rounded-lg shadow-sm border border-[#454446] p-4">
+              <div className="bg-[#212327] rounded-lg shadow-sm border border-[#454446] p-4 mx-auto" style={{ maxWidth: "600px" }}>
                 <h3 className="text-lg font-medium text-white mb-3">Share Prop</h3>
                 <div className="flex flex-wrap justify-center gap-3 mb-2 sm:gap-4 md:gap-5">
                   {[
