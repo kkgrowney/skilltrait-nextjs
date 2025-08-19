@@ -48,7 +48,7 @@ export default function ClientLayout({
     user && !loading && isAuthenticatedRoute;
 
   return (
-    <>
+    <div className="min-h-screen bg-gray-100">
       {shouldShowNavPrelogin && <NavPrelogin />}
       {shouldShowAuthenticatedLayout ? (
         <div className="min-h-screen" style={{ backgroundColor: "#1A1D21" }}>
@@ -58,6 +58,6 @@ export default function ClientLayout({
       ) : (
         children
       )}
-    </>
+    </div>
   );
 }
