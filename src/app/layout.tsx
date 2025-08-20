@@ -40,17 +40,6 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className="dark">
-      <head>
-        <link rel="icon" href="/favicon.ico" sizes="any" />
-        <link rel="icon" href="/favicon16.png" type="image/png" sizes="16x16" />
-        <link rel="icon" href="/favicon32.png" type="image/png" sizes="32x32" />
-        <link rel="icon" href="/favicon64.png" type="image/png" sizes="64x64" />
-        <link rel="shortcut icon" href="/favicon.ico" />
-        <link rel="apple-touch-icon" href="/favicon64.png" />
-        <meta name="msapplication-TileColor" content="#1A1D21" />
-        <meta name="msapplication-TileImage" content="/favicon64.png" />
-        <meta name="theme-color" content="#1A1D21" />
-      </head>
       <body className={`${poppins.variable} antialiased`}>
         <AuthProvider>
           <NavigationProvider>
