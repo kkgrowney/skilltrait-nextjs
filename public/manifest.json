@@ -1,0 +1,33 @@
+{
+  "name": "SkillTrait",
+  "short_name": "SkillTrait",
+  "description": "Professional skill verification platform",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#1A1D21",
+  "theme_color": "#1A1D21",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/favicon16.png",
+      "sizes": "16x16",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/favicon32.png",
+      "sizes": "32x32",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/favicon64.png",
+      "sizes": "64x64",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["business", "productivity", "education"],
+  "lang": "en",
+  "dir": "ltr"
+}
