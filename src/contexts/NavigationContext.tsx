@@ -30,8 +30,9 @@ export function NavigationProvider({ children }: { children: React.ReactNode }) 
   const [isCollapsed, setIsCollapsed] = useState(true);
   const [currentView, setCurrentView] = useState<ViewType>('home');
 
+  // Navigation is always collapsed - no toggle functionality
   const toggleCollapsed = () => {
-    setIsCollapsed(!isCollapsed);
+    // Do nothing - navigation stays collapsed
   };
 
   return (
