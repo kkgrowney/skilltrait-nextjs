@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import SideNavigation, { useSideNavMargin } from '@/components/SideNavigation';
 import ProfileViewTitleTab from '@/components/ProfileViewTitleTab';
 import { useAuth } from '@/contexts/AuthContext';
-import { doc, getDoc, collection, query, orderBy, onSnapshot } from 'firebase/firestore';
+import { doc, getDoc, collection, query, orderBy, onSnapshot, updateDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import Link from 'next/link';
 
@@ -25,6 +25,10 @@ export default function ProfilePage() {
   const [showSearchDropdown, setShowSearchDropdown] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedSkills, setSelectedSkills] = useState<string[]>([]);
+  const [selectedSkillDetail, setSelectedSkillDetail] = useState<string | null>(null);
+  const [overviewText, setOverviewText] = useState('');
+  const [originalOverviewText, setOriginalOverviewText] = useState('');
+  const [selectedProficiencyLevel, setSelectedProficiencyLevel] = useState<string>('');
 
   // Fetch user profile data
   const fetchUserProfile = async () => {
@@ -38,6 +42,9 @@ export default function ProfilePage() {
       if (userDoc.exists()) {
         const data = userDoc.data();
         setUserProfile(data);
+        setOverviewText(data.overview || '');
+        setOriginalOverviewText(data.overview || '');
+        setSelectedProficiencyLevel(data.proficiencyLevel || '');
         console.log('User profile loaded:', data);
       }
     } catch (error) {
@@ -118,6 +125,61 @@ export default function ProfilePage() {
   // Handle removing skills
   const handleRemoveSkill = (skill: string) => {
     setSelectedSkills(selectedSkills.filter(s => s !== skill));
+    if (selectedSkillDetail === skill) {
+      setSelectedSkillDetail(null);
+    }
+  };
+
+  // Handle skill selection for detail view
+  const handleSkillSelect = (skill: string) => {
+    if (selectedSkillDetail === skill) {
+      setSelectedSkillDetail(null);
+    } else {
+      setSelectedSkillDetail(skill);
+    }
+  };
+
+  // Handle closing skill detail
+  const handleCloseSkillDetail = () => {
+    setSelectedSkillDetail(null);
+  };
+
+  const handleSaveOverview = async () => {
+    if (!user?.uid) return;
+    try {
+      const userDocRef = doc(db, 'users', user.uid);
+      await updateDoc(userDocRef, { overview: overviewText });
+      setOriginalOverviewText(overviewText);
+    } catch (error) {
+      console.error('Error saving overview:', error);
+      alert('Failed to save overview.');
+    }
+  };
+
+  const handleCancelOverview = () => {
+    setOverviewText(originalOverviewText);
+  };
+
+  const handleProficiencyLevelSelect = async (level: string) => {
+    if (!user?.uid) return;
+    
+    let newLevel = '';
+    if (selectedProficiencyLevel === level) {
+      // If clicking the same level, deselect it
+      newLevel = '';
+    } else {
+      // Select the new level (automatically deselects the previous one)
+      newLevel = level;
+    }
+    
+    try {
+      const userDocRef = doc(db, 'users', user.uid);
+      await updateDoc(userDocRef, { proficiencyLevel: newLevel });
+      setSelectedProficiencyLevel(newLevel);
+    } catch (error) {
+      console.error('Error saving proficiency level:', error);
+      alert('Failed to save proficiency level.');
+    }
   };
 
   // Fetch data when user changes
@@ -522,19 +584,35 @@ export default function ProfilePage() {
                       <div>
                         <div className="flex flex-wrap gap-2">
                           {selectedSkills.map((skill, index) => (
-                            <div
+                                                        <div
                               key={index}
-                              className="flex items-center gap-2 bg-[#2a2e32] border border-[#454446] rounded-full px-3 py-2 transition-colors group"
+                              className={`flex items-center gap-2 border rounded-full px-3 py-2 transition-colors group cursor-pointer ${
+                                selectedSkillDetail === skill
+                                  ? 'bg-[#00DF71] border-[#00DF71]'
+                                  : 'bg-[#2a2e32] border-[#454446] hover:bg-[#3a3e42]'
+                              }`}
+                              onClick={() => handleSkillSelect(skill)}
                             >
-                              <span className="text-sm text-gray-300 group-hover:text-white group-hover:underline whitespace-nowrap">
+                              <span className={`text-sm whitespace-nowrap ${
+                                selectedSkillDetail === skill
+                                  ? 'text-[#212327] font-medium'
+                                  : 'text-gray-300 group-hover:text-white group-hover:underline'
+                              }`}>
                                 {skill}
                               </span>
-                                                              <button
-                                  className="flex items-center justify-center w-5 h-5 border border-[#454446] hover:border-[#00DF71] text-white hover:text-[#00DF71] rounded-full transition-colors text-xs font-bold"
-                                  onClick={() => handleRemoveSkill(skill)}
-                                >
-                                  ×
-                                </button>
+                              <button
+                                className={`flex items-center justify-center w-5 h-5 border rounded-full transition-colors text-xs font-bold ${
+                                  selectedSkillDetail === skill
+                                    ? 'border-[#212327] text-[#212327] hover:bg-[#212327] hover:text-[#00DF71]'
+                                    : 'border-[#454446] text-white hover:border-[#00DF71] hover:text-[#00DF71]'
+                                }`}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleRemoveSkill(skill);
+                                }}
+                              >
+                                ×
+                              </button>
                             </div>
                           ))}
                         </div>
@@ -542,101 +620,199 @@ export default function ProfilePage() {
                     )}
                   </div>
                   
-                  {/* Right Column - Search and Popular Skills */}
-                  <div className="space-y-6">
-                    {/* Search Section */}
-                    <div className="bg-[#1e2327] rounded-lg border border-[#454446] p-4">
-                      <h4 className="text-md font-semibold text-white mb-3">Search Skills</h4>
-                      <div className="relative">
-                        <input
-                          type="text"
-                          placeholder="Search for skills..."
-                          value={searchQuery}
-                          onChange={(e) => setSearchQuery(e.target.value)}
-                          onKeyDown={(e) => {
-                            if (e.key === 'Enter' && searchQuery.trim()) {
-                              const trimmedSkill = searchQuery.trim();
-                              if (!selectedSkills.includes(trimmedSkill)) {
-                                handleAddSkill(trimmedSkill);
-                                setSearchQuery('');
-                                setShowSearchDropdown(false);
-                              }
-                            }
-                          }}
-                          className="w-full bg-[#212327] border border-[#454446] rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:border-[#00DF71] transition-colors"
-                          onFocus={() => setShowSearchDropdown(true)}
-                          onBlur={() => setTimeout(() => setShowSearchDropdown(false), 200)}
-                        />
-                        <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
-                          <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                          </svg>
+                                    {/* Right Column - Conditional Content */}
+                  <div className="h-full">
+                    {selectedSkillDetail ? (
+                      /* Skill Detail Container */
+                      <div className="bg-[#1e2327] rounded-lg border border-[#454446] h-full p-6">
+                        <div className="flex items-center justify-between mb-6">
+                          <h4 className="text-xl font-semibold text-white">{selectedSkillDetail}</h4>
+                          <button
+                            onClick={handleCloseSkillDetail}
+                            className="flex items-center justify-center w-8 h-8 border border-[#454446] hover:border-[#00DF71] text-white hover:text-[#00DF71] rounded-full transition-colors text-lg font-bold"
+                          >
+                            ×
+                          </button>
                         </div>
                         
-                        {/* Search Dropdown */}
-                        {showSearchDropdown && (
-                          <div className="absolute top-full left-0 right-0 mt-1 bg-[#212327] border border-[#454446] rounded-lg shadow-lg z-10 max-h-48 overflow-y-auto">
-                            <div className="p-2">
-                              <div className="text-xs text-gray-400 font-medium mb-2 px-2">
-                                {searchQuery ? 'Search Results' : 'Popular Skills'}
-                              </div>
-                              {['JavaScript', 'React', 'Python', 'Data Analysis', 'Project Management', 'Leadership', 'Communication', 'UI/UX Design']
-                                .filter(skill => 
-                                  skill.toLowerCase().includes(searchQuery.toLowerCase())
-                                )
-                                .map((skill, index) => (
+                        {/* Skill Detail Content */}
+                        <div className="space-y-6">
+                          <div className="bg-[#212327] rounded-lg border border-[#454446] p-4">
+                            <h5 className="text-md font-semibold text-white mb-3">Overview</h5>
+                            
+                            <div className="space-y-3">
+                              <textarea
+                                id="overviewTextarea"
+                                placeholder="Enter your overview here..."
+                                maxLength={160}
+                                rows={4}
+                                className="w-full bg-[#1A1D21] border border-[#454446] rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:border-[#00DF71] transition-colors resize-none"
+                                value={overviewText}
+                                onChange={(e) => setOverviewText(e.target.value)}
+                              />
+                              
+                              <div className="flex justify-between items-center">
+                                <div className="text-sm text-gray-400">
+                                  <span className={overviewText.length > 160 ? 'text-red-400 font-semibold' : ''}>
+                                    {overviewText.length > 160 ? `${overviewText.length - 160} over limit` : `${160 - overviewText.length} characters remaining`}
+                                  </span>
+                                </div>
+                                
+                                <div className="flex gap-2">
                                   <button
-                                    key={index}
-                                    className="w-full text-left px-3 py-2 text-sm text-gray-300 hover:text-white hover:bg-[#2a2e32] rounded-md transition-colors"
-                                                                      onClick={() => {
-                                    handleAddSkill(skill);
-                                    setSearchQuery(skill);
-                                    setShowSearchDropdown(false);
-                                  }}
+                                    onClick={handleCancelOverview}
+                                    className="px-4 py-2 text-sm border border-[#454446] text-gray-300 rounded-lg font-medium hover:border-[#00DF71] hover:text-[#00DF71] transition-colors"
                                   >
-                                    {skill}
+                                    Cancel
                                   </button>
-                                ))}
-                              {searchQuery && ['JavaScript', 'React', 'Python', 'Data Analysis', 'Project Management', 'Leadership', 'Communication', 'UI/UX Design']
-                                .filter(skill => 
-                                  skill.toLowerCase().includes(searchQuery.toLowerCase())
-                                ).length === 0 && (
-                                  <div className="px-3 py-2 text-sm text-gray-400">
-                                    No skills found matching "{searchQuery}"
-                                  </div>
-                                )}
+                                  <button
+                                    onClick={handleSaveOverview}
+                                    disabled={overviewText.length > 160 || overviewText === originalOverviewText}
+                                    className="px-4 py-2 text-sm bg-[#00DF71] text-[#212327] rounded-lg font-medium hover:bg-[#0AFB84] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                  >
+                                    Save
+                                  </button>
+                                </div>
+                              </div>
                             </div>
                           </div>
-                        )}
-                      </div>
-                    </div>
-                    
-                    {/* Popular Skills Section */}
-                    <div className="bg-[#1e2327] rounded-lg border border-[#454446] p-6">
-                      <h4 className="text-md font-semibold text-white mb-4">Popular Skills</h4>
-                      <div className="flex flex-wrap gap-3">
-                        {['JavaScript', 'React', 'Python', 'Data Analysis', 'Project Management', 'Leadership', 'Communication', 'UI/UX Design', 'Machine Learning', 'Product Management', 'Customer Success', 'Sales', 'Marketing', 'Design Thinking', 'Agile', 'Scrum', 'Data Science', 'Cloud Computing', 'DevOps', 'Cybersecurity'].map((skill, index) => (
-                          <div
-                            key={index}
-                            className="flex items-center gap-2 bg-[#2a2e32] hover:bg-[#3a3e42] border border-[#454446] rounded-full px-3 py-2 transition-colors group cursor-pointer"
-                            onClick={() => handleAddSkill(skill)}
-                          >
-                            <span className="text-sm text-gray-300 group-hover:text-white whitespace-nowrap">
-                              {skill}
-                            </span>
-                            <button
-                              className="flex items-center justify-center w-5 h-5 bg-[#00DF71] hover:bg-[#0AFB84] text-[#212327] rounded-full transition-colors text-xs font-bold"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleAddSkill(skill);
-                              }}
-                            >
-                              +
-                            </button>
+                          
+                          <div className="bg-[#212327] rounded-lg border border-[#454446] p-4">
+                            <h5 className="text-md font-semibold text-white mb-3">Proficiency Level</h5>
+                            <div className="flex gap-2">
+                              {['Beginner', 'Intermediate', 'Advanced', 'Expert'].map((level, index) => (
+                                <button
+                                  key={index}
+                                  className={`px-3 py-2 text-sm border rounded-lg transition-colors ${
+                                    selectedProficiencyLevel === level
+                                      ? 'bg-[#00DF71] border-[#00DF71] text-[#212327] font-medium'
+                                      : 'bg-[#2a2e32] border-[#454446] text-gray-300 hover:border-[#00DF71] hover:text-[#00DF71]'
+                                  }`}
+                                  onClick={() => handleProficiencyLevelSelect(level)}
+                                >
+                                  {level}
+                                </button>
+                              ))}
+                            </div>
                           </div>
-                        ))}
+                          
+                          <div className="bg-[#212327] rounded-lg border border-[#454446] p-4">
+                            <h5 className="text-md font-semibold text-white mb-3">Skill Growth</h5>
+                            <p className="text-gray-300 text-sm mb-4">
+                              How motivated are you to build this skill
+                            </p>
+                            <div className="flex gap-2">
+                              {['Low', 'Medium', 'High', 'Very High'].map((motivation, index) => (
+                                <button
+                                  key={index}
+                                  className="px-3 py-2 text-sm border border-[#454446] rounded-lg text-gray-300 hover:border-[#00DF71] hover:text-[#00DF71] transition-colors"
+                                >
+                                  {motivation}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
                       </div>
-                    </div>
+                    ) : (
+                      /* Search and Popular Skills */
+                      <div className="space-y-6">
+                        {/* Search Section */}
+                        <div className="bg-[#1e2327] rounded-lg border border-[#454446] p-4">
+                          <h4 className="text-md font-semibold text-white mb-3">Search Skills</h4>
+                          <div className="relative">
+                            <input
+                              type="text"
+                              placeholder="Search for skills..."
+                              value={searchQuery}
+                              onChange={(e) => setSearchQuery(e.target.value)}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter' && searchQuery.trim()) {
+                                  const trimmedSkill = searchQuery.trim();
+                                  if (!selectedSkills.includes(trimmedSkill)) {
+                                    handleAddSkill(trimmedSkill);
+                                    setSearchQuery('');
+                                    setShowSearchDropdown(false);
+                                  }
+                                }
+                              }}
+                              className="w-full bg-[#212327] border border-[#454446] rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:border-[#00DF71] transition-colors"
+                              onFocus={() => setShowSearchDropdown(true)}
+                              onBlur={() => setTimeout(() => setShowSearchDropdown(false), 200)}
+                            />
+                            <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                              <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                              </svg>
+                            </div>
+                            
+                            {/* Search Dropdown */}
+                            {showSearchDropdown && (
+                              <div className="absolute top-full left-0 right-0 mt-1 bg-[#212327] border border-[#454446] rounded-lg shadow-lg z-10 max-h-48 overflow-y-auto">
+                                <div className="p-2">
+                                  <div className="text-xs text-gray-400 font-medium mb-2 px-2">
+                                    {searchQuery ? 'Search Results' : 'Popular Skills'}
+                                  </div>
+                                  {['JavaScript', 'React', 'Python', 'Data Analysis', 'Project Management', 'Leadership', 'Communication', 'UI/UX Design']
+                                    .filter(skill => 
+                                      skill.toLowerCase().includes(searchQuery.toLowerCase())
+                                    )
+                                    .map((skill, index) => (
+                                      <button
+                                        key={index}
+                                        className="w-full text-left px-3 py-2 text-sm text-gray-300 hover:text-white hover:bg-[#2a2e32] rounded-md transition-colors"
+                                        onClick={() => {
+                                          handleAddSkill(skill);
+                                          setSearchQuery(skill);
+                                          setShowSearchDropdown(false);
+                                        }}
+                                      >
+                                        {skill}
+                                      </button>
+                                    ))}
+                                  {searchQuery && ['JavaScript', 'React', 'Python', 'Data Analysis', 'Project Management', 'Leadership', 'Communication', 'UI/UX Design']
+                                    .filter(skill => 
+                                      skill.toLowerCase().includes(searchQuery.toLowerCase())
+                                    ).length === 0 && (
+                                      <div className="px-3 py-2 text-sm text-gray-400">
+                                        No skills found matching "{searchQuery}"
+                                      </div>
+                                    )}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                        
+                        {/* Popular Skills Section */}
+                        <div className="bg-[#1e2327] rounded-lg border border-[#454446] p-6">
+                          <h4 className="text-md font-semibold text-white mb-4">Popular Skills</h4>
+                          <div className="flex flex-wrap gap-3">
+                            {['JavaScript', 'React', 'Python', 'Data Analysis', 'Project Management', 'Leadership', 'Communication', 'UI/UX Design', 'Machine Learning', 'Product Management', 'Customer Success', 'Sales', 'Marketing', 'Design Thinking', 'Agile', 'Scrum', 'Data Science', 'Cloud Computing', 'DevOps', 'Cybersecurity'].slice(0, 32).map((skill, index) => (
+                              <div
+                                key={index}
+                                className="flex items-center gap-2 bg-[#2a2e32] hover:bg-[#3a3e42] border border-[#454446] rounded-full px-3 py-2 transition-colors group cursor-pointer"
+                                onClick={() => handleAddSkill(skill)}
+                              >
+                                <span className="text-sm text-gray-300 group-hover:text-white whitespace-nowrap">
+                                  {skill}
+                                </span>
+                                <button
+                                  className="flex items-center justify-center w-5 h-5 bg-[#00DF71] hover:bg-[#0AFB84] text-[#212327] rounded-full transition-colors text-xs font-bold"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleAddSkill(skill);
+                                  }}
+                                >
+                                  +
+                                </button>
+                              </div>
+                            ))}
+                          </div>
+                          <div className="h-[31px]"></div>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
