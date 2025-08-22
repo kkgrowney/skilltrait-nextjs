@@ -30,6 +30,11 @@ const AUTHENTICATED_ROUTES = [
   "/digital-awards-generator",
 ];
 
+const AUTH_ROUTES = [
+  "/signin",
+  "/signup",
+];
+
 export default function ClientLayout({
   children,
 }: {
@@ -39,6 +44,7 @@ export default function ClientLayout({
   const { user, loading } = useAuth();
   const isIframeRoute = IFRAME_ROUTES.includes(pathname);
   const isAuthenticatedRoute = AUTHENTICATED_ROUTES.includes(pathname);
+  const isAuthRoute = AUTH_ROUTES.includes(pathname);
 
   // Show NavPrelogin only if user is not authenticated and not on an iframe route
   const shouldShowNavPrelogin = !user && !loading && !isIframeRoute;
@@ -48,7 +54,7 @@ export default function ClientLayout({
     user && !loading && isAuthenticatedRoute;
 
   return (
-    <div className="min-h-screen bg-gray-100">
+    <div className={`min-h-screen ${isAuthRoute ? '' : 'bg-gray-100'}`}>
       {shouldShowNavPrelogin && <NavPrelogin />}
       {shouldShowAuthenticatedLayout ? (
         <div className="min-h-screen" style={{ backgroundColor: "#1A1D21" }}>

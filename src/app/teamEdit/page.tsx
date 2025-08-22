@@ -19,6 +19,8 @@ export default function TeamEdit() {
   const [teamPhoto, setTeamPhoto] = useState<File | null>(null);
   const [teamPhotoPreview, setTeamPhotoPreview] = useState<string>("");
   const [isUpdating, setIsUpdating] = useState(false);
+  const [isCreating, setIsCreating] = useState(false);
+  const [existingTeam, setExistingTeam] = useState(false);
 
   // Fetch existing team data
   const fetchTeamData = async (uid: string) => {
@@ -31,13 +33,16 @@ export default function TeamEdit() {
         setTeamName(data.teamName || "");
         setWebsite(data.website || "");
         setTeamPhotoPreview(data.teamPhoto || "");
+        setExistingTeam(true);
       } else {
         // Set default values if no team exists
-        setTeamName("SkillTrait");
+        setTeamName("");
         setWebsite("");
+        setExistingTeam(false);
       }
     } catch (error) {
       console.error("Error fetching team data:", error);
+      setExistingTeam(false);
     }
   };
 
@@ -93,14 +98,15 @@ export default function TeamEdit() {
           website: website,
           teamPhoto: photoUrl,
           updated_time: new Date(),
+          created_time: existingTeam ? undefined : new Date(),
         },
         { merge: true }
       );
 
-      console.log("Team updated successfully");
+      console.log(existingTeam ? "Team updated successfully" : "Team created successfully");
       router.push("/team");
     } catch (error) {
-      console.error("Error updating team:", error);
+      console.error("Error saving team:", error);
     } finally {
       setIsUpdating(false);
     }
@@ -122,6 +128,14 @@ export default function TeamEdit() {
     return null;
   }
 
+  const pageTitle = existingTeam ? "Edit Team" : "Create Team";
+  const submitButtonText = isUpdating 
+    ? (existingTeam ? "Updating..." : "Creating...") 
+    : (existingTeam ? "Save Changes" : "Create Team");
+  const description = existingTeam 
+    ? "Update your team information" 
+    : "Set up your team profile to get started";
+
   return (
     <div className="min-h-screen" style={{ backgroundColor: "#1A1D21" }}>
       <SideNavigation />
@@ -139,7 +153,7 @@ export default function TeamEdit() {
         >
           {/* Back Button */}
           <button
-            onClick={() => router.push("/home")}
+            onClick={() => router.push("/team")}
             className="mr-4 p-2 text-white hover:bg-[#2a2e32] rounded-lg transition-colors"
           >
             <svg
@@ -158,7 +172,7 @@ export default function TeamEdit() {
           </button>
           {/* Title text */}
           <div className="font-semibold text-[#ffffff] text-[18px] whitespace-nowrap md:ml-0 ml-9 flex items-center">
-            Edit Team
+            {pageTitle}
           </div>
         </div>
 
@@ -167,8 +181,8 @@ export default function TeamEdit() {
           <div className="w-full max-w-md">
             {/* Form Header */}
             <div className="text-center mb-8">
-              <h1 className="text-3xl font-bold text-white mb-2">Edit Team</h1>
-              <p className="text-gray-400">Update your team information</p>
+              <h1 className="text-3xl font-bold text-white mb-2">{pageTitle}</h1>
+              <p className="text-gray-400">{description}</p>
             </div>
 
             {/* Form */}
@@ -246,7 +260,7 @@ export default function TeamEdit() {
                 disabled={isUpdating}
                 className="w-full bg-[#00DF71] text-[#212327] font-medium py-3 px-4 rounded-lg hover:bg-[#0AFB84] transition-colors disabled:opacity-50"
               >
-                {isUpdating ? "Updating..." : "Save Changes"}
+                {submitButtonText}
               </button>
             </form>
           </div>

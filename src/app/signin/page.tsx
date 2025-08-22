@@ -65,7 +65,7 @@ export default function SignInPage() {
           } else {
             const userData = userDoc.data();
             const hasProfile = userData.didInitProfile === true;
-            router.push(hasProfile ? "/home" : "/onboarding");
+            router.push(hasProfile ? "/profile" : "/onboarding");
           }
         }
       } catch (error) {
@@ -101,7 +101,7 @@ export default function SignInPage() {
         password
       );
       const hasProfile = await checkUserProfile(userCredential.user.uid);
-      router.push(hasProfile ? "/home" : "/onboarding");
+      router.push(hasProfile ? "/profile" : "/onboarding");
     } catch (error: unknown) {
       const errorMessage =
         error instanceof Error ? error.message : "An error occurred";
@@ -156,7 +156,7 @@ export default function SignInPage() {
         const userData = userDoc.data();
         const hasProfile = userData.didInitProfile === true;
         console.log("User has profile:", hasProfile);
-        router.push(hasProfile ? "/home" : "/onboarding");
+        router.push(hasProfile ? "/profile" : "/onboarding");
       }
     } catch (error: unknown) {
       console.error("Google sign in error details:", error);
@@ -188,7 +188,7 @@ export default function SignInPage() {
   return (
     <>
       <div
-        className="flex flex-row items-center justify-start h-[calc(100vh-64px)] overflow-hidden"
+        className="flex flex-row items-center justify-start h-screen overflow-hidden"
         style={{ backgroundColor: "#1B1D21" }}
       >
         {/* Desktop View */}
@@ -400,7 +400,7 @@ export default function SignInPage() {
 
         {/* Mobile View */}
         <div
-          className="md:hidden relative size-full h-[calc(100vh-64px)]"
+          className="md:hidden relative size-full h-screen"
           style={{ backgroundColor: "#1B1D21" }}
         >
           <div className="flex flex-col items-center justify-center relative size-full">

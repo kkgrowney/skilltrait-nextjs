@@ -167,7 +167,7 @@ export default function SignUpPage() {
   if (!mounted) {
     return (
       <div
-        className="flex flex-row items-center justify-start h-[calc(100vh-64px)] overflow-hidden"
+        className="flex flex-row items-center justify-start h-screen overflow-hidden"
         style={{ backgroundColor: "#1B1D21" }}
       >
         <div
@@ -192,7 +192,7 @@ export default function SignUpPage() {
           </div>
         </div>
         <div
-          className="md:hidden relative size-full h-[calc(100vh-64px)]"
+          className="md:hidden relative size-full h-screen"
           style={{ backgroundColor: "#1B1D21" }}
         >
           <div className="flex flex-col items-center justify-center relative size-full">
@@ -223,7 +223,7 @@ export default function SignUpPage() {
   return (
     <>
       <div
-        className="flex flex-row items-center justify-start h-[calc(100vh-64px)] overflow-hidden"
+        className="flex flex-row items-center justify-start h-screen overflow-hidden"
         style={{ backgroundColor: "#1B1D21" }}
       >
         {/* Desktop View */}
@@ -469,7 +469,7 @@ export default function SignUpPage() {
 
         {/* Mobile View */}
         <div
-          className="md:hidden relative size-full h-[calc(100vh-64px)]"
+          className="md:hidden relative size-full h-screen"
           style={{ backgroundColor: "#1B1D21" }}
         >
           <div className="flex flex-col items-center justify-center relative size-full">

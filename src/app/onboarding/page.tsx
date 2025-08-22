@@ -110,8 +110,8 @@ export default function OnboardingPage() {
         if (currentUser && !currentUser.emailVerified && currentUser.providerData[0]?.providerId === 'password') {
           setShowEmailVerificationModal(true);
         } else {
-                  // Redirect to home
-        router.push('/home');
+                  // Redirect to profile page after successful onboarding
+        router.push('/profile');
         }
       }
     } catch (error) {
@@ -438,7 +438,7 @@ export default function OnboardingPage() {
               <button
                 onClick={() => {
                   setShowEmailVerificationModal(false);
-                  router.push('/home');
+                  router.push('/profile');
                 }}
                 className="h-9 relative rounded-lg shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] shrink-0 w-full transition-colors bg-[#00DF71] hover:bg-[#0AFB84]"
               >

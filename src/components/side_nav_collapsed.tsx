@@ -5,7 +5,7 @@ import { useNavigation } from "@/contexts/NavigationContext";
 import SideNavAuth from "./side_nav_auth";
 
 export default function SideNavCollapsed() {
-  const { toggleCollapsed, currentView, setCurrentView } = useNavigation();
+  const { currentView, setCurrentView } = useNavigation();
   const [isHovered, setIsHovered] = useState(false);
 
   return (
@@ -27,10 +27,7 @@ export default function SideNavCollapsed() {
       <div className="flex flex-col gap-2 p-3">
         {/* SkillTrait Icon */}
         <div className="h-[38px] relative flex justify-center items-center mb-2">
-          <div
-            className="flex justify-center items-center cursor-pointer hover:opacity-80"
-            onClick={toggleCollapsed}
-          >
+          <div className="flex justify-center items-center">
             <img
               src="/skilltrait_icon.svg"
               alt="SkillTrait"
@@ -117,20 +114,7 @@ export default function SideNavCollapsed() {
 
       {/* Bottom CTA */}
       <div className="p-3 mt-auto mb-6">
-        <button
-          onClick={toggleCollapsed}
-          className="w-full flex items-center justify-center p-2 rounded-lg hover:bg-[#202327] cursor-pointer group transition-all"
-        >
-          <img
-            src="/chevron-double-left-outline.svg"
-            alt="Expand"
-            className="h-3 w-3 rotate-180 transition-all group-hover:filter group-hover:invert group-hover:brightness-100"
-            style={{
-              filter:
-                "brightness(0) saturate(100%) invert(84%) sepia(0%) saturate(0%) hue-rotate(0deg) brightness(89%) contrast(86%)",
-            }}
-          />
-        </button>
+        {/* Toggle button removed - navigation stays collapsed */}
       </div>
     </aside>
     </div>

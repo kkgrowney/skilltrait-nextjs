@@ -13,7 +13,7 @@ export default function SideNavAuth({
   onNavigationClick,
   isMobileOpen,
 }: SideNavAuthProps) {
-  const { toggleCollapsed, currentView, setCurrentView } = useNavigation();
+  const { currentView, setCurrentView } = useNavigation();
   const router = useRouter();
 
   const handleNavigationClick = (view: string) => {
@@ -21,7 +21,7 @@ export default function SideNavAuth({
 
     // Use Next.js routing for navigation
     if (view === "home") {
-      router.push("/home");
+      router.push("/profile");
     } else if (view === "digital-awards") {
       router.push("/digital-awards-generator");
     } else if (view === "team") {

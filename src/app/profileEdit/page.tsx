@@ -124,8 +124,9 @@ export default function ProfileEdit() {
         updated_time: new Date(),
       });
 
-      console.log('Profile updated successfully');
-      router.push('/home');
+      console.log("Profile updated successfully");
+      // Redirect to profile page after successful update
+      router.push('/profile');
     } catch (error) {
       console.error('Error updating profile:', error);
     } finally {
@@ -150,8 +151,8 @@ export default function ProfileEdit() {
       <div className="bg-[#212327] border-b border-[#454446] px-6 py-4">
         <div className="flex items-center space-x-4">
           <button
-            onClick={() => router.push('/home')}
-            className="text-gray-400 hover:text-white transition-colors"
+            onClick={() => router.push('/profile')}
+            className="mr-4 p-2 text-white hover:bg-[#2a2e32] rounded-lg transition-colors"
           >
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />

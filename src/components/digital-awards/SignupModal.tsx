@@ -52,7 +52,7 @@ export default function SignUpModal({ isOpen, setIsOpen, onSuccess }: SignUpModa
       if (onSuccess) {
         onSuccess();
       } else {
-        router.push("/home");
+        router.push("/profile");
       }
     } catch (error: unknown) {
       const errorMessage =
@@ -73,7 +73,7 @@ export default function SignUpModal({ isOpen, setIsOpen, onSuccess }: SignUpModa
       if (onSuccess) {
         onSuccess();
       } else {
-        router.push("/home");
+        router.push("/profile");
       }
     } catch (error: unknown) {
       const errorMessage =
