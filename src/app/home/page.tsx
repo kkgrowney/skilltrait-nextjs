@@ -465,7 +465,7 @@ export default function Home() {
                 </button>
 
                 {/* Carousel Container */}
-                <div className="flex gap-4 overflow-x-auto scrollbar-hide px-8 carousel-container">
+                <div className="flex gap-4 overflow-x-auto scrollbar-hide px-8 carousel-container" style={{ paddingLeft: "44px" }}>
                   {isLoadingRecentProps && (
                     <div className="text-gray-400 text-sm">Loading...</div>
                   )}
@@ -551,7 +551,7 @@ export default function Home() {
                 </button>
 
                 {/* Carousel Container */}
-                <div className="flex gap-4 overflow-x-auto scrollbar-hide px-8 templates-carousel-container">
+                <div className="flex gap-4 overflow-x-auto scrollbar-hide px-8 templates-carousel-container" style={{ paddingLeft: "44px" }}>
                   {isLoadingRecentTemplates && (
                     <div className="text-gray-400 text-sm">Loading...</div>
                   )}

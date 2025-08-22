@@ -25,6 +25,7 @@ export default function Team() {
   const [backgroundFile, setBackgroundFile] = useState<File | null>(null);
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
   const [backgroundPreview, setBackgroundPreview] = useState<string | null>(null);
+  const [hasTeam, setHasTeam] = useState(false);
 
   // Fetch team profile data from Firebase
   const fetchTeamProfile = async () => {
@@ -38,24 +39,17 @@ export default function Team() {
       if (teamDoc.exists()) {
         const data = teamDoc.data();
         setTeamProfile(data);
+        setHasTeam(true);
         console.log('Team profile loaded:', data);
       } else {
         console.log('No team profile found');
-        // Set default team profile
-        setTeamProfile({
-          teamName: 'SkillTrait',
-          teamPhoto: null,
-          website: null
-        });
+        setHasTeam(false);
+        setTeamProfile(null);
       }
     } catch (error) {
       console.error('Error fetching team profile:', error);
-      // Set default team profile on error
-      setTeamProfile({
-        teamName: 'SkillTrait',
-        teamPhoto: null,
-        website: null
-      });
+      setHasTeam(false);
+      setTeamProfile(null);
     } finally {
       setIsLoadingProfile(false);
     }
@@ -63,6 +57,8 @@ export default function Team() {
 
   // Fetch team members data from Firebase
   const fetchTeamMembers = async () => {
+    if (!hasTeam) return;
+    
     setIsLoadingMembers(true);
     try {
       // Fetch team members using their actual Firebase user IDs
@@ -165,9 +161,15 @@ export default function Team() {
   useEffect(() => {
     if (user) {
       fetchTeamProfile();
-      fetchTeamMembers();
     }
   }, [user]);
+
+  // Fetch team members when team profile is loaded
+  useEffect(() => {
+    if (hasTeam) {
+      fetchTeamMembers();
+    }
+  }, [hasTeam]);
 
   // Show loading state
   if (loading) {
@@ -192,7 +194,59 @@ export default function Team() {
     return null;
   }
 
-  // Render Team view
+  // Render Create Team view for new users
+  if (!hasTeam && !isLoadingProfile) {
+    return (
+      <div className="min-h-screen" style={{backgroundColor: '#1A1D21'}}>
+        <SideNavigation />
+        
+        <div className="md:ml-60 ml-0 md:ml-[66px] h-full flex flex-col">
+          {/* Fixed Header Container */}
+          <div className="flex-shrink-0 z-20">
+            {/* ViewTitle Container */}
+            <div className="w-full bg-[#1e2327] flex items-center h-16" style={{ height: "64px !important", minHeight: "64px", maxHeight: "64px", paddingLeft: "32px" }}>
+              {/* Title text */}
+              <div className="font-semibold text-[#ffffff] text-[18px] whitespace-nowrap md:ml-0 ml-9 flex items-center">
+                Team
+              </div>
+            </div>
+          </div>
+          
+          {/* Scrollable Content Area */}
+          <div className="flex-1 overflow-y-auto flex items-center justify-center p-8">
+            <div className="w-full max-w-md text-center">
+              {/* Create Team Header */}
+              <div className="mb-8">
+                <h1 className="text-3xl font-bold text-white mb-4">Create Your Team</h1>
+                <p className="text-gray-400 text-lg">Get started by setting up your team profile</p>
+              </div>
+
+              {/* Create Team Button */}
+              <button 
+                onClick={() => router.push('/teamEdit')}
+                className="w-full bg-[#00DF71] text-[#212327] font-medium py-4 px-6 rounded-lg hover:bg-[#0AFB84] transition-colors text-lg"
+              >
+                Create Team
+              </button>
+
+              {/* Additional Info */}
+              <div className="mt-8 text-gray-400">
+                <p className="text-sm">You'll be able to:</p>
+                <ul className="text-sm mt-2 space-y-1">
+                  <li>• Set your team name and branding</li>
+                  <li>• Upload team logo and background</li>
+                  <li>• Manage team members</li>
+                  <li>• Customize your team profile</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Render Team view for existing teams
   return (
     <div className="min-h-screen" style={{backgroundColor: '#1A1D21'}}>
       <SideNavigation />

@@ -22,6 +22,16 @@ export default function ProfileViewTitleTab({ activeTab, onTabChange }: ProfileV
           Summary
         </button>
         <button
+          onClick={() => onTabChange('skills')}
+          className={`py-2 px-1 border-b-2 font-medium text-sm transition-colors ${
+            activeTab === 'skills'
+              ? 'border-[#00DF71] text-[#00DF71]'
+              : 'border-transparent text-gray-400 hover:text-gray-300'
+          }`}
+        >
+          Skills
+        </button>
+        <button
           onClick={() => onTabChange('settings')}
           className={`py-2 px-1 border-b-2 font-medium text-sm transition-colors ${
             activeTab === 'settings'
@@ -30,16 +40,6 @@ export default function ProfileViewTitleTab({ activeTab, onTabChange }: ProfileV
           }`}
         >
           Settings
-        </button>
-        <button
-          onClick={() => onTabChange('preferences')}
-          className={`py-2 px-1 border-b-2 font-medium text-sm transition-colors ${
-            activeTab === 'preferences'
-              ? 'border-[#00DF71] text-[#00DF71]'
-              : 'border-transparent text-gray-400 hover:text-gray-300'
-          }`}
-        >
-          Preferences
         </button>
       </div>
     </div>

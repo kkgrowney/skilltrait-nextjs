@@ -22,6 +22,9 @@ export default function ProfilePage() {
   const [isLoadingRecentTemplates, setIsLoadingRecentTemplates] = useState(true);
   const [carouselPosition, setCarouselPosition] = useState(0);
   const [templatesCarouselPosition, setTemplatesCarouselPosition] = useState(0);
+  const [showSearchDropdown, setShowSearchDropdown] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedSkills, setSelectedSkills] = useState<string[]>([]);
 
   // Fetch user profile data
   const fetchUserProfile = async () => {
@@ -103,6 +106,18 @@ export default function ProfilePage() {
     } else if (direction === "right" && templatesCarouselPosition < 1) {
       setTemplatesCarouselPosition(templatesCarouselPosition + 1);
     }
+  };
+
+  // Handle adding skills
+  const handleAddSkill = (skill: string) => {
+    if (!selectedSkills.includes(skill)) {
+      setSelectedSkills([...selectedSkills, skill]);
+    }
+  };
+
+  // Handle removing skills
+  const handleRemoveSkill = (skill: string) => {
+    setSelectedSkills(selectedSkills.filter(s => s !== skill));
   };
 
   // Fetch data when user changes
@@ -482,14 +497,148 @@ export default function ProfilePage() {
                 </p>
               </div>
             </div>
-          ) : activeTab === 'preferences' ? (
-            // Preferences tab content
-            <div className="max-w-4xl">
+          ) : activeTab === 'skills' ? (
+            // Skills tab content
+            <div className="max-w-6xl">
               <div className="bg-[#212327] rounded-lg shadow-sm border border-[#454446] p-6 mb-6">
-                <h2 className="text-xl font-bold text-white mb-4">User Preferences</h2>
-                <p className="text-gray-300">
-                  User preferences and customization options will be displayed here.
-                </p>
+                <h2 className="text-xl font-bold text-white mb-6">My Skills</h2>
+                
+                {/* Responsive two-column layout */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                  {/* Left Column - Conditional Content */}
+                  <div>
+                    {selectedSkills.length === 0 ? (
+                      // Show Getting Started when no skills
+                      <div>
+                        <h3 className="text-lg font-semibold text-white mb-3">Getting Started</h3>
+                        <p className="text-gray-300 text-sm leading-relaxed">
+                          Start by adding your core competencies and areas of specialization. 
+                          You can organize skills by category, add proficiency levels, and include 
+                          relevant certifications or achievements.
+                        </p>
+                      </div>
+                    ) : (
+                      // Show Your Skills when skills exist
+                      <div>
+                        <div className="flex flex-wrap gap-2">
+                          {selectedSkills.map((skill, index) => (
+                            <div
+                              key={index}
+                              className="flex items-center gap-2 bg-[#2a2e32] border border-[#454446] rounded-full px-3 py-2 transition-colors group"
+                            >
+                              <span className="text-sm text-gray-300 group-hover:text-white group-hover:underline whitespace-nowrap">
+                                {skill}
+                              </span>
+                                                              <button
+                                  className="flex items-center justify-center w-5 h-5 border border-[#454446] hover:border-[#00DF71] text-white hover:text-[#00DF71] rounded-full transition-colors text-xs font-bold"
+                                  onClick={() => handleRemoveSkill(skill)}
+                                >
+                                  ×
+                                </button>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                  
+                  {/* Right Column - Search and Popular Skills */}
+                  <div className="space-y-6">
+                    {/* Search Section */}
+                    <div className="bg-[#1e2327] rounded-lg border border-[#454446] p-4">
+                      <h4 className="text-md font-semibold text-white mb-3">Search Skills</h4>
+                      <div className="relative">
+                        <input
+                          type="text"
+                          placeholder="Search for skills..."
+                          value={searchQuery}
+                          onChange={(e) => setSearchQuery(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter' && searchQuery.trim()) {
+                              const trimmedSkill = searchQuery.trim();
+                              if (!selectedSkills.includes(trimmedSkill)) {
+                                handleAddSkill(trimmedSkill);
+                                setSearchQuery('');
+                                setShowSearchDropdown(false);
+                              }
+                            }
+                          }}
+                          className="w-full bg-[#212327] border border-[#454446] rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:border-[#00DF71] transition-colors"
+                          onFocus={() => setShowSearchDropdown(true)}
+                          onBlur={() => setTimeout(() => setShowSearchDropdown(false), 200)}
+                        />
+                        <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                          <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                          </svg>
+                        </div>
+                        
+                        {/* Search Dropdown */}
+                        {showSearchDropdown && (
+                          <div className="absolute top-full left-0 right-0 mt-1 bg-[#212327] border border-[#454446] rounded-lg shadow-lg z-10 max-h-48 overflow-y-auto">
+                            <div className="p-2">
+                              <div className="text-xs text-gray-400 font-medium mb-2 px-2">
+                                {searchQuery ? 'Search Results' : 'Popular Skills'}
+                              </div>
+                              {['JavaScript', 'React', 'Python', 'Data Analysis', 'Project Management', 'Leadership', 'Communication', 'UI/UX Design']
+                                .filter(skill => 
+                                  skill.toLowerCase().includes(searchQuery.toLowerCase())
+                                )
+                                .map((skill, index) => (
+                                  <button
+                                    key={index}
+                                    className="w-full text-left px-3 py-2 text-sm text-gray-300 hover:text-white hover:bg-[#2a2e32] rounded-md transition-colors"
+                                                                      onClick={() => {
+                                    handleAddSkill(skill);
+                                    setSearchQuery(skill);
+                                    setShowSearchDropdown(false);
+                                  }}
+                                  >
+                                    {skill}
+                                  </button>
+                                ))}
+                              {searchQuery && ['JavaScript', 'React', 'Python', 'Data Analysis', 'Project Management', 'Leadership', 'Communication', 'UI/UX Design']
+                                .filter(skill => 
+                                  skill.toLowerCase().includes(searchQuery.toLowerCase())
+                                ).length === 0 && (
+                                  <div className="px-3 py-2 text-sm text-gray-400">
+                                    No skills found matching "{searchQuery}"
+                                  </div>
+                                )}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                    
+                    {/* Popular Skills Section */}
+                    <div className="bg-[#1e2327] rounded-lg border border-[#454446] p-6">
+                      <h4 className="text-md font-semibold text-white mb-4">Popular Skills</h4>
+                      <div className="flex flex-wrap gap-3">
+                        {['JavaScript', 'React', 'Python', 'Data Analysis', 'Project Management', 'Leadership', 'Communication', 'UI/UX Design', 'Machine Learning', 'Product Management', 'Customer Success', 'Sales', 'Marketing', 'Design Thinking', 'Agile', 'Scrum', 'Data Science', 'Cloud Computing', 'DevOps', 'Cybersecurity'].map((skill, index) => (
+                          <div
+                            key={index}
+                            className="flex items-center gap-2 bg-[#2a2e32] hover:bg-[#3a3e42] border border-[#454446] rounded-full px-3 py-2 transition-colors group cursor-pointer"
+                            onClick={() => handleAddSkill(skill)}
+                          >
+                            <span className="text-sm text-gray-300 group-hover:text-white whitespace-nowrap">
+                              {skill}
+                            </span>
+                            <button
+                              className="flex items-center justify-center w-5 h-5 bg-[#00DF71] hover:bg-[#0AFB84] text-[#212327] rounded-full transition-colors text-xs font-bold"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleAddSkill(skill);
+                              }}
+                            >
+                              +
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           ) : (
