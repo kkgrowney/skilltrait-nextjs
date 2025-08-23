@@ -20,12 +20,25 @@ export default function Team() {
   const [isLoadingProfile, setIsLoadingProfile] = useState(true);
   const [teamMembers, setTeamMembers] = useState<any[]>([]);
   const [isLoadingMembers, setIsLoadingMembers] = useState(true);
-  const [activeTab, setActiveTab] = useState('admin');
+  const [activeTab, setActiveTab] = useState('skill-search');
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [backgroundFile, setBackgroundFile] = useState<File | null>(null);
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
   const [backgroundPreview, setBackgroundPreview] = useState<string | null>(null);
   const [hasTeam, setHasTeam] = useState(false);
+  const [requiredSkills, setRequiredSkills] = useState<string[]>([]);
+
+  // Handle adding a skill to required skills
+  const handleAddSkill = (skill: string) => {
+    if (!requiredSkills.includes(skill)) {
+      setRequiredSkills([...requiredSkills, skill]);
+    }
+  };
+
+  // Handle removing a skill from required skills
+  const handleRemoveSkill = (skill: string) => {
+    setRequiredSkills(requiredSkills.filter(s => s !== skill));
+  };
 
   // Fetch team profile data from Firebase
   const fetchTeamProfile = async () => {
@@ -268,7 +281,128 @@ export default function Team() {
         
         {/* Scrollable Content Area */}
         <div className="flex-1 overflow-y-auto p-4 md:p-8" style={{ height: 'calc(100vh - 64px - 48px - 48px)' }}>
-          {activeTab === 'admin' ? (
+          {activeTab === 'skill-search' ? (
+            // Skill Search tab content
+            <div className="w-full h-full">
+              <div className="max-w-7xl grid grid-cols-1 lg:grid-cols-2 gap-8">
+                {/* Left Column */}
+                <div className="space-y-6">
+                  {/* Add tasks & skills Section */}
+                  <div className="bg-[#212327] rounded-lg shadow-sm border border-[#454446] p-6">
+                    <h3 className="text-lg font-bold text-white mb-2">Add tasks & skills</h3>
+                    <p className="text-gray-400 text-sm mb-4">
+                      Upload project tasks / requirements to build a skill rank employees
+                    </p>
+                    <div className="flex gap-3">
+                      <input
+                        type="text"
+                        placeholder="Add CSV task list / requirements"
+                        className="flex-1 bg-[#1e2327] border-2 border-dashed border-[#454446] rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:border-[#00DF71] transition-colors"
+                      />
+                      <button className="px-6 py-3 bg-[#00DF71] text-[#212327] font-medium rounded-lg hover:bg-[#0AFB84] transition-colors whitespace-nowrap">
+                        Build Skills
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Separator */}
+                  <div className="relative">
+                    <div className="absolute inset-0 flex items-center">
+                      <div className="w-full border-t border-[#454446]"></div>
+                    </div>
+                    <div className="relative flex justify-center text-sm">
+                      <span className="px-2 bg-[#1A1D21] text-gray-400">or</span>
+                    </div>
+                  </div>
+
+                  {/* Search Skills Section */}
+                  <div className="bg-[#212327] rounded-lg shadow-sm border border-[#454446] p-6">
+                    <h3 className="text-lg font-bold text-white mb-4">Search Skills</h3>
+                    <div className="relative">
+                      <input
+                        type="text"
+                        placeholder="Search for skills..."
+                        className="w-full bg-[#1e2327] border border-[#454446] rounded-lg px-4 py-3 pr-12 text-white placeholder-gray-400 focus:outline-none focus:border-[#00DF71] transition-colors"
+                      />
+                      <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                        <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                        </svg>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Popular Skills Section */}
+                  <div className="bg-[#212327] rounded-lg shadow-sm border border-[#454446] p-6">
+                    <h3 className="text-lg font-bold text-white mb-4">Popular Skills</h3>
+                    <div className="flex flex-wrap gap-3">
+                      {[
+                        'JavaScript', 'React', 'Python', 'Data Analysis', 'Project Management', 
+                        'Leadership', 'Communication', 'UI/UX Design', 'Product Management', 
+                        'Machine Learning', 'Customer Success', 'Sales', 'Marketing', 
+                        'Design Thinking', 'Agile', 'Scrum', 'Data Science', 'Cloud Computing', 
+                        'DevOps', 'Cybersecurity'
+                      ].map((skill, index) => (
+                        <div
+                          key={index}
+                          className="flex items-center gap-2 bg-[#2a2e32] hover:bg-[#3a3e42] border border-[#454446] rounded-full px-3 py-2 transition-colors group cursor-pointer"
+                          onClick={() => handleAddSkill(skill)}
+                        >
+                          <span className="text-sm text-gray-300 group-hover:text-white whitespace-nowrap">
+                            {skill}
+                          </span>
+                          <button
+                            className="flex items-center justify-center w-5 h-5 bg-[#00DF71] hover:bg-[#0AFB84] text-[#212327] rounded-full transition-colors text-xs font-bold"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleAddSkill(skill);
+                            }}
+                          >
+                            +
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Right Column */}
+                <div className="bg-[#212327] rounded-lg shadow-sm border border-[#454446] p-6">
+                  <h3 className="text-lg font-bold text-white mb-4">Required Skills</h3>
+                  {requiredSkills.length > 0 ? (
+                    <div className="space-y-3">
+                      {requiredSkills.map((skill, index) => (
+                        <div
+                          key={index}
+                          className="flex items-center justify-between p-3 bg-[#1e2327] rounded-lg border border-[#454446]"
+                        >
+                          <span className="text-white font-medium">{skill}</span>
+                          <button
+                            onClick={() => handleRemoveSkill(skill)}
+                            className="flex items-center justify-center w-6 h-6 bg-red-500 hover:bg-red-600 text-white rounded-full transition-colors text-xs font-bold"
+                          >
+                            ×
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="min-h-[400px] bg-[#1e2327] rounded-lg border border-[#454446] flex items-center justify-center">
+                      <div className="text-center text-gray-400">
+                        <p className="text-sm">No required skills added yet</p>
+                        <p className="text-xs mt-1">Add skills from the left column to get started</p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          ) : activeTab === 'employees' ? (
+            // Employees tab content
+            <div className="w-full h-full">
+              <EmployeesContent />
+            </div>
+          ) : activeTab === 'admin' ? (
             // Admin tab content
             <div className="max-w-4xl">
               {/* Team Card Container */}

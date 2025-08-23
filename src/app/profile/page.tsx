@@ -24,11 +24,10 @@ export default function ProfilePage() {
   const [templatesCarouselPosition, setTemplatesCarouselPosition] = useState(0);
   const [showSearchDropdown, setShowSearchDropdown] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedSkills, setSelectedSkills] = useState<string[]>([]);
-  const [selectedSkillDetail, setSelectedSkillDetail] = useState<string | null>(null);
   const [overviewText, setOverviewText] = useState('');
   const [originalOverviewText, setOriginalOverviewText] = useState('');
   const [selectedProficiencyLevel, setSelectedProficiencyLevel] = useState<string>('');
+  const [selectedMotivationLevel, setSelectedMotivationLevel] = useState<string>('');
 
   // Fetch user profile data
   const fetchUserProfile = async () => {
@@ -45,6 +44,7 @@ export default function ProfilePage() {
         setOverviewText(data.overview || '');
         setOriginalOverviewText(data.overview || '');
         setSelectedProficiencyLevel(data.proficiencyLevel || '');
+        setSelectedMotivationLevel(data.motivationLevel || '');
         console.log('User profile loaded:', data);
       }
     } catch (error) {
@@ -100,48 +100,25 @@ export default function ProfilePage() {
 
   // Carousel scroll handlers
   const handleCarouselScroll = (direction: "left" | "right") => {
+    const itemsPerView = 3; // Assuming 3 items per view
+    const maxPosition = Math.max(0, Math.ceil(recentProps.length / itemsPerView) - 1);
+    
     if (direction === "left" && carouselPosition > 0) {
       setCarouselPosition(carouselPosition - 1);
-    } else if (direction === "right" && carouselPosition < 1) {
+    } else if (direction === "right" && carouselPosition < maxPosition) {
       setCarouselPosition(carouselPosition + 1);
     }
   };
 
   const handleTemplatesCarouselScroll = (direction: "left" | "right") => {
+    const itemsPerView = 3; // Assuming 3 items per view
+    const maxPosition = Math.max(0, Math.ceil(recentTemplates.length / itemsPerView) - 1);
+    
     if (direction === "left" && templatesCarouselPosition > 0) {
       setTemplatesCarouselPosition(templatesCarouselPosition - 1);
-    } else if (direction === "right" && templatesCarouselPosition < 1) {
+    } else if (direction === "right" && templatesCarouselPosition < maxPosition) {
       setTemplatesCarouselPosition(templatesCarouselPosition + 1);
     }
-  };
-
-  // Handle adding skills
-  const handleAddSkill = (skill: string) => {
-    if (!selectedSkills.includes(skill)) {
-      setSelectedSkills([...selectedSkills, skill]);
-    }
-  };
-
-  // Handle removing skills
-  const handleRemoveSkill = (skill: string) => {
-    setSelectedSkills(selectedSkills.filter(s => s !== skill));
-    if (selectedSkillDetail === skill) {
-      setSelectedSkillDetail(null);
-    }
-  };
-
-  // Handle skill selection for detail view
-  const handleSkillSelect = (skill: string) => {
-    if (selectedSkillDetail === skill) {
-      setSelectedSkillDetail(null);
-    } else {
-      setSelectedSkillDetail(skill);
-    }
-  };
-
-  // Handle closing skill detail
-  const handleCloseSkillDetail = () => {
-    setSelectedSkillDetail(null);
   };
 
   const handleSaveOverview = async () => {
@@ -179,6 +156,28 @@ export default function ProfilePage() {
     } catch (error) {
       console.error('Error saving proficiency level:', error);
       alert('Failed to save proficiency level.');
+    }
+  };
+
+  const handleMotivationLevelSelect = async (motivation: string) => {
+    if (!user?.uid) return;
+    
+    let newMotivation = '';
+    if (selectedMotivationLevel === motivation) {
+      // If clicking the same motivation, deselect it
+      newMotivation = '';
+    } else {
+      // Select the new motivation (automatically deselects the previous one)
+      newMotivation = motivation;
+    }
+    
+    try {
+      const userDocRef = doc(db, 'users', user.uid);
+      await updateDoc(userDocRef, { motivationLevel: newMotivation });
+      setSelectedMotivationLevel(newMotivation);
+    } catch (error) {
+      console.error('Error saving motivation level:', error);
+      alert('Failed to save motivation level.');
     }
   };
 
@@ -380,9 +379,9 @@ export default function ProfilePage() {
                   {/* Right Arrow */}
                   <button
                     onClick={() => handleCarouselScroll("right")}
-                    disabled={carouselPosition === 1}
+                    disabled={carouselPosition >= Math.max(0, Math.ceil(recentProps.length / 3) - 1)}
                     className={`absolute right-0 top-1/2 transform -translate-y-1/2 z-10 bg-[#1e2327] border border-[#454446] rounded-full p-2 transition-colors ${
-                      carouselPosition === 1
+                      carouselPosition >= Math.max(0, Math.ceil(recentProps.length / 3) - 1)
                         ? "opacity-50 cursor-not-allowed"
                         : "hover:border-[#00DF71] cursor-pointer"
                     }`}
@@ -403,25 +402,30 @@ export default function ProfilePage() {
                   </button>
 
                   {/* Carousel Container */}
-                  <div className="flex gap-4 overflow-x-auto scrollbar-hide px-8 carousel-container" style={{ paddingLeft: "44px" }}>
-                    {isLoadingRecentProps && (
-                      <div className="text-gray-400 text-sm">Loading...</div>
-                    )}
-                    {!isLoadingRecentProps && recentProps.length === 0 && (
-                      <div className="text-gray-400 text-sm">No props yet</div>
-                    )}
-                    {recentProps.map((prop) => (
-                      <Link key={prop.id} href={`/props/${prop.id}`} className="rounded overflow-hidden border border-[#454446] hover:border-[#00DF71] transition-colors flex-shrink-0 w-full md:w-[calc(33.333%-8px)]" style={{ borderRadius: "4px" }}>
-                        <div className="relative" style={{ aspectRatio: "5 / 4" }}>
-                          <img
-                            src={prop.fullPropImage || "/liquid_death_props.png"}
-                            alt={prop.propsTitle || "Recent Prop"}
-                            className="object-contain relative z-20 w-full h-full"
-                            style={{ borderRadius: "4px", width: "100%", height: "100%", objectPosition: "bottom" }}
-                          />
-                        </div>
-                      </Link>
-                    ))}
+                  <div className="flex gap-4 overflow-hidden px-8 carousel-container" style={{ paddingLeft: "44px" }}>
+                    <div 
+                      className="flex gap-4 transition-transform duration-300 ease-in-out"
+                      style={{ transform: `translateX(-${carouselPosition * 100}%)` }}
+                    >
+                      {isLoadingRecentProps && (
+                        <div className="text-gray-400 text-sm">Loading...</div>
+                      )}
+                      {!isLoadingRecentProps && recentProps.length === 0 && (
+                        <div className="text-gray-400 text-sm">No props yet</div>
+                      )}
+                      {recentProps.map((prop) => (
+                        <Link key={prop.id} href={`/props/${prop.id}`} className="rounded overflow-hidden border border-[#454446] hover:border-[#00DF71] transition-colors flex-shrink-0 w-full md:w-[calc(33.333%-8px)]" style={{ borderRadius: "4px" }}>
+                            <div className="relative" style={{ aspectRatio: "5 / 4" }}>
+                              <img
+                                src={prop.fullPropImage || "/liquid_death_props.png"}
+                                alt={prop.propsTitle || "Recent Prop"}
+                                className="object-contain relative z-20 w-full h-full"
+                                style={{ borderRadius: "4px", width: "100%", height: "100%", objectPosition: "bottom" }}
+                              />
+                            </div>
+                          </Link>
+                        ))}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -466,9 +470,9 @@ export default function ProfilePage() {
                   {/* Right Arrow */}
                   <button
                     onClick={() => handleTemplatesCarouselScroll("right")}
-                    disabled={templatesCarouselPosition === 1}
+                    disabled={templatesCarouselPosition >= Math.max(0, Math.ceil(recentTemplates.length / 3) - 1)}
                     className={`absolute right-0 top-1/2 transform -translate-y-1/2 z-10 bg-[#1e2327] border border-[#454446] rounded-full p-2 transition-colors ${
-                      templatesCarouselPosition === 1
+                      templatesCarouselPosition >= Math.max(0, Math.ceil(recentTemplates.length / 3) - 1)
                         ? "opacity-50 cursor-not-allowed"
                         : "hover:border-[#00DF71] cursor-pointer"
                     }`}
@@ -489,62 +493,35 @@ export default function ProfilePage() {
                   </button>
 
                   {/* Carousel Container */}
-                  <div className="flex gap-4 overflow-x-auto scrollbar-hide px-8 templates-carousel-container" style={{ paddingLeft: "44px" }}>
-                    {isLoadingRecentTemplates && (
-                      <div className="text-gray-400 text-sm">Loading...</div>
-                    )}
-                    {!isLoadingRecentTemplates && recentTemplates.length === 0 && (
-                      <div className="text-gray-400 text-sm">No templates yet</div>
-                    )}
-                    {recentTemplates.map((t) => (
-                      <Link
-                        key={t.id}
-                        href={`/templates/${t.id}`}
-                        className="rounded overflow-hidden border border-[#454446] hover:border-[#00DF71] transition-colors flex-shrink-0 w-full md:w-[calc(33.333%-8px)]"
-                        style={{ borderRadius: "4px" }}
-                      >
-                        <div className="relative" style={{ aspectRatio: "5 / 4" }}>
-                          {/* White background fill */}
-                          <div
-                            className="absolute inset-0 z-5 bg-white"
-                            style={{ borderRadius: "4px" }}
-                          />
-                          {/* Background layer (props background 600x400) */}
-                          <div
-                            className="absolute inset-0 z-10 overflow-hidden"
-                            style={{ borderRadius: "4px" }}
-                          >
+                  <div className="flex gap-4 overflow-hidden px-8 templates-carousel-container" style={{ paddingLeft: "44px" }}>
+                    <div 
+                      className="flex gap-4 transition-transform duration-300 ease-in-out"
+                      style={{ transform: `translateX(-${templatesCarouselPosition * 100}%)` }}
+                    >
+                      {isLoadingRecentTemplates && (
+                        <div className="text-gray-400 text-sm">Loading...</div>
+                      )}
+                      {!isLoadingRecentTemplates && recentTemplates.length === 0 && (
+                        <div className="text-gray-400 text-sm">No templates yet</div>
+                      )}
+                      {recentTemplates.map((t) => (
+                        <Link
+                          key={t.id}
+                          href={`/templates/${t.id}`}
+                          className="rounded overflow-hidden border border-[#454446] hover:border-[#00DF71] transition-colors flex-shrink-0 w-full md:w-[calc(33.333%-8px)]"
+                          style={{ borderRadius: "4px" }}
+                        >
+                          <div className="relative" style={{ aspectRatio: "5 / 4" }}>
                             <img
                               src={t.backgroundUrl || "/liquid_death_props.png"}
-                              alt={t.company || ""}
-                              className="w-full h-full object-cover"
-                              style={{ borderRadius: "4px", objectFit: "cover", objectPosition: "center" }}
+                              alt={t.company || "Recent Template"}
+                              className="object-cover w-full h-full"
+                              style={{ borderRadius: "4px", width: "100%", height: "100%" }}
                             />
                           </div>
-                          {/* Foreground props image */}
-                          <img
-                            src={t.basePropsUrl || ""}
-                            alt={t.company || ""}
-                            className="object-contain relative z-20 w-full h-full"
-                            style={{ borderRadius: "4px", width: "100%", height: "100%", objectPosition: "bottom" }}
-                          />
-                          {/* White header with logo/company (scaled proportionally) */}
-                          <div
-                            className="absolute top-0 left-0 right-0 bg-white border-b-2 border-gray-200 z-30"
-                            style={{ height: "33px", borderRadius: "4px 4px 0 0" }}
-                          >
-                            <div
-                              className="absolute flex items-center gap-1 px-2"
-                              style={{ height: "60%", width: "100%", left: 0, top: "50%", transform: "translateY(-50%)" }}
-                            >
-                              <span className="text-gray-700 text-xs font-medium truncate">
-                                {t.company}
-                              </span>
-                            </div>
-                          </div>
-                        </div>
-                      </Link>
-                    ))}
+                        </Link>
+                      ))}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -557,264 +534,6 @@ export default function ProfilePage() {
                 <p className="text-gray-300">
                   Profile settings and configuration options will be displayed here.
                 </p>
-              </div>
-            </div>
-          ) : activeTab === 'skills' ? (
-            // Skills tab content
-            <div className="max-w-6xl">
-              <div className="bg-[#212327] rounded-lg shadow-sm border border-[#454446] p-6 mb-6">
-                <h2 className="text-xl font-bold text-white mb-6">My Skills</h2>
-                
-                {/* Responsive two-column layout */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                  {/* Left Column - Conditional Content */}
-                  <div>
-                    {selectedSkills.length === 0 ? (
-                      // Show Getting Started when no skills
-                      <div>
-                        <h3 className="text-lg font-semibold text-white mb-3">Getting Started</h3>
-                        <p className="text-gray-300 text-sm leading-relaxed">
-                          Start by adding your core competencies and areas of specialization. 
-                          You can organize skills by category, add proficiency levels, and include 
-                          relevant certifications or achievements.
-                        </p>
-                      </div>
-                    ) : (
-                      // Show Your Skills when skills exist
-                      <div>
-                        <div className="flex flex-wrap gap-2">
-                          {selectedSkills.map((skill, index) => (
-                                                        <div
-                              key={index}
-                              className={`flex items-center gap-2 border rounded-full px-3 py-2 transition-colors group cursor-pointer ${
-                                selectedSkillDetail === skill
-                                  ? 'bg-[#00DF71] border-[#00DF71]'
-                                  : 'bg-[#2a2e32] border-[#454446] hover:bg-[#3a3e42]'
-                              }`}
-                              onClick={() => handleSkillSelect(skill)}
-                            >
-                              <span className={`text-sm whitespace-nowrap ${
-                                selectedSkillDetail === skill
-                                  ? 'text-[#212327] font-medium'
-                                  : 'text-gray-300 group-hover:text-white group-hover:underline'
-                              }`}>
-                                {skill}
-                              </span>
-                              <button
-                                className={`flex items-center justify-center w-5 h-5 border rounded-full transition-colors text-xs font-bold ${
-                                  selectedSkillDetail === skill
-                                    ? 'border-[#212327] text-[#212327] hover:bg-[#212327] hover:text-[#00DF71]'
-                                    : 'border-[#454446] text-white hover:border-[#00DF71] hover:text-[#00DF71]'
-                                }`}
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleRemoveSkill(skill);
-                                }}
-                              >
-                                ×
-                              </button>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                  
-                                    {/* Right Column - Conditional Content */}
-                  <div className="h-full">
-                    {selectedSkillDetail ? (
-                      /* Skill Detail Container */
-                      <div className="bg-[#1e2327] rounded-lg border border-[#454446] h-full p-6">
-                        <div className="flex items-center justify-between mb-6">
-                          <h4 className="text-xl font-semibold text-white">{selectedSkillDetail}</h4>
-                          <button
-                            onClick={handleCloseSkillDetail}
-                            className="flex items-center justify-center w-8 h-8 border border-[#454446] hover:border-[#00DF71] text-white hover:text-[#00DF71] rounded-full transition-colors text-lg font-bold"
-                          >
-                            ×
-                          </button>
-                        </div>
-                        
-                        {/* Skill Detail Content */}
-                        <div className="space-y-6">
-                          <div className="bg-[#212327] rounded-lg border border-[#454446] p-4">
-                            <h5 className="text-md font-semibold text-white mb-3">Overview</h5>
-                            
-                            <div className="space-y-3">
-                              <textarea
-                                id="overviewTextarea"
-                                placeholder="Enter your overview here..."
-                                maxLength={160}
-                                rows={4}
-                                className="w-full bg-[#1A1D21] border border-[#454446] rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:border-[#00DF71] transition-colors resize-none"
-                                value={overviewText}
-                                onChange={(e) => setOverviewText(e.target.value)}
-                              />
-                              
-                              <div className="flex justify-between items-center">
-                                <div className="text-sm text-gray-400">
-                                  <span className={overviewText.length > 160 ? 'text-red-400 font-semibold' : ''}>
-                                    {overviewText.length > 160 ? `${overviewText.length - 160} over limit` : `${160 - overviewText.length} characters remaining`}
-                                  </span>
-                                </div>
-                                
-                                <div className="flex gap-2">
-                                  <button
-                                    onClick={handleCancelOverview}
-                                    className="px-4 py-2 text-sm border border-[#454446] text-gray-300 rounded-lg font-medium hover:border-[#00DF71] hover:text-[#00DF71] transition-colors"
-                                  >
-                                    Cancel
-                                  </button>
-                                  <button
-                                    onClick={handleSaveOverview}
-                                    disabled={overviewText.length > 160 || overviewText === originalOverviewText}
-                                    className="px-4 py-2 text-sm bg-[#00DF71] text-[#212327] rounded-lg font-medium hover:bg-[#0AFB84] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                                  >
-                                    Save
-                                  </button>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                          
-                          <div className="bg-[#212327] rounded-lg border border-[#454446] p-4">
-                            <h5 className="text-md font-semibold text-white mb-3">Proficiency Level</h5>
-                            <div className="flex gap-2">
-                              {['Beginner', 'Intermediate', 'Advanced', 'Expert'].map((level, index) => (
-                                <button
-                                  key={index}
-                                  className={`px-3 py-2 text-sm border rounded-lg transition-colors ${
-                                    selectedProficiencyLevel === level
-                                      ? 'bg-[#00DF71] border-[#00DF71] text-[#212327] font-medium'
-                                      : 'bg-[#2a2e32] border-[#454446] text-gray-300 hover:border-[#00DF71] hover:text-[#00DF71]'
-                                  }`}
-                                  onClick={() => handleProficiencyLevelSelect(level)}
-                                >
-                                  {level}
-                                </button>
-                              ))}
-                            </div>
-                          </div>
-                          
-                          <div className="bg-[#212327] rounded-lg border border-[#454446] p-4">
-                            <h5 className="text-md font-semibold text-white mb-3">Skill Growth</h5>
-                            <p className="text-gray-300 text-sm mb-4">
-                              How motivated are you to build this skill
-                            </p>
-                            <div className="flex gap-2">
-                              {['Low', 'Medium', 'High', 'Very High'].map((motivation, index) => (
-                                <button
-                                  key={index}
-                                  className="px-3 py-2 text-sm border border-[#454446] rounded-lg text-gray-300 hover:border-[#00DF71] hover:text-[#00DF71] transition-colors"
-                                >
-                                  {motivation}
-                                </button>
-                              ))}
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    ) : (
-                      /* Search and Popular Skills */
-                      <div className="space-y-6">
-                        {/* Search Section */}
-                        <div className="bg-[#1e2327] rounded-lg border border-[#454446] p-4">
-                          <h4 className="text-md font-semibold text-white mb-3">Search Skills</h4>
-                          <div className="relative">
-                            <input
-                              type="text"
-                              placeholder="Search for skills..."
-                              value={searchQuery}
-                              onChange={(e) => setSearchQuery(e.target.value)}
-                              onKeyDown={(e) => {
-                                if (e.key === 'Enter' && searchQuery.trim()) {
-                                  const trimmedSkill = searchQuery.trim();
-                                  if (!selectedSkills.includes(trimmedSkill)) {
-                                    handleAddSkill(trimmedSkill);
-                                    setSearchQuery('');
-                                    setShowSearchDropdown(false);
-                                  }
-                                }
-                              }}
-                              className="w-full bg-[#212327] border border-[#454446] rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:border-[#00DF71] transition-colors"
-                              onFocus={() => setShowSearchDropdown(true)}
-                              onBlur={() => setTimeout(() => setShowSearchDropdown(false), 200)}
-                            />
-                            <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
-                              <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                              </svg>
-                            </div>
-                            
-                            {/* Search Dropdown */}
-                            {showSearchDropdown && (
-                              <div className="absolute top-full left-0 right-0 mt-1 bg-[#212327] border border-[#454446] rounded-lg shadow-lg z-10 max-h-48 overflow-y-auto">
-                                <div className="p-2">
-                                  <div className="text-xs text-gray-400 font-medium mb-2 px-2">
-                                    {searchQuery ? 'Search Results' : 'Popular Skills'}
-                                  </div>
-                                  {['JavaScript', 'React', 'Python', 'Data Analysis', 'Project Management', 'Leadership', 'Communication', 'UI/UX Design']
-                                    .filter(skill => 
-                                      skill.toLowerCase().includes(searchQuery.toLowerCase())
-                                    )
-                                    .map((skill, index) => (
-                                      <button
-                                        key={index}
-                                        className="w-full text-left px-3 py-2 text-sm text-gray-300 hover:text-white hover:bg-[#2a2e32] rounded-md transition-colors"
-                                        onClick={() => {
-                                          handleAddSkill(skill);
-                                          setSearchQuery(skill);
-                                          setShowSearchDropdown(false);
-                                        }}
-                                      >
-                                        {skill}
-                                      </button>
-                                    ))}
-                                  {searchQuery && ['JavaScript', 'React', 'Python', 'Data Analysis', 'Project Management', 'Leadership', 'Communication', 'UI/UX Design']
-                                    .filter(skill => 
-                                      skill.toLowerCase().includes(searchQuery.toLowerCase())
-                                    ).length === 0 && (
-                                      <div className="px-3 py-2 text-sm text-gray-400">
-                                        No skills found matching "{searchQuery}"
-                                      </div>
-                                    )}
-                                </div>
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                        
-                        {/* Popular Skills Section */}
-                        <div className="bg-[#1e2327] rounded-lg border border-[#454446] p-6">
-                          <h4 className="text-md font-semibold text-white mb-4">Popular Skills</h4>
-                          <div className="flex flex-wrap gap-3">
-                            {['JavaScript', 'React', 'Python', 'Data Analysis', 'Project Management', 'Leadership', 'Communication', 'UI/UX Design', 'Machine Learning', 'Product Management', 'Customer Success', 'Sales', 'Marketing', 'Design Thinking', 'Agile', 'Scrum', 'Data Science', 'Cloud Computing', 'DevOps', 'Cybersecurity'].slice(0, 32).map((skill, index) => (
-                              <div
-                                key={index}
-                                className="flex items-center gap-2 bg-[#2a2e32] hover:bg-[#3a3e42] border border-[#454446] rounded-full px-3 py-2 transition-colors group cursor-pointer"
-                                onClick={() => handleAddSkill(skill)}
-                              >
-                                <span className="text-sm text-gray-300 group-hover:text-white whitespace-nowrap">
-                                  {skill}
-                                </span>
-                                <button
-                                  className="flex items-center justify-center w-5 h-5 bg-[#00DF71] hover:bg-[#0AFB84] text-[#212327] rounded-full transition-colors text-xs font-bold"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleAddSkill(skill);
-                                  }}
-                                >
-                                  +
-                                </button>
-                              </div>
-                            ))}
-                          </div>
-                          <div className="h-[31px]"></div>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </div>
               </div>
             </div>
           ) : (
