@@ -37,13 +37,14 @@ export default function SkillsPage() {
   const [skillDocumentId, setSkillDocumentId] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
 
-  // Helper function to map proficiency level to integer (1-5)
+  // Helper function to map proficiency level to integer (1-6)
   const mapProficiencyToInt = (level: string): number => {
     switch (level) {
       case 'Beginner': return 1;
       case 'Intermediate': return 2;
       case 'Advanced': return 3;
       case 'Expert': return 4;
+      case 'Master': return 5;
       default: return 1;
     }
   };
@@ -51,10 +52,11 @@ export default function SkillsPage() {
   // Helper function to map motivation level to integer (1-5)
   const mapMotivationToInt = (level: string): number => {
     switch (level) {
-      case 'Low': return 1;
-      case 'Medium': return 2;
-      case 'High': return 3;
-      case 'Very High': return 4;
+      case 'Very Low': return 1;
+      case 'Low': return 2;
+      case 'Moderate': return 3;
+      case 'High': return 4;
+      case 'Very High': return 5;
       default: return 1;
     }
   };
@@ -230,11 +232,11 @@ export default function SkillsPage() {
             setOriginalOverviewText(skillData.description || '');
             
             // Map proficiency back from integer
-            const proficiencyMap = { 1: 'Beginner', 2: 'Intermediate', 3: 'Advanced', 4: 'Expert' };
+            const proficiencyMap = { 1: 'Beginner', 2: 'Intermediate', 3: 'Advanced', 4: 'Expert', 5: 'Master' };
             setSelectedProficiencyLevel(proficiencyMap[skillData.proficiency as keyof typeof proficiencyMap] || '');
             
             // Map motivation back from integer
-            const motivationMap = { 1: 'Low', 2: 'Medium', 3: 'High', 4: 'Very High' };
+            const motivationMap = { 1: 'Very Low', 2: 'Low', 3: 'Moderate', 4: 'High', 5: 'Very High' };
             const motivationLevel = motivationMap[skillData.motivation as keyof typeof motivationMap] || '';
             setSelectedMotivationLevel(motivationLevel);
           }
@@ -493,7 +495,7 @@ export default function SkillsPage() {
                         <div className="bg-[#212327] rounded-lg border border-[#454446] p-4">
                           <h5 className="text-md font-semibold text-white mb-3">Proficiency Level</h5>
                           <div className="flex gap-2">
-                            {['Beginner', 'Intermediate', 'Advanced', 'Expert'].map((level, index) => (
+                            {['Beginner', 'Intermediate', 'Advanced', 'Expert', 'Master'].map((level, index) => (
                               <button
                                 key={index}
                                 className={`px-3 py-2 text-sm border rounded-lg transition-colors ${
@@ -515,7 +517,7 @@ export default function SkillsPage() {
                             How motivated are you to build this skill
                           </p>
                           <div className="flex gap-2">
-                            {['Low', 'Medium', 'High', 'Very High'].map((motivation, index) => (
+                            {['Very Low', 'Low', 'Moderate', 'High', 'Very High'].map((motivation, index) => (
                               <button
                                 key={index}
                                 className={`px-3 py-2 text-sm border rounded-lg transition-colors ${

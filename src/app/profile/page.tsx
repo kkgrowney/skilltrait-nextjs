@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import SideNavigation, { useSideNavMargin } from '@/components/SideNavigation';
 import ProfileViewTitleTab from '@/components/ProfileViewTitleTab';
 import { useAuth } from '@/contexts/AuthContext';
-import { doc, getDoc, collection, query, orderBy, onSnapshot, updateDoc } from 'firebase/firestore';
+import { doc, getDoc, getDocs, collection, query, orderBy, onSnapshot, updateDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import Link from 'next/link';
 
@@ -28,6 +28,8 @@ export default function ProfilePage() {
   const [originalOverviewText, setOriginalOverviewText] = useState('');
   const [selectedProficiencyLevel, setSelectedProficiencyLevel] = useState<string>('');
   const [selectedMotivationLevel, setSelectedMotivationLevel] = useState<string>('');
+  const [teamProfile, setTeamProfile] = useState<any>(null);
+  const [isLoadingTeam, setIsLoadingTeam] = useState(true);
 
   // Fetch user profile data
   const fetchUserProfile = async () => {
@@ -95,6 +97,94 @@ export default function ProfilePage() {
       console.error('Error fetching recent templates:', error);
       setRecentTemplates([]);
       setIsLoadingRecentTemplates(false);
+    }
+  };
+
+  // Fetch team profile data from connectedCompanies subcollection
+  const fetchTeamProfile = async () => {
+    if (!user?.uid) return;
+    
+    setIsLoadingTeam(true);
+    try {
+      // Fetch from the user's connectedCompanies subcollection
+      const connectedCompaniesRef = collection(db, 'users', user.uid, 'connectedCompanies');
+      const connectedCompaniesSnapshot = await getDocs(connectedCompaniesRef);
+      
+      if (!connectedCompaniesSnapshot.empty) {
+        // Find the active and verified company connection
+        let activeCompanyConnection: any = null;
+        
+        connectedCompaniesSnapshot.forEach((companyDoc) => {
+          const companyData = companyDoc.data();
+          console.log('Checking company connection:', companyData);
+          console.log('Document ID:', companyDoc.id);
+          console.log('active field:', companyData.active, 'type:', typeof companyData.active);
+          console.log('verified field:', companyData.verified, 'type:', typeof companyData.verified);
+          console.log('companyReference field:', companyData.companyReference, 'type:', typeof companyData.companyReference);
+          
+          // Look for active=true and verified=true connections
+          if (companyData.active === true && companyData.verified === true) {
+            activeCompanyConnection = { id: companyDoc.id, ...companyData };
+            console.log('Found active and verified company connection:', activeCompanyConnection);
+          }
+        });
+        
+        if (activeCompanyConnection && activeCompanyConnection.companyReference) {
+          // Fetch the actual company details from the companies collection
+          try {
+            console.log('Company reference found:', activeCompanyConnection.companyReference);
+            
+            // Handle both string IDs and Firestore document references
+            let companyDocRef: any;
+            if (typeof activeCompanyConnection.companyReference === 'string') {
+              // If it's a string ID
+              companyDocRef = doc(db, 'companies', activeCompanyConnection.companyReference);
+            } else if (activeCompanyConnection.companyReference && typeof activeCompanyConnection.companyReference === 'object' && 'path' in activeCompanyConnection.companyReference) {
+              // If it's a Firestore document reference, use it directly
+              companyDocRef = activeCompanyConnection.companyReference;
+            } else {
+              console.log('Invalid companyReference format:', activeCompanyConnection.companyReference);
+              setTeamProfile(activeCompanyConnection); // Fallback to connection data only
+              return;
+            }
+            
+            const companyDoc = await getDoc(companyDocRef);
+            
+            if (companyDoc.exists()) {
+              const companyDetails = companyDoc.data();
+              // Combine connection data with company details
+              const fullCompanyProfile = {
+                ...activeCompanyConnection,
+                ...companyDetails
+              };
+              setTeamProfile(fullCompanyProfile);
+              console.log('Full company profile loaded:', fullCompanyProfile);
+            } else {
+              console.log('Company document not found for reference:', activeCompanyConnection.companyReference);
+              setTeamProfile(activeCompanyConnection); // Fallback to connection data only
+            }
+          } catch (companyError) {
+            console.error('Error fetching company details:', companyError);
+            setTeamProfile(activeCompanyConnection); // Fallback to connection data only
+          }
+        } else {
+          console.log('No active and verified company connections found, or missing companyReference');
+          console.log('activeCompanyConnection:', activeCompanyConnection);
+          if (activeCompanyConnection) {
+            console.log('companyReference type:', typeof activeCompanyConnection.companyReference);
+            console.log('companyReference value:', activeCompanyConnection.companyReference);
+          }
+          setTeamProfile(null);
+        }
+      } else {
+        console.log('No connected companies found for user');
+        setTeamProfile(null);
+      }
+    } catch (error) {
+      console.error('Error fetching connected companies:', error);
+      setTeamProfile(null);
+    } finally {
+      setIsLoadingTeam(false);
     }
   };
 
@@ -189,6 +279,13 @@ export default function ProfilePage() {
       fetchRecentTemplates();
     }
   }, [user]);
+
+  // Fetch team data when userProfile changes
+  useEffect(() => {
+    if (userProfile) {
+      fetchTeamProfile();
+    }
+  }, [userProfile]);
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: "#1B1D21" }}>
@@ -338,6 +435,57 @@ export default function ProfilePage() {
                       userProfile?.description ||
                       "No bio set"}
                   </p>
+                </div>
+
+                {/* Company Section */}
+                <div className="mt-4">
+                  <h3 className="text-sm font-semibold text-white uppercase tracking-wide mb-2">
+                    Company
+                  </h3>
+                  {isLoadingTeam ? (
+                    <div className="text-gray-400 text-sm">Loading company information...</div>
+                  ) : teamProfile ? (
+                    <div className="flex items-center gap-3">
+                      {teamProfile.logoUrl && (
+                        <div className="w-8 h-8 rounded-full overflow-hidden border border-[#454446]">
+                          <img
+                            src={teamProfile.logoUrl}
+                            alt="Company Logo"
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
+                      )}
+                      <div>
+                        <p className="text-[#00DF71] font-medium">
+                          {teamProfile.companyName || teamProfile.name || "Company Member"}
+                        </p>
+                        <p className="text-gray-400 text-xs">
+                          {teamProfile.website ? (
+                            <a
+                              href={teamProfile.website}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="hover:text-[#00DF71] transition-colors"
+                            >
+                              {teamProfile.website}
+                            </a>
+                          ) : (
+                            "No website set"
+                          )}
+                        </p>
+                        <p className="text-gray-400 text-xs mt-1">
+                          Active: <span className="text-[#00DF71]">{teamProfile.active ? "Yes" : "No"}</span> • 
+                          Verified: <span className={teamProfile.verified ? "text-[#00DF71]" : "text-yellow-400"}>
+                            {teamProfile.verified ? "Yes" : "No"}
+                          </span>
+                        </p>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="text-gray-400 text-sm">
+                      No company information available
+                    </div>
+                  )}
                 </div>
               </div>
 
