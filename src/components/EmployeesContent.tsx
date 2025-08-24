@@ -12,10 +12,11 @@ interface Employee {
   employeeId: string;
   name: string;
   title: string;
-  startDate: string;
+  startDate: any; // Firestore datetime/timestamp
   birthday: string;
   location: string;
   fullTime: boolean;
+  isAdmin: boolean;
   photo?: string;
   role?: string;
   skills?: string[];
@@ -58,170 +59,242 @@ export default function EmployeesContent() {
     }
   };
 
-  // Fetch employees from the current user's company
-  const fetchEmployees = async () => {
+    // Store company connections for lazy loading
+  const [companyConnections, setCompanyConnections] = useState<any[]>([]);
+  const [currentCompanyId, setCurrentCompanyId] = useState<string | null>(null);
+  const [isLoadingConnections, setIsLoadingConnections] = useState(true);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+
+  // Fetch company connections first (fast initial load)
+  const fetchCompanyConnections = async () => {
     if (!user?.uid) return;
     
-    setIsLoading(true);
+    setIsLoadingConnections(true);
     try {
-      console.log('Fetching employees for current user\'s company...');
+      console.log('Fetching company connections...');
       
-      // First, get the current user's profile to find their company
-      const currentUserRef = doc(db, 'users', user.uid);
-      const currentUserDoc = await getDoc(currentUserRef);
+      // Query the top-level connectedCompanies collection to find the current user's company
+      const userConnectionsQuery = query(
+        collection(db, 'connectedCompanies'),
+        where('userRef', '==', doc(db, 'users', user.uid)),
+        where('active', '==', true)
+      );
       
-      if (!currentUserDoc.exists()) {
-        console.log('Current user profile not found');
-        setEmployees([]);
-        return;
-      }
+      const userConnectionsSnapshot = await getDocs(userConnectionsQuery);
+      console.log(`Found ${userConnectionsSnapshot.docs.length} active connections for current user`);
       
-      const currentUserData = currentUserDoc.data();
-      console.log('Current user data:', currentUserData);
-      
-      // Get the current user's company from their connectedCompanies
-      const connectedCompaniesRef = collection(db, 'users', user.uid, 'connectedCompanies');
-      const connectedCompaniesSnapshot = await getDocs(connectedCompaniesRef);
-      
-      let currentCompanyId: string | null = null;
-      let currentCompanyData: any = null;
-      
-      // Find the active company connection for the current user
-      for (const companyDoc of connectedCompaniesSnapshot.docs) {
-        const companyData = companyDoc.data();
-        if (companyData.active === true && companyData.companyReference) {
-          currentCompanyId = companyData.companyReference;
-          currentCompanyData = companyData;
-          break;
-        }
-      }
-      
-      if (!currentCompanyId) {
+      if (userConnectionsSnapshot.docs.length === 0) {
         console.log('Current user is not connected to any active company');
-        setEmployees([]);
+        setCompanyConnections([]);
         return;
       }
       
-      console.log('Current user\'s company ID:', currentCompanyId);
+      // Get the company reference from the user's connection
+      const userConnection = userConnectionsSnapshot.docs[0];
+      const companyRef = userConnection.data().companyReference; // This is a DocumentReference
+      const isAdmin = userConnection.data().isAdmin || false; // Check if user is admin
       
-      // Now query all users connected to the same company using collection group query
-      const employeesData: Employee[] = [];
-      
-      try {
-        // Use collection group query to find all connectedCompanies subcollections
-        // that match our company ID and are active
-        const connectedCompaniesQuery = query(
-          collectionGroup(db, 'connectedCompanies'),
-          where('active', '==', true),
-          where('companyReference', '==', currentCompanyId)
-        );
-        
-        const connectedCompaniesSnapshot = await getDocs(connectedCompaniesQuery);
-        
-        // Process each company connection and fetch user data
-        for (const companyDoc of connectedCompaniesSnapshot.docs) {
-          try {
-            // Extract user ID from the document path
-            // Path format: users/{userId}/connectedCompanies/{companyDocId}
-            const pathParts = companyDoc.ref.path.split('/');
-            const userId = pathParts[1]; // users/{userId}/...
-            
-            // Get user data
-            const userRef = doc(db, 'users', userId);
-            const userDoc = await getDoc(userRef);
-            
-            if (userDoc.exists()) {
-              const userData = userDoc.data();
-              const companyData = companyDoc.data();
-              
-              // Helper function to convert Firestore timestamps to readable strings
-              const formatDate = (dateValue: any): string => {
-                if (!dateValue) return 'Unknown';
-                
-                // If it's a Firestore timestamp object
-                if (dateValue && typeof dateValue === 'object' && dateValue.seconds) {
-                  try {
-                    const date = new Date(dateValue.seconds * 1000);
-                    return date.toLocaleDateString('en-US', { 
-                      month: '2-digit', 
-                      day: '2-digit', 
-                      year: 'numeric' 
-                    });
-                  } catch (error) {
-                    return 'Invalid Date';
-                  }
-                }
-                
-                // If it's already a string, return as is
-                if (typeof dateValue === 'string') {
-                  return dateValue;
-                }
-                
-                // If it's a Date object
-                if (dateValue instanceof Date) {
-                  return dateValue.toLocaleDateString('en-US', { 
-                    month: '2-digit', 
-                    day: '2-digit', 
-                    year: 'numeric' 
-                  });
-                }
-                
-                return 'Unknown';
-              };
-
-              // Debug logging for fullTime field
-              console.log(`User ${userId} fullTime value:`, {
-                rawValue: companyData.fullTime,
-                type: typeof companyData.fullTime,
-                booleanValue: companyData.fullTime === true,
-                source: 'companyData.fullTime'
-              });
-
-              // Create employee object (without skills initially)
-              const employee: Employee = {
-                id: userId,
-                employeeId: userData.employeeID || userData.employeeId || userId,
-                name: userData.display_name || userData.displayName || userData.name || 'Unknown User',
-                title: userData.currentRole || companyData.role || companyData.title || 'Employee',
-                startDate: formatDate(companyData.startDate || companyData.joinDate),
-                birthday: formatDate(userData.birthday || userData.birthDate),
-                location: userData.location || userData.city || userData.state || 'Unknown',
-                fullTime: companyData.fullTime === true,
-                photo: userData.photo_url || userData.photoURL || userData.photo || userData.profilePicture,
-                role: companyData.role || 'Employee',
-                skills: [] // Initialize with empty array, will be populated when needed
-              };
-              
-              console.log(`Created employee object for ${userId}:`, {
-                name: employee.name,
-                skills: employee.skills,
-                skillsLength: employee.skills?.length
-              });
-              
-              employeesData.push(employee);
-              console.log(`Added employee: ${employee.name} from company ${currentCompanyId}`);
-            }
-          } catch (error) {
-            console.error(`Error processing company connection:`, error);
-          }
-        }
-      } catch (error) {
-        console.error('Error querying connected companies:', error);
+      if (!companyRef) {
+        console.log('User connection missing companyReference');
+        setCompanyConnections([]);
+        return;
       }
       
-      setEmployees(employeesData);
-      console.log('Employees loaded for company:', currentCompanyId, employeesData);
+      const companyId = companyRef.id; // Extract the company ID from the document reference
+      setCurrentCompanyId(companyId);
+      console.log('Current user\'s company ID:', companyId, 'isAdmin:', isAdmin);
+      
+      // Now query all active connections for this company
+      const companyConnectionsQuery = query(
+        collection(db, 'connectedCompanies'),
+        where('companyReference', '==', companyRef), // Use the DocumentReference directly
+        where('active', '==', true)
+      );
+      
+      const companyConnectionsSnapshot = await getDocs(companyConnectionsQuery);
+      console.log(`Found ${companyConnectionsSnapshot.docs.length} total active company connections`);
+      
+      // Store company connections for lazy loading
+      const connections = companyConnectionsSnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+      
+      setCompanyConnections(connections);
+      console.log('Company connections loaded:', connections);
+      
     } catch (error) {
-      console.error('Error fetching employees:', error);
-      setEmployees([]);
+      console.error('Error fetching company connections:', error);
+      setCompanyConnections([]);
     } finally {
-      setIsLoading(false);
+      setIsLoadingConnections(false);
     }
   };
 
-  // Fetch employees when component mounts
+  // Helper function to convert Firestore timestamps to readable strings
+  const formatDate = (dateValue: any): string => {
+    if (!dateValue) return 'Unknown';
+    
+    // If it's a Firestore timestamp object
+    if (dateValue && typeof dateValue === 'object' && dateValue.seconds) {
+      try {
+        const date = new Date(dateValue.seconds * 1000);
+        return date.toLocaleDateString('en-US', { 
+          month: '2-digit', 
+          day: '2-digit', 
+          year: 'numeric' 
+        });
+      } catch (error) {
+        return 'Invalid Date';
+      }
+    }
+    
+    // If it's already a string, return as is
+    if (typeof dateValue === 'string') {
+      return dateValue;
+    }
+    
+    // If it's a Date object
+    if (dateValue instanceof Date) {
+      return dateValue.toLocaleDateString('en-US', { 
+        month: '2-digit', 
+        day: '2-digit', 
+        year: 'numeric' 
+      });
+    }
+    
+    return 'Unknown';
+  };
+
+  // Helper function to format start date (Firestore datetime)
+  const formatStartDate = (startDate: any): string => {
+    if (!startDate) return 'Unknown';
+    
+    try {
+      // If it's a Firestore timestamp object
+      if (startDate && typeof startDate === 'object' && startDate.seconds) {
+        const startDateTime = new Date(startDate.seconds * 1000);
+        return startDateTime.toLocaleDateString('en-US', { 
+          month: 'long', 
+          day: 'numeric', 
+          year: 'numeric' 
+        });
+      }
+      
+      // If it's already a string, return as is
+      if (typeof startDate === 'string') {
+        return startDate;
+      }
+      
+      // If it's a Date object
+      if (startDate instanceof Date) {
+        return startDate.toLocaleDateString('en-US', { 
+          month: 'long', 
+          day: 'numeric', 
+          year: 'numeric' 
+        });
+      }
+      
+      return 'Unknown';
+    } catch (error) {
+      return 'Unknown';
+    }
+  };
+
+  // Lazy load employees based on pagination
+  const loadEmployeesPage = async (page: number, pageSize: number = 10) => {
+    if (!companyConnections.length) return;
+    
+    setIsLoadingMore(true);
+    
+    try {
+      const startIndex = (page - 1) * pageSize;
+      const endIndex = startIndex + pageSize;
+      const pageConnections = companyConnections.slice(startIndex, endIndex);
+      
+      console.log(`Loading employees page ${page}: connections ${startIndex} to ${endIndex} of ${companyConnections.length}`);
+      console.log(`Page connections:`, pageConnections);
+      
+      if (pageConnections.length === 0) {
+        console.log('No more connections to load');
+        return;
+      }
+      
+      const newEmployees: Employee[] = [];
+      
+      // Fetch user data for this page only
+      for (const connection of pageConnections) {
+        try {
+          const userRef = connection.userRef;
+          
+          if (!userRef) {
+            console.log('Company connection missing userRef:', connection.id);
+            continue;
+          }
+          
+          console.log(`Fetching user data for connection:`, connection.id, 'userRef:', userRef);
+          
+          // Get user data using the userRef
+          const userDoc = await getDoc(userRef);
+          
+          if (userDoc.exists()) {
+            const userData = userDoc.data() as any;
+            const userId = userDoc.id;
+            
+            // Create employee object (without skills initially)
+            const employee: Employee = {
+              id: userId,
+              employeeId: userData.employeeID || userData.employeeId || userId,
+              name: userData.display_name || userData.displayName || userData.name || 'Unknown User',
+              title: userData.currentRole || connection.role || connection.title || 'Employee',
+              startDate: connection.startDate || connection.joinDate, // Keep as datetime for proper handling
+              birthday: formatDate(userData.birthday || userData.birthDate),
+              location: userData.location || userData.city || userData.state || 'Unknown',
+              fullTime: connection.fullTime === true,
+              isAdmin: connection.isAdmin === true,
+              photo: userData.photo_url || userData.photoURL || userData.photo || userData.profilePicture,
+              role: connection.role || 'Employee',
+              skills: []
+            };
+            
+            newEmployees.push(employee);
+            console.log(`Added employee: ${employee.name} (${newEmployees.length}/${pageConnections.length})`);
+          } else {
+            console.log(`User document not found for userRef:`, userRef);
+          }
+        } catch (error) {
+          console.error(`Error loading employee:`, error);
+        }
+      }
+      
+      console.log(`Finished loading page ${page}. New employees: ${newEmployees.length}`);
+      
+      // Add new employees to existing list
+      setEmployees(prev => {
+        const updated = [...prev, ...newEmployees];
+        console.log(`Total employees after update: ${updated.length}`);
+        return updated;
+      });
+    } finally {
+      setIsLoadingMore(false);
+    }
+  };
+
+  // Initial load of company connections
   useEffect(() => {
-    fetchEmployees();
+    fetchCompanyConnections();
+  }, [user]);
+
+  // Load first page of employees when connections are ready
+  useEffect(() => {
+    if (companyConnections.length > 0 && employees.length === 0) {
+      loadEmployeesPage(1, 10); // Load first 10 employees
+    }
+  }, [companyConnections, employees.length]);
+
+  // Initial load of company connections
+  useEffect(() => {
+    fetchCompanyConnections();
   }, [user]);
 
   const filteredEmployees = employees.filter(employee => {
@@ -354,12 +427,15 @@ export default function EmployeesContent() {
                   Inactive
                 </button>
                 <button
-                  onClick={fetchEmployees}
-                  disabled={isLoading}
-                  className="px-3 py-1.5 text-xs font-medium rounded transition-colors bg-[#00DF71] text-[#212327] hover:bg-[#00E676] disabled:opacity-50 disabled:cursor-not-allowed"
+                  onClick={() => {
+                    setEmployees([]); // Clear existing employees
+                    loadEmployeesPage(1, 10); // Reload first page
+                  }}
+                  disabled={isLoadingConnections}
+                  className="px-3 py-1.1.5 text-xs font-medium rounded transition-colors bg-[#00DF71] text-[#212327] hover:bg-[#00E676] disabled:opacity-50 disabled:cursor-not-allowed"
                   title="Refresh employee list"
                 >
-                  {isLoading ? 'Refreshing...' : 'Refresh'}
+                  {isLoadingConnections ? 'Refreshing...' : 'Refresh'}
                 </button>
               </div>
             </div>
@@ -398,11 +474,11 @@ export default function EmployeesContent() {
                 <div className="rounded-none flex-1 flex flex-col min-h-0 overflow-hidden">
                   <div className="flex-1 flex flex-col justify-between min-h-0 overflow-hidden">
                     <div className="overflow-x-auto overflow-y-auto pb-20" style={{ height: 'calc(100vh - 200px)', maxHeight: 'calc(100vh - 200px)' }}>
-                      {isLoading ? (
+                      {isLoadingConnections ? (
                         <div className="flex items-center justify-center h-full">
                           <div className="text-center">
                             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#00DF71] mx-auto mb-4"></div>
-                            <p className="text-gray-400">Loading employees...</p>
+                            <p className="text-gray-400">Loading company connections...</p>
                           </div>
                         </div>
                       ) : employees.length === 0 ? (
@@ -477,7 +553,7 @@ export default function EmployeesContent() {
                                 {employee.title}
                               </td>
                               <td className="pl-3 pr-6 py-4 whitespace-nowrap text-sm text-gray-300">
-                                {employee.startDate}
+                                {formatStartDate(employee.startDate)}
                               </td>
                               <td className="pl-3 pr-6 py-4 whitespace-nowrap text-sm text-gray-300">
                                 {employee.birthday ? formatBirthday(employee.birthday) : 'Unknown'}
@@ -507,23 +583,22 @@ export default function EmployeesContent() {
               {/* Sticky Pagination */}
               <div className="fixed bottom-0 left-0 right-0 flex items-center py-4 border-t border-[#454446] bg-[#1F2327] z-10" style={{ left: '66px', right: '0px' }}>
                 <div className="text-sm text-gray-300 pl-3">
-                  Showing {startIndex + 1} to {Math.min(endIndex, filteredEmployees.length)} of {filteredEmployees.length} results
+                  Showing {employees.length} of {companyConnections.length} employees
                 </div>
                 <div className="flex space-x-2 ml-6">
-                  <button
-                    onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-                    disabled={currentPage === 1}
-                    className="px-3 py-2 text-sm font-medium text-gray-300 bg-[#1B1D21] border border-[#454446] rounded hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    Previous
-                  </button>
-                  <button
-                    onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
-                    disabled={currentPage === totalPages}
-                    className="px-3 py-2 text-sm font-medium text-sm font-medium text-gray-300 bg-[#1B1D21] border border-[#454446] rounded hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    Next
-                  </button>
+                  {employees.length < companyConnections.length && (
+                    <button
+                      onClick={() => {
+                        const nextPage = Math.floor(employees.length / 10) + 1;
+                        console.log(`Load More clicked. Current employees: ${employees.length}, Next page: ${nextPage}`);
+                        loadEmployeesPage(nextPage, 10);
+                      }}
+                      disabled={isLoadingMore}
+                      className="px-3 py-2 text-sm font-medium text-gray-300 bg-[#1B1D21] border border-[#454446] rounded hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {isLoadingMore ? 'Loading...' : `Load More (${companyConnections.length - employees.length} remaining)`}
+                    </button>
+                  )}
                 </div>
               </div>
 

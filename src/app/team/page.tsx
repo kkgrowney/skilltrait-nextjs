@@ -111,92 +111,168 @@ export default function Team() {
     
     setIsLoadingProfile(true);
     try {
-      // Fetch from the user's connectedCompanies subcollection
-      const connectedCompaniesRef = collection(db, 'users', user.uid, 'connectedCompanies');
+      console.log('🔍 Starting fetchTeamProfile for user:', user.uid);
+      
+      // Fetch from the top-level connectedCompanies collection
+      const connectedCompaniesRef = collection(db, 'connectedCompanies');
+      console.log('📁 Querying collection path: connectedCompanies');
+      
       const connectedCompaniesSnapshot = await getDocs(connectedCompaniesRef);
+      console.log('📊 Connected companies snapshot size:', connectedCompaniesSnapshot.size);
+      console.log('📊 Connected companies snapshot empty:', connectedCompaniesSnapshot.empty);
       
       if (!connectedCompaniesSnapshot.empty) {
-        // Find the active and verified company connection
+        console.log('✅ Found connected companies, processing each one...');
+        
+        // Find the active and verified company connection for this user
         let activeCompanyConnection: any = null;
+        let connectionCount = 0;
         
         connectedCompaniesSnapshot.forEach((companyDoc: any) => {
+          connectionCount++;
           const companyData = companyDoc.data();
-          console.log('Checking company connection:', companyData);
-          console.log('Document ID:', companyDoc.id);
-          console.log('active field:', companyData.active, 'type:', typeof companyData.active);
-          console.log('verified field:', companyData.verified, 'type:', typeof companyData.verified);
-          console.log('companyReference field:', companyData.companyReference, 'type:', typeof companyData.companyReference);
           
-          // Look for active=true and verified=true connections
-          if (companyData.active === true && companyData.verified === true) {
-            activeCompanyConnection = { id: companyDoc.id, ...companyData };
-            console.log('Found active and verified company connection:', activeCompanyConnection);
+          console.log(`\n🔗 Company Connection #${connectionCount}:`);
+          console.log('  📄 Document ID:', companyDoc.id);
+          console.log('  📋 Full Document Data:', JSON.stringify(companyData, null, 2));
+          console.log('  🔍 Key Fields:');
+          console.log('    - active:', companyData.active, '(type:', typeof companyData.active, ')');
+          console.log('    - verified:', companyData.verified, '(type:', typeof companyData.verified, ')');
+          console.log('    - companyReference:', companyData.companyReference, '(type:', typeof companyData.companyReference, ')');
+          console.log('    - userRef:', companyData.userRef, '(type:', typeof companyData.userRef, ')');
+          
+          // Check for other potentially relevant fields
+          if (companyData.isAdmin !== undefined) {
+            console.log('    - isAdmin:', companyData.isAdmin, '(type:', typeof companyData.isAdmin, ')');
           }
+          if (companyData.role) {
+            console.log('    - role:', companyData.role);
+          }
+          if (companyData.status) {
+            console.log('    - status:', companyData.status);
+          }
+          
+          // Check if this connection belongs to the current user by comparing userRef
+          let isUserConnection = false;
+          if (companyData.userRef) {
+            if (typeof companyData.userRef === 'object' && 'path' in companyData.userRef) {
+              // It's a Firestore document reference
+              isUserConnection = companyData.userRef.path === `users/${user.uid}`;
+              console.log('  👤 User Check (Firestore Reference):');
+              console.log('    - Connection User Path:', companyData.userRef.path);
+              console.log('    - Current User Path:', `users/${user.uid}`);
+            } else if (typeof companyData.userRef === 'string') {
+              // It's a string path
+              isUserConnection = companyData.userRef === `users/${user.uid}`;
+              console.log('  👤 User Check (String Path):');
+              console.log('    - Connection User Path:', companyData.userRef);
+              console.log('    - Current User Path:', `users/${user.uid}`);
+            }
+          }
+          
+          console.log('    - Is User Connection:', isUserConnection);
+          
+          // Look for active=true and verified=true connections for this user
+          const isActive = companyData.active === true;
+          const isVerified = companyData.verified === true;
+          
+          console.log('  ✅ Connection Status:');
+          console.log('    - Is Active:', isActive);
+          console.log('    - Is Verified:', isVerified);
+          
+          if (isUserConnection && isActive && isVerified) {
+            activeCompanyConnection = { id: companyDoc.id, ...companyData };
+            console.log('  🎯 FOUND ACTIVE AND VERIFIED CONNECTION FOR THIS USER!');
+            console.log('  📝 Active connection data:', JSON.stringify(activeCompanyConnection, null, 2));
+          } else {
+            if (!isUserConnection) {
+              console.log('  ❌ Connection does not belong to current user');
+            } else if (!isActive || !isVerified) {
+              console.log('  ❌ Connection does not meet criteria (active=true AND verified=true)');
+            }
+          }
+          
+          console.log('  ' + '─'.repeat(50));
         });
         
+        console.log(`\n📊 Summary: Processed ${connectionCount} connections`);
+        
         if (activeCompanyConnection && activeCompanyConnection.companyReference) {
+          console.log('\n🏢 Company reference found, fetching company details...');
+          console.log('🔗 Company reference:', activeCompanyConnection.companyReference);
+          
           // Fetch the actual company details from the companies collection
           try {
-            console.log('Company reference found:', activeCompanyConnection.companyReference);
-            
             // Handle both string IDs and Firestore document references
             let companyDocRef: any;
             if (typeof activeCompanyConnection.companyReference === 'string') {
               // If it's a string ID
               companyDocRef = doc(db, 'companies', activeCompanyConnection.companyReference);
+              console.log('📁 Using string ID, created doc ref:', `companies/${activeCompanyConnection.companyReference}`);
             } else if (activeCompanyConnection.companyReference && typeof activeCompanyConnection.companyReference === 'object' && 'path' in activeCompanyConnection.companyReference) {
               // If it's a Firestore document reference, use it directly
               companyDocRef = activeCompanyConnection.companyReference;
+              console.log('📁 Using Firestore doc reference, path:', activeCompanyConnection.companyReference.path);
             } else {
-              console.log('Invalid companyReference format:', activeCompanyConnection.companyReference);
-              setTeamProfile(activeCompanyConnection); // Fallback to connection data only
+              console.log('❌ Invalid companyReference format:', activeCompanyConnection.companyReference);
+              console.log('🔧 Falling back to connection data only');
+              setTeamProfile(activeCompanyConnection);
               setHasTeam(true);
               return;
             }
             
+            console.log('📖 Fetching company document...');
             const companyDoc = await getDoc(companyDocRef);
             
             if (companyDoc.exists()) {
               const companyDetails = companyDoc.data();
+              console.log('✅ Company document found!');
+              console.log('📋 Company details:', JSON.stringify(companyDetails, null, 2));
+              
               // Combine connection data with company details
               const fullCompanyProfile = {
                 ...activeCompanyConnection,
-                ...companyDetails
+                ...(companyDetails || {})
               };
+              console.log('🔗 Combined full company profile:', JSON.stringify(fullCompanyProfile, null, 2));
+              
               setTeamProfile(fullCompanyProfile);
               setHasTeam(true);
-              console.log('Full company profile loaded:', fullCompanyProfile);
+              console.log('✅ Team profile and hasTeam state updated successfully');
             } else {
-              console.log('Company document not found for reference:', activeCompanyConnection.companyReference);
-              setTeamProfile(activeCompanyConnection); // Fallback to connection data only
+              console.log('❌ Company document not found for reference:', activeCompanyConnection.companyReference);
+              console.log('🔧 Falling back to connection data only');
+              setTeamProfile(activeCompanyConnection);
               setHasTeam(true);
             }
           } catch (companyError) {
-            console.error('Error fetching company details:', companyError);
-            setTeamProfile(activeCompanyConnection); // Fallback to connection data only
+            console.error('❌ Error fetching company details:', companyError);
+            console.log('🔧 Falling back to connection data only');
+            setTeamProfile(activeCompanyConnection);
             setHasTeam(true);
           }
         } else {
-          console.log('No active and verified company connections found, or missing companyReference');
-          console.log('activeCompanyConnection:', activeCompanyConnection);
+          console.log('\n❌ No active and verified company connections found, or missing companyReference');
+          console.log('🔍 activeCompanyConnection:', activeCompanyConnection);
           if (activeCompanyConnection) {
-            console.log('companyReference type:', typeof activeCompanyConnection.companyReference);
-            console.log('companyReference value:', activeCompanyConnection.companyReference);
+            console.log('🔍 companyReference type:', typeof activeCompanyConnection.companyReference);
+            console.log('🔍 companyReference value:', activeCompanyConnection.companyReference);
           }
           setHasTeam(false);
           setTeamProfile(null);
         }
       } else {
-        console.log('No connected companies found for user');
+        console.log('❌ No connected companies found for user');
         setHasTeam(false);
         setTeamProfile(null);
       }
     } catch (error) {
-      console.error('Error fetching connected companies:', error);
+      console.error('❌ Error fetching connected companies:', error);
       setHasTeam(false);
       setTeamProfile(null);
     } finally {
       setIsLoadingProfile(false);
+      console.log('🏁 fetchTeamProfile completed');
     }
   };
 

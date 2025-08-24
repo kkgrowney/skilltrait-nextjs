@@ -7,10 +7,11 @@ interface Employee {
   employeeId: string;
   name: string;
   title: string;
-  startDate: string;
+  startDate: any; // Firestore datetime/timestamp
   birthday: string;
   location: string;
   fullTime: boolean;
+  isAdmin: boolean;
   photo?: string;
   role?: string;
   skills?: string[];
@@ -51,6 +52,41 @@ export default function ProfileSnapshot({ employee }: ProfileSnapshotProps) {
       return birthday;
     } catch (error) {
       return birthday;
+    }
+  };
+
+  // Helper function to format start date (Firestore datetime)
+  const formatStartDate = (startDate: any): string => {
+    if (!startDate) return 'Unknown';
+    
+    try {
+      // If it's a Firestore timestamp object
+      if (startDate && typeof startDate === 'object' && startDate.seconds) {
+        const date = new Date(startDate.seconds * 1000);
+        return date.toLocaleDateString('en-US', { 
+          month: 'long', 
+          day: 'numeric', 
+          year: 'numeric' 
+        });
+      }
+      
+      // If it's already a string, return as is
+      if (typeof startDate === 'string') {
+        return startDate;
+      }
+      
+      // If it's a Date object
+      if (startDate instanceof Date) {
+        return startDate.toLocaleDateString('en-US', { 
+          month: 'long', 
+          day: 'numeric', 
+          year: 'numeric' 
+        });
+      }
+      
+      return 'Unknown';
+    } catch (error) {
+      return 'Unknown';
     }
   };
 
@@ -151,7 +187,12 @@ export default function ProfileSnapshot({ employee }: ProfileSnapshotProps) {
 
           {/* Employment Type */}
           <div className="font-['Poppins:Regular',_sans-serif] h-[18px] leading-[0] not-italic relative shrink-0 text-[#aeaeae] text-[12px] text-left w-full">
-            <p className="block leading-[1.2]">{employee.fullTime ? 'Full time' : 'Part time'} employee</p>
+            <p className="block leading-[1.2]">
+              {employee.fullTime ? 'Full time' : 'Part time'} employee
+              {employee.isAdmin && (
+                <span className="ml-2 text-[#00DF71] font-medium">• Admin</span>
+              )}
+            </p>
           </div>
 
           {/* Skills section header */}
@@ -192,7 +233,7 @@ export default function ProfileSnapshot({ employee }: ProfileSnapshotProps) {
             </div>
             <div className="basis-0 grow h-[41px] leading-[1.5] min-h-px min-w-px relative shrink-0">
               <p className="block mb-0">Work Anniversary</p>
-              <p className="block">{employee.startDate}</p>
+              <p className="block">{formatStartDate(employee.startDate)}</p>
             </div>
           </div>
 
