@@ -75,7 +75,7 @@ export default function TemplatesListPage() {
                         ) : (
                           <div className="text-xs text-gray-700">No Logo</div>
                         )}
-                        <div className="text-black font-medium truncate" style={{ maxWidth: "70%" }}>{t.company || "Template"}</div>
+                        <div className="text-black font-medium truncate" style={{ maxWidth: "70%" }}>{t.company || ""}</div>
                       </div>
                     </div>
                   </div>

@@ -60,9 +60,51 @@ export default function TemplateDetailPage() {
                   <img
                     src={template.backgroundUrl || "/liquid_death_props.png"}
                     alt={template.company || "Template"}
-                    className="object-contain rounded relative z-20 w-full h-full"
-                    style={{ borderRadius: "4px", width: "100%", height: "100%", objectPosition: "bottom" }}
+                    className="w-full h-full object-cover"
+                    style={{ borderRadius: "4px" }}
                   />
+                  {/* Logo overlay - same as Your Templates view */}
+                  <div className="absolute top-0 left-0 right-0 bg-white border-b-2 border-gray-200" style={{ height: "20%", zIndex: 50, borderRadius: "4px 4px 0 0" }}>
+                    <div className="absolute flex items-center gap-2 px-3" style={{ height: "60%", width: "100%", left: 0, top: "50%", transform: "translateY(-50%)" }}>
+                      {template.logoUrl ? (
+                        <img src={template.logoUrl} alt="Logo" className="h-full max-h-full w-auto object-contain" />
+                      ) : (
+                        <div className="text-xs text-gray-700">No Logo</div>
+                      )}
+                      <div className="text-black font-medium truncate" style={{ maxWidth: "70%" }}>{template.company || ""}</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Template Information */}
+              <div className="bg-[#212327] rounded-lg shadow-sm border border-[#454446] p-4 mx-auto" style={{ maxWidth: "600px" }}>
+                <h3 className="text-lg font-medium text-white mb-3">Template Information</h3>
+                <div className="space-y-2 text-sm">
+                  {template.company && (
+                    <div className="flex justify-between">
+                      <span className="text-gray-400">Company:</span>
+                      <span className="text-white">{template.company}</span>
+                    </div>
+                  )}
+                  {template.logoUrl && (
+                    <div className="flex justify-between">
+                      <span className="text-gray-400">Logo:</span>
+                      <span className="text-white">✓ Uploaded</span>
+                    </div>
+                  )}
+                  {template.backgroundUrl && (
+                    <div className="flex justify-between">
+                      <span className="text-gray-400">Background:</span>
+                      <span className="text-white">✓ Uploaded</span>
+                    </div>
+                  )}
+                  {template.createdAt && (
+                    <div className="flex justify-between">
+                      <span className="text-gray-400">Created:</span>
+                      <span className="text-white">{new Date(template.createdAt.toDate()).toLocaleDateString()}</span>
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -88,8 +130,27 @@ export default function TemplateDetailPage() {
                     type="button"
                     className="px-3 py-1 text-xs bg-gray-600 text-white rounded hover:bg-gray-500"
                     onClick={async () => {
-                      // Navigate user to digital awards generator with this template context
-                      router.push(`/digital-awards-generator`);
+                      // Navigate user to digital awards generator with template data pre-filled
+                      const params = new URLSearchParams();
+                      
+                      if (template.logoUrl) {
+                        params.set('logo', encodeURIComponent(template.logoUrl));
+                      }
+                      if (template.backgroundUrl) {
+                        params.set('bg', encodeURIComponent(template.backgroundUrl));
+                      }
+                      if (template.company) {
+                        params.set('company', encodeURIComponent(template.company));
+                      }
+                      if (template.basePropsUrl) {
+                        params.set('base', encodeURIComponent(template.basePropsUrl));
+                      }
+                      
+                      // Set step to props-details since user is coming from a template
+                      params.set('step', 'props-details');
+                      
+                      // Navigate with template data
+                      router.push(`/digital-awards-generator?${params.toString()}`);
                     }}
                   >
                     Use Template
