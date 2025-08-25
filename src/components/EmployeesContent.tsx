@@ -311,11 +311,12 @@ export default function EmployeesContent() {
   const endIndex = startIndex + itemsPerPage;
   const currentEmployees = filteredEmployees.slice(startIndex, endIndex);
 
-  // Function to fetch skills for a specific employee
+  // ✅ UPDATED: Function to fetch skills from top-level skills collection
   const fetchEmployeeSkills = async (userId: string): Promise<string[]> => {
     try {
-      const skillsRef = collection(db, 'users', userId, 'skills');
-      const skillsSnapshot = await getDocs(skillsRef);
+      const skillsRef = collection(db, 'skills');
+      const q = query(skillsRef, where('userRef', '==', doc(db, 'users', userId)));
+      const skillsSnapshot = await getDocs(q);
       console.log(`Skills snapshot for user ${userId}:`, skillsSnapshot.docs.length, 'skills found');
       
       const skills = skillsSnapshot.docs.map(doc => {

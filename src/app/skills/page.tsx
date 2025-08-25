@@ -66,8 +66,13 @@ export default function SkillsPage() {
     if (!user?.uid) return null;
     
     try {
-      const skillsRef = collection(db, 'users', user.uid, 'skills');
-      const q = query(skillsRef, where('name', '==', skillName));
+      // ✅ UPDATED: Query top-level skills collection with userRef filter
+      const skillsRef = collection(db, 'skills');
+      const q = query(
+        skillsRef, 
+        where('userRef', '==', doc(db, 'users', user.uid)),
+        where('name', '==', skillName)
+      );
       const querySnapshot = await getDocs(q);
       
       if (!querySnapshot.empty) {
@@ -125,10 +130,10 @@ export default function SkillsPage() {
         setSelectedProficiencyLevel(data.proficiencyLevel || '');
         setSelectedMotivationLevel(data.motivationLevel || '');
         
-        // Load skills from user's skills subcollection
+        // ✅ UPDATED: Load skills from top-level skills collection with userRef filter
         try {
-          const skillsRef = collection(db, 'users', user.uid, 'skills');
-          const q = query(skillsRef);
+          const skillsRef = collection(db, 'skills');
+          const q = query(skillsRef, where('userRef', '==', doc(db, 'users', user.uid)));
           const skillsSnapshot = await getDocs(q);
           
           const userSkills = skillsSnapshot.docs.map(doc => doc.data().name);
@@ -152,13 +157,14 @@ export default function SkillsPage() {
     if (!user?.uid || selectedSkills.includes(skill)) return;
     
     try {
-      // Add to user's skills subcollection
-      const skillsRef = collection(db, 'users', user.uid, 'skills');
+      // ✅ UPDATED: Add to top-level skills collection with userRef
+      const skillsRef = collection(db, 'skills');
       await addDoc(skillsRef, {
         name: skill,
         description: '',
         proficiency: 1,
         motivation: 1,
+        userRef: doc(db, 'users', user.uid), // Add userRef field
         createdAt: new Date(),
         updatedAt: new Date()
       });
@@ -182,10 +188,10 @@ export default function SkillsPage() {
     if (!user?.uid) return;
     
     try {
-      // Find and delete from user's skills subcollection
+      // ✅ UPDATED: Find and delete from top-level skills collection
       const existingSkillId = await findSkillDocument(skill);
       if (existingSkillId) {
-        await deleteDoc(doc(db, 'users', user.uid, 'skills', existingSkillId));
+        await deleteDoc(doc(db, 'skills', existingSkillId));
       }
       
       // Update local state
@@ -216,15 +222,15 @@ export default function SkillsPage() {
     } else {
       setSelectedSkillDetail(skill);
       
-      // Try to find existing skill document
-      const existingSkillId = await findSkillDocument(skill);
-      setSkillDocumentId(existingSkillId);
-      
-      // Load existing skill data if available
-      if (existingSkillId && user?.uid) {
-        try {
-          const skillDocRef = doc(db, 'users', user.uid, 'skills', existingSkillId);
-          const skillDoc = await getDoc(skillDocRef);
+              // Try to find existing skill document
+        const existingSkillId = await findSkillDocument(skill);
+        setSkillDocumentId(existingSkillId);
+        
+        // ✅ UPDATED: Load existing skill data from top-level skills collection
+        if (existingSkillId) {
+          try {
+            const skillDocRef = doc(db, 'skills', existingSkillId);
+            const skillDoc = await getDoc(skillDocRef);
           
           if (skillDoc.exists()) {
             const skillData = skillDoc.data();
