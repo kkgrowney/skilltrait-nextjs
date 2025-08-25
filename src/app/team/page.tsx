@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import SideNavigation, { useSideNavMargin } from '@/components/SideNavigation';
 import { useNavigation } from '@/contexts/NavigationContext';
 import { useEffect, useState } from 'react';
-import { doc, getDoc, collection, getDocs } from 'firebase/firestore';
+import { doc, getDoc, collection, getDocs, query, where } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import ViewTitleTab from '@/components/ViewTitleTab';
 import EmployeesContent from '@/components/EmployeesContent';
@@ -20,6 +20,8 @@ export default function Team() {
   const [isLoadingProfile, setIsLoadingProfile] = useState(true);
   const [teamMembers, setTeamMembers] = useState<any[]>([]);
   const [isLoadingMembers, setIsLoadingMembers] = useState(true);
+  const [adminMembers, setAdminMembers] = useState<any[]>([]);
+  const [isLoadingAdminMembers, setIsLoadingAdminMembers] = useState(true);
   const [activeTab, setActiveTab] = useState('skill-search');
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [backgroundFile, setBackgroundFile] = useState<File | null>(null);
@@ -105,7 +107,7 @@ export default function Team() {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // Fetch team profile data from connectedCompanies subcollection
+  // Fetch team profile data from connectedCompanies collection (EFFICIENT - using Firestore queries)
   const fetchTeamProfile = async () => {
     if (!user?.uid) return;
     
@@ -113,108 +115,56 @@ export default function Team() {
     try {
       console.log('🔍 Starting fetchTeamProfile for user:', user.uid);
       
-      // Fetch from the top-level connectedCompanies collection
-      const connectedCompaniesRef = collection(db, 'connectedCompanies');
-      console.log('📁 Querying collection path: connectedCompanies');
+      // ✅ EFFICIENT: Query with filters to get only the user's active and verified company connection
+      const userConnectionsQuery = query(
+        collection(db, 'connectedCompanies'),
+        where('userRef', '==', doc(db, 'users', user.uid)),
+        where('active', '==', true),
+        where('verified', '==', true)
+      );
       
-      const connectedCompaniesSnapshot = await getDocs(connectedCompaniesRef);
-      console.log('📊 Connected companies snapshot size:', connectedCompaniesSnapshot.size);
-      console.log('📊 Connected companies snapshot empty:', connectedCompaniesSnapshot.empty);
+      console.log('📁 Querying with filters: userRef, active=true, verified=true');
+      const userConnectionsSnapshot = await getDocs(userConnectionsQuery);
+      console.log('📊 User connections snapshot size:', userConnectionsSnapshot.size);
       
-      if (!connectedCompaniesSnapshot.empty) {
-        console.log('✅ Found connected companies, processing each one...');
+      if (!userConnectionsSnapshot.empty) {
+        console.log('✅ Found active and verified company connection for user');
         
-        // Find the active and verified company connection for this user
-        let activeCompanyConnection: any = null;
-        let connectionCount = 0;
+        // Get the first (and should be only) connection
+        const userConnection = userConnectionsSnapshot.docs[0];
+        const companyData = userConnection.data();
         
-        connectedCompaniesSnapshot.forEach((companyDoc: any) => {
-          connectionCount++;
-          const companyData = companyDoc.data();
-          
-          console.log(`\n🔗 Company Connection #${connectionCount}:`);
-          console.log('  📄 Document ID:', companyDoc.id);
-          console.log('  📋 Full Document Data:', JSON.stringify(companyData, null, 2));
-          console.log('  🔍 Key Fields:');
-          console.log('    - active:', companyData.active, '(type:', typeof companyData.active, ')');
-          console.log('    - verified:', companyData.verified, '(type:', typeof companyData.verified, ')');
-          console.log('    - companyReference:', companyData.companyReference, '(type:', typeof companyData.companyReference, ')');
-          console.log('    - userRef:', companyData.userRef, '(type:', typeof companyData.userRef, ')');
-          
-          // Check for other potentially relevant fields
-          if (companyData.isAdmin !== undefined) {
-            console.log('    - isAdmin:', companyData.isAdmin, '(type:', typeof companyData.isAdmin, ')');
-          }
-          if (companyData.role) {
-            console.log('    - role:', companyData.role);
-          }
-          if (companyData.status) {
-            console.log('    - status:', companyData.status);
-          }
-          
-          // Check if this connection belongs to the current user by comparing userRef
-          let isUserConnection = false;
-          if (companyData.userRef) {
-            if (typeof companyData.userRef === 'object' && 'path' in companyData.userRef) {
-              // It's a Firestore document reference
-              isUserConnection = companyData.userRef.path === `users/${user.uid}`;
-              console.log('  👤 User Check (Firestore Reference):');
-              console.log('    - Connection User Path:', companyData.userRef.path);
-              console.log('    - Current User Path:', `users/${user.uid}`);
-            } else if (typeof companyData.userRef === 'string') {
-              // It's a string path
-              isUserConnection = companyData.userRef === `users/${user.uid}`;
-              console.log('  👤 User Check (String Path):');
-              console.log('    - Connection User Path:', companyData.userRef);
-              console.log('    - Current User Path:', `users/${user.uid}`);
-            }
-          }
-          
-          console.log('    - Is User Connection:', isUserConnection);
-          
-          // Look for active=true and verified=true connections for this user
-          const isActive = companyData.active === true;
-          const isVerified = companyData.verified === true;
-          
-          console.log('  ✅ Connection Status:');
-          console.log('    - Is Active:', isActive);
-          console.log('    - Is Verified:', isVerified);
-          
-          if (isUserConnection && isActive && isVerified) {
-            activeCompanyConnection = { id: companyDoc.id, ...companyData };
-            console.log('  🎯 FOUND ACTIVE AND VERIFIED CONNECTION FOR THIS USER!');
-            console.log('  📝 Active connection data:', JSON.stringify(activeCompanyConnection, null, 2));
-          } else {
-            if (!isUserConnection) {
-              console.log('  ❌ Connection does not belong to current user');
-            } else if (!isActive || !isVerified) {
-              console.log('  ❌ Connection does not meet criteria (active=true AND verified=true)');
-            }
-          }
-          
-          console.log('  ' + '─'.repeat(50));
-        });
+        console.log('🔗 Company Connection Data:');
+        console.log('  📄 Document ID:', userConnection.id);
+        console.log('  🔍 Key Fields:');
+        console.log('    - active:', companyData.active);
+        console.log('    - verified:', companyData.verified);
+        console.log('    - companyReference:', companyData.companyReference);
+        console.log('    - userRef:', companyData.userRef);
+        console.log('    - isAdmin:', companyData.isAdmin || false);
+        console.log('    - role:', companyData.role || 'Employee');
         
-        console.log(`\n📊 Summary: Processed ${connectionCount} connections`);
+        const activeCompanyConnection = { id: userConnection.id, ...(companyData as object) };
+        console.log('🎯 Active company connection found:', JSON.stringify(activeCompanyConnection, null, 2));
         
-        if (activeCompanyConnection && activeCompanyConnection.companyReference) {
+        if (activeCompanyConnection && (activeCompanyConnection as any).companyReference) {
           console.log('\n🏢 Company reference found, fetching company details...');
-          console.log('🔗 Company reference:', activeCompanyConnection.companyReference);
+          console.log('🔗 Company reference:', (activeCompanyConnection as any).companyReference);
           
           // Fetch the actual company details from the companies collection
           try {
             // Handle both string IDs and Firestore document references
             let companyDocRef: any;
-            if (typeof activeCompanyConnection.companyReference === 'string') {
+            if (typeof (activeCompanyConnection as any).companyReference === 'string') {
               // If it's a string ID
-              companyDocRef = doc(db, 'companies', activeCompanyConnection.companyReference);
-              console.log('📁 Using string ID, created doc ref:', `companies/${activeCompanyConnection.companyReference}`);
-            } else if (activeCompanyConnection.companyReference && typeof activeCompanyConnection.companyReference === 'object' && 'path' in activeCompanyConnection.companyReference) {
+              companyDocRef = doc(db, 'companies', (activeCompanyConnection as any).companyReference);
+              console.log('📁 Using string ID, created doc ref:', `companies/${(activeCompanyConnection as any).companyReference}`);
+            } else if ((activeCompanyConnection as any).companyReference && typeof (activeCompanyConnection as any).companyReference === 'object' && 'path' in (activeCompanyConnection as any).companyReference) {
               // If it's a Firestore document reference, use it directly
-              companyDocRef = activeCompanyConnection.companyReference;
-              console.log('📁 Using Firestore doc reference, path:', activeCompanyConnection.companyReference.path);
+              companyDocRef = (activeCompanyConnection as any).companyReference;
+              console.log('📁 Using Firestore doc reference, path:', (activeCompanyConnection as any).companyReference.path);
             } else {
-              console.log('❌ Invalid companyReference format:', activeCompanyConnection.companyReference);
+              console.log('❌ Invalid companyReference format:', (activeCompanyConnection as any).companyReference);
               console.log('🔧 Falling back to connection data only');
               setTeamProfile(activeCompanyConnection);
               setHasTeam(true);
@@ -240,7 +190,7 @@ export default function Team() {
               setHasTeam(true);
               console.log('✅ Team profile and hasTeam state updated successfully');
             } else {
-              console.log('❌ Company document not found for reference:', activeCompanyConnection.companyReference);
+              console.log('❌ Company document not found for reference:', (activeCompanyConnection as any).companyReference);
               console.log('🔧 Falling back to connection data only');
               setTeamProfile(activeCompanyConnection);
               setHasTeam(true);
@@ -255,8 +205,8 @@ export default function Team() {
           console.log('\n❌ No active and verified company connections found, or missing companyReference');
           console.log('🔍 activeCompanyConnection:', activeCompanyConnection);
           if (activeCompanyConnection) {
-            console.log('🔍 companyReference type:', typeof activeCompanyConnection.companyReference);
-            console.log('🔍 companyReference value:', activeCompanyConnection.companyReference);
+            console.log('🔍 companyReference type:', typeof (activeCompanyConnection as any).companyReference);
+            console.log('🔍 companyReference value:', (activeCompanyConnection as any).companyReference);
           }
           setHasTeam(false);
           setTeamProfile(null);
@@ -273,6 +223,101 @@ export default function Team() {
     } finally {
       setIsLoadingProfile(false);
       console.log('🏁 fetchTeamProfile completed');
+    }
+  };
+
+  // Fetch admin members from connectedCompanies collection (same query as Employees but with isAdmin = true)
+  const fetchAdminMembers = async () => {
+    if (!user?.uid) return;
+    
+    setIsLoadingAdminMembers(true);
+    try {
+      console.log('Fetching admin members...');
+      
+      // Query the top-level connectedCompanies collection to find the current user's company
+      const userConnectionsQuery = query(
+        collection(db, 'connectedCompanies'),
+        where('userRef', '==', doc(db, 'users', user.uid)),
+        where('active', '==', true)
+      );
+      
+      const userConnectionsSnapshot = await getDocs(userConnectionsQuery);
+      console.log(`Found ${userConnectionsSnapshot.docs.length} active connections for current user`);
+      
+      if (userConnectionsSnapshot.docs.length === 0) {
+        console.log('Current user is not connected to any active company');
+        setAdminMembers([]);
+        return;
+      }
+      
+      // Get the company reference from the user's connection
+      const userConnection = userConnectionsSnapshot.docs[0];
+      const companyRef = userConnection.data().companyReference;
+      
+      if (!companyRef) {
+        console.log('User connection missing companyReference');
+        setAdminMembers([]);
+        return;
+      }
+      
+      // Now query all active admin connections for this company - using proper Firestore filters
+      const adminConnectionsQuery = query(
+        collection(db, 'connectedCompanies'),
+        where('companyReference', '==', companyRef),
+        where('active', '==', true),
+        where('isAdmin', '==', true)
+      );
+      
+      const adminConnectionsSnapshot = await getDocs(adminConnectionsQuery);
+      console.log(`Found ${adminConnectionsSnapshot.docs.length} admin connections for company`);
+      
+      const adminMembersList: any[] = [];
+      
+      // Fetch user data for each admin connection
+      for (const connection of adminConnectionsSnapshot.docs) {
+        try {
+          const connectionData = connection.data();
+          const userRef = connectionData.userRef;
+          
+          if (!userRef) {
+            console.log('Admin connection missing userRef:', connection.id);
+            continue;
+          }
+          
+          // Get user data using the userRef
+          const userDoc = await getDoc(userRef);
+          
+          if (userDoc.exists()) {
+            const userData = userDoc.data() as any;
+            const userId = userDoc.id;
+            
+            // Create admin member object
+            const adminMember = {
+              id: userId,
+              name: userData.display_name || userData.displayName || userData.name || 'Unknown User',
+              role: connectionData.role || 'Admin',
+              photo: userData.photo_url || userData.photoURL || userData.photo || userData.profilePicture,
+              isAdmin: true
+            };
+            
+            adminMembersList.push(adminMember);
+            console.log(`Added admin member: ${adminMember.name}`);
+          } else {
+            console.log(`User document not found for userRef:`, userRef);
+          }
+        } catch (error) {
+          console.error(`Error loading admin member:`, error);
+        }
+      }
+      
+      setAdminMembers(adminMembersList);
+      console.log('Admin members loaded:', adminMembersList);
+      
+    } catch (error) {
+      console.error('Error fetching admin members:', error);
+      setAdminMembers([]);
+    } finally {
+      setIsLoadingAdminMembers(false);
     }
   };
 
@@ -298,68 +343,68 @@ export default function Team() {
       
       console.log('Company reference to match:', companyRefToMatch);
       
-      // Query all users to find those with admin access to this company
-      const usersRef = collection(db, 'users');
-      const usersSnapshot = await getDocs(usersRef);
+      // ✅ EFFICIENT: Query connectedCompanies directly with filters
+      let companyRefQuery: any;
+      if (typeof companyRefToMatch === 'string') {
+        // If it's a string ID, create a document reference
+        companyRefQuery = doc(db, 'companies', companyRefToMatch);
+      } else if (companyRefToMatch && typeof companyRefToMatch === 'object' && 'path' in companyRefToMatch) {
+        // If it's already a Firestore document reference, use it directly
+        companyRefQuery = companyRefToMatch;
+      } else {
+        console.log('Invalid company reference format:', companyRefToMatch);
+        setTeamMembers([]);
+        return;
+      }
+      
+      // Query for all active admin connections for this company
+      const adminConnectionsQuery = query(
+        collection(db, 'connectedCompanies'),
+        where('companyReference', '==', companyRefQuery),
+        where('active', '==', true),
+        where('isAdmin', '==', true)
+      );
+      
+      console.log('Querying for admin connections with filters');
+      const adminConnectionsSnapshot = await getDocs(adminConnectionsQuery);
+      console.log('Admin connections found:', adminConnectionsSnapshot.size);
       
       const membersData = [];
       
-      // Check each user's connectedCompanies subcollection
-      for (const userDoc of usersSnapshot.docs) {
+      // Process each admin connection
+      for (const connectionDoc of adminConnectionsSnapshot.docs) {
         try {
-          const connectedCompaniesRef = collection(db, 'users', userDoc.id, 'connectedCompanies');
-          const connectedCompaniesSnapshot = await getDocs(connectedCompaniesRef);
+          const connectionData = connectionDoc.data();
+          console.log('Admin connection data:', connectionData);
           
-          // Look for connections that match our criteria
-          let isAdminForThisCompany = false;
-          let connectionData: any = null;
-          
-          connectedCompaniesSnapshot.forEach((companyDoc: any) => {
-            const companyData = companyDoc.data();
-            console.log(`Checking user ${userDoc.id} company connection:`, companyData);
-            
-            // Check if this connection matches our company and user is admin
-            if (companyData.active === true && 
-                companyData.isAdmin === true && 
-                companyData.companyReference) {
-              
-              // Compare company references
-              let connectionCompanyRef = companyData.companyReference;
-              if (typeof connectionCompanyRef === 'string' && typeof companyRefToMatch === 'string') {
-                // Both are strings, compare directly
-                if (connectionCompanyRef === companyRefToMatch) {
-                  isAdminForThisCompany = true;
-                  connectionData = companyData;
-                  console.log(`User ${userDoc.id} is admin for this company`);
-                }
-              } else if (connectionCompanyRef && typeof connectionCompanyRef === 'object' && 
-                         companyRefToMatch && typeof companyRefToMatch === 'object' &&
-                         'path' in connectionCompanyRef && 'path' in companyRefToMatch) {
-                // Both are Firestore document references, compare paths
-                if (connectionCompanyRef.path === companyRefToMatch.path) {
-                  isAdminForThisCompany = true;
-                  connectionData = companyData;
-                  console.log(`User ${userDoc.id} is admin for this company (path match)`);
-                }
-              }
+          // Get the user data for this connection
+          const userRef = connectionData.userRef;
+          if (userRef) {
+            let userDocRef: any;
+            if (typeof userRef === 'string') {
+              userDocRef = doc(db, 'users', userRef);
+            } else if (userRef && typeof userRef === 'object' && 'path' in userRef) {
+              userDocRef = userRef;
+            } else {
+              console.log('Invalid userRef format:', userRef);
+              continue;
             }
-          });
-          
-          // If user is admin for this company, add them to the list
-          if (isAdminForThisCompany && connectionData) {
-            const userData = userDoc.data();
-            membersData.push({
-              id: userDoc.id,
-              name: userData.display_name || userData.displayName || userData.name || 'Unknown User',
-              photo: userData.photo_url || userData.photoURL || userData.photo || userData.profilePicture,
-              role: 'Admin',
-              connectionData: connectionData // Include connection details
-            });
-            console.log(`Added admin user: ${userData.display_name || userData.displayName || userData.name || 'Unknown User'}`);
+            
+            const userDoc = await getDoc(userDocRef);
+            if (userDoc.exists()) {
+              const userData = userDoc.data() as any;
+              membersData.push({
+                id: userDoc.id,
+                name: userData.display_name || userData.displayName || userData.name || 'Unknown User',
+                photo: userData.photo_url || userData.photoURL || userData.photo || userData.profilePicture,
+                role: 'Admin',
+                connectionData: connectionData
+              });
+              console.log(`Added admin user: ${userData.display_name || userData.displayName || userData.name || 'Unknown User'}`);
+            }
           }
-          
         } catch (error) {
-          console.error(`Error checking user ${userDoc.id} for admin access:`, error);
+          console.error(`Error processing admin connection ${connectionDoc.id}:`, error);
         }
       }
       
@@ -424,6 +469,13 @@ export default function Team() {
   useEffect(() => {
     if (hasTeam) {
       fetchTeamMembers();
+    }
+  }, [hasTeam]);
+
+  // Fetch admin members when team profile is loaded
+  useEffect(() => {
+    if (hasTeam) {
+      fetchAdminMembers();
     }
   }, [hasTeam]);
 
@@ -502,7 +554,53 @@ export default function Team() {
     );
   }
 
-  // Render Team view for existing teams
+  // Check if user is admin - if not, show limited view
+  if (hasTeam && teamProfile && !(teamProfile as any).isAdmin && !isLoadingProfile) {
+    return (
+      <div className="min-h-screen" style={{backgroundColor: '#1A1D21'}}>
+        <SideNavigation />
+        
+        <div className={`${sideNavMargin} h-full flex flex-col`}>
+          {/* Fixed Header Container */}
+          <div className="flex-shrink-0 z-20">
+            {/* ViewTitle Container */}
+            <div className="w-full bg-[#1e2327] flex items-center h-16" style={{ height: "64px !important", minHeight: "64px", maxHeight: "64px", paddingLeft: "32px" }}>
+              {/* Title text */}
+              <div className="font-semibold text-[#ffffff] text-[18px] whitespace-nowrap md:ml-0 ml-9 flex items-center">
+                Team
+              </div>
+            </div>
+          </div>
+          
+          {/* Scrollable Content Area */}
+          <div className="flex-1 overflow-y-auto flex items-center justify-center p-8">
+            <div className="text-center">
+              <h2 className="text-2xl font-bold text-white mb-4">Join Company Team</h2>
+              <p className="text-gray-400 mb-6">You are connected to {teamProfile.companyName || 'a company'} but don't have admin access</p>
+              <p className="text-gray-500 text-sm mb-6">Contact your team admin to request additional permissions</p>
+              <div className="bg-[#212327] rounded-lg p-6 border border-[#454446] max-w-md mx-auto">
+                <h3 className="text-lg font-semibold text-white mb-3">Your Company Info</h3>
+                <p className="text-gray-300 text-sm mb-2">
+                  <span className="text-gray-400">Company:</span> {teamProfile.companyName || 'N/A'}
+                </p>
+                <p className="text-gray-300 text-sm mb-2">
+                  <span className="text-gray-400">Role:</span> {teamProfile.role || 'Employee'}
+                </p>
+                <p className="text-gray-300 text-sm mb-2">
+                  <span className="text-gray-400">Status:</span> 
+                  <span className={teamProfile.active ? "text-[#00DF71] ml-2" : "text-red-400 ml-2"}>
+                    {teamProfile.active ? "Active" : "Inactive"}
+                  </span>
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Render Team view for existing teams (only for admin users)
   return (
     <div className="min-h-screen" style={{backgroundColor: '#1A1D21'}}>
       <SideNavigation />
@@ -1308,7 +1406,7 @@ export default function Team() {
                 </div>
               </div>
 
-              {/* Team Members Section */}
+              {/* Team Admin Section */}
               <div className="bg-[#212327] rounded-lg shadow-sm border border-[#454446] p-6 mb-6">
                 <div className="flex items-center justify-between mb-4">
                   <h2 className="text-xl font-bold text-white">Team Admin</h2>
@@ -1318,13 +1416,13 @@ export default function Team() {
                 </div>
                 
                 <div className="space-y-4">
-                  {isLoadingMembers ? (
+                  {isLoadingAdminMembers ? (
                     <div className="text-center text-gray-400 py-8">
                       <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-[#00DF71] mx-auto mb-2"></div>
-                      <p className="text-sm">Loading team members...</p>
+                      <p className="text-sm">Loading admin members...</p>
                     </div>
-                  ) : teamMembers.length > 0 ? (
-                    teamMembers.map((member) => (
+                  ) : adminMembers.length > 0 ? (
+                    adminMembers.map((member) => (
                       <div key={member.id} className="flex items-center justify-between p-4 bg-[#1e2327] rounded-lg border border-[#454446]">
                         <div className="flex items-center gap-3">
                           {member.photo ? (
@@ -1349,7 +1447,7 @@ export default function Team() {
                             <div className="w-10 h-10 rounded-full bg-[#454446] flex items-center justify-center">
                               <span className="text-white text-sm font-semibold">
                                 {member.name.split(' ').map((n: string) => n[0]).join('')}
-                              </span>
+                                </span>
                             </div>
                           )}
                           <div>
@@ -1358,14 +1456,14 @@ export default function Team() {
                           </div>
                         </div>
                         <div className="flex items-center gap-2">
-                          <span className="px-2 py-1 text-xs bg-gray-200 text-gray-700 rounded-full">{member.role}</span>
+                          <span className="px-2 py-1 text-xs bg-[#00DF71] text-[#212327] rounded-full">Admin</span>
                         </div>
                       </div>
                     ))
                   ) : (
                     <div className="text-center text-gray-400 py-8">
-                      <p className="text-sm">No team members found</p>
-                      <p className="text-xs mt-2">Add team members to start collaborating</p>
+                      <p className="text-sm">No admin members found</p>
+                      <p className="text-xs mt-2">Add admin members to manage the team</p>
                     </div>
                   )}
                 </div>

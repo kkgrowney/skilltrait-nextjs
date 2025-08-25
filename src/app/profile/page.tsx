@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import SideNavigation, { useSideNavMargin } from '@/components/SideNavigation';
 import ProfileViewTitleTab from '@/components/ProfileViewTitleTab';
 import { useAuth } from '@/contexts/AuthContext';
-import { doc, getDoc, getDocs, collection, query, orderBy, onSnapshot, updateDoc } from 'firebase/firestore';
+import { doc, getDoc, getDocs, collection, query, orderBy, onSnapshot, updateDoc, where } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import Link from 'next/link';
 
@@ -30,6 +30,8 @@ export default function ProfilePage() {
   const [selectedMotivationLevel, setSelectedMotivationLevel] = useState<string>('');
   const [teamProfile, setTeamProfile] = useState<any>(null);
   const [isLoadingTeam, setIsLoadingTeam] = useState(true);
+  const [companyInfo, setCompanyInfo] = useState<any>(null);
+  const [isLoadingCompany, setIsLoadingCompany] = useState(true);
 
   // Fetch user profile data
   const fetchUserProfile = async () => {
@@ -100,50 +102,165 @@ export default function ProfilePage() {
     }
   };
 
-  // Fetch team profile data from connectedCompanies subcollection
+  // Fetch company information from connectedCompanies collection
+  const fetchCompanyInfo = async () => {
+    if (!user?.uid) return;
+
+    console.log('🚀 fetchCompanyInfo called for user:', user.uid);
+    setIsLoadingCompany(true);
+
+    try {
+      console.log('🔍 Starting fetchCompanyInfo for user:', user.uid);
+      
+      // ✅ EFFICIENT: Query with filters to get only the user's active and verified company connection
+      const userConnectionsQuery = query(
+        collection(db, 'connectedCompanies'),
+        where('userRef', '==', doc(db, 'users', user.uid)),
+        where('active', '==', true),
+        where('verified', '==', true)
+      );
+      
+      console.log('📁 Querying with filters: userRef, active=true, verified=true');
+      const userConnectionsSnapshot = await getDocs(userConnectionsQuery);
+      console.log('📊 User connections snapshot size:', userConnectionsSnapshot.size);
+      
+      if (!userConnectionsSnapshot.empty) {
+        console.log('✅ Found active and verified company connection for user');
+        
+        // Get the first (and should be only) connection
+        const userConnection = userConnectionsSnapshot.docs[0];
+        const companyData = userConnection.data();
+        
+        console.log('🔗 Company Connection Data:');
+        console.log('  📄 Document ID:', userConnection.id);
+        console.log('  🔍 Key Fields:');
+        console.log('    - active:', companyData.active);
+        console.log('    - verified:', companyData.verified);
+        console.log('    - companyReference:', companyData.companyReference);
+        console.log('    - userRef:', companyData.userRef);
+        console.log('    - isAdmin:', companyData.isAdmin || false);
+        console.log('    - role:', companyData.role || 'Employee');
+        
+        const activeCompanyConnection = { id: userConnection.id, ...(companyData as object) };
+        console.log('🎯 Active company connection found:', JSON.stringify(activeCompanyConnection, null, 2));
+        
+        if (activeCompanyConnection && (activeCompanyConnection as any).companyReference) {
+          console.log('\n🏢 Company reference found, fetching company details...');
+          
+          // Fetch the actual company details from the companies collection
+          try {
+            // Handle both string IDs and Firestore document references
+            let companyDocRef: any;
+            if (typeof (activeCompanyConnection as any).companyReference === 'string') {
+              // If it's a string ID
+              companyDocRef = doc(db, 'companies', (activeCompanyConnection as any).companyReference);
+              console.log('📁 Using string ID, created doc ref:', `companies/${(activeCompanyConnection as any).companyReference}`);
+            } else if ((activeCompanyConnection as any).companyReference && typeof (activeCompanyConnection as any).companyReference === 'object' && 'path' in (activeCompanyConnection as any).companyReference) {
+              // If it's a Firestore document reference, use it directly
+              companyDocRef = (activeCompanyConnection as any).companyReference;
+              console.log('📁 Using Firestore doc reference, path:', (activeCompanyConnection as any).companyReference.path);
+            } else {
+              console.log('❌ Invalid companyReference format:', (activeCompanyConnection as any).companyReference);
+              setCompanyInfo(activeCompanyConnection); // Fallback to connection data only
+              return;
+            }
+            
+            console.log('📖 Fetching company document...');
+            const companyDoc = await getDoc(companyDocRef);
+            
+            if (companyDoc.exists()) {
+              const companyDetails = companyDoc.data();
+              console.log('✅ Company document found!');
+              console.log('📋 Company details:', JSON.stringify(companyDetails, null, 2));
+              
+              // Combine connection data with company details
+              const fullCompanyInfo = {
+                ...activeCompanyConnection,
+                ...(companyDetails as object)
+              };
+              console.log('🔗 Combined full company info:', JSON.stringify(fullCompanyInfo, null, 2));
+              
+              setCompanyInfo(fullCompanyInfo);
+              console.log('✅ Company info state updated successfully');
+              console.log('📊 New companyInfo state:', fullCompanyInfo);
+              console.log('🔍 Company name from fullCompanyInfo:', (fullCompanyInfo as any).companyName);
+            } else {
+              console.log('❌ Company document not found for reference:', (activeCompanyConnection as any).companyReference);
+              setCompanyInfo(activeCompanyConnection); // Fallback to connection data only
+            }
+          } catch (companyError) {
+            console.error('❌ Error fetching company details:', companyError);
+            setCompanyInfo(activeCompanyConnection); // Fallback to connection data only
+          }
+        } else {
+          console.log('\n❌ No active and verified company connections found, or missing companyReference');
+          setCompanyInfo(null);
+          console.log('📊 Company info set to null');
+        }
+      } else {
+        console.log('❌ No connected companies found for user');
+        setCompanyInfo(null);
+      }
+    } catch (error) {
+      console.error('❌ Error fetching connected companies:', error);
+      setCompanyInfo(null);
+    } finally {
+      setIsLoadingCompany(false);
+      console.log('🏁 fetchCompanyInfo completed');
+    }
+  };
+
+  // ✅ EFFICIENT: Fetch team profile data from top-level connectedCompanies collection
   const fetchTeamProfile = async () => {
     if (!user?.uid) return;
     
     setIsLoadingTeam(true);
     try {
-      // Fetch from the user's connectedCompanies subcollection
-      const connectedCompaniesRef = collection(db, 'users', user.uid, 'connectedCompanies');
-      const connectedCompaniesSnapshot = await getDocs(connectedCompaniesRef);
+      // ✅ EFFICIENT: Query with filters to get only the user's active and verified company connection
+      const userConnectionsQuery = query(
+        collection(db, 'connectedCompanies'),
+        where('userRef', '==', doc(db, 'users', user.uid)),
+        where('active', '==', true),
+        where('verified', '==', true)
+      );
       
-      if (!connectedCompaniesSnapshot.empty) {
-        // Find the active and verified company connection
-        let activeCompanyConnection: any = null;
+      console.log('📁 Querying with filters: userRef, active=true, verified=true');
+      const userConnectionsSnapshot = await getDocs(userConnectionsQuery);
+      console.log('📊 User connections snapshot size:', userConnectionsSnapshot.size);
+      
+      if (!userConnectionsSnapshot.empty) {
+        console.log('✅ Found active and verified company connection for user');
         
-        connectedCompaniesSnapshot.forEach((companyDoc) => {
-          const companyData = companyDoc.data();
-          console.log('Checking company connection:', companyData);
-          console.log('Document ID:', companyDoc.id);
-          console.log('active field:', companyData.active, 'type:', typeof companyData.active);
-          console.log('verified field:', companyData.verified, 'type:', typeof companyData.verified);
-          console.log('companyReference field:', companyData.companyReference, 'type:', typeof companyData.companyReference);
-          
-          // Look for active=true and verified=true connections
-          if (companyData.active === true && companyData.verified === true) {
-            activeCompanyConnection = { id: companyDoc.id, ...companyData };
-            console.log('Found active and verified company connection:', activeCompanyConnection);
-          }
-        });
+        // Get the first (and should be only) connection
+        const userConnection = userConnectionsSnapshot.docs[0];
+        const companyData = userConnection.data();
         
-        if (activeCompanyConnection && activeCompanyConnection.companyReference) {
+        console.log('🔗 Company Connection Data:');
+        console.log('  📄 Document ID:', userConnection.id);
+        console.log('  🔍 Key Fields:');
+        console.log('    - active:', companyData.active);
+        console.log('    - verified:', companyData.verified);
+        console.log('    - companyReference:', companyData.companyReference);
+        console.log('    - userRef:', companyData.userRef);
+        
+        const activeCompanyConnection = { id: userConnection.id, ...(companyData as object) };
+        console.log('🎯 Active company connection found:', JSON.stringify(activeCompanyConnection, null, 2));
+        
+        if (activeCompanyConnection && (activeCompanyConnection as any).companyReference) {
           // Fetch the actual company details from the companies collection
           try {
-            console.log('Company reference found:', activeCompanyConnection.companyReference);
+            console.log('Company reference found:', (activeCompanyConnection as any).companyReference);
             
             // Handle both string IDs and Firestore document references
             let companyDocRef: any;
-            if (typeof activeCompanyConnection.companyReference === 'string') {
+            if (typeof (activeCompanyConnection as any).companyReference === 'string') {
               // If it's a string ID
-              companyDocRef = doc(db, 'companies', activeCompanyConnection.companyReference);
-            } else if (activeCompanyConnection.companyReference && typeof activeCompanyConnection.companyReference === 'object' && 'path' in activeCompanyConnection.companyReference) {
+              companyDocRef = doc(db, 'companies', (activeCompanyConnection as any).companyReference);
+            } else if ((activeCompanyConnection as any).companyReference && typeof (activeCompanyConnection as any).companyReference === 'object' && 'path' in (activeCompanyConnection as any).companyReference) {
               // If it's a Firestore document reference, use it directly
-              companyDocRef = activeCompanyConnection.companyReference;
+              companyDocRef = (activeCompanyConnection as any).companyReference;
             } else {
-              console.log('Invalid companyReference format:', activeCompanyConnection.companyReference);
+              console.log('Invalid companyReference format:', (activeCompanyConnection as any).companyReference);
               setTeamProfile(activeCompanyConnection); // Fallback to connection data only
               return;
             }
@@ -154,13 +271,13 @@ export default function ProfilePage() {
               const companyDetails = companyDoc.data();
               // Combine connection data with company details
               const fullCompanyProfile = {
-                ...activeCompanyConnection,
-                ...companyDetails
+                ...(activeCompanyConnection as object),
+                ...(companyDetails as object)
               };
               setTeamProfile(fullCompanyProfile);
               console.log('Full company profile loaded:', fullCompanyProfile);
             } else {
-              console.log('Company document not found for reference:', activeCompanyConnection.companyReference);
+              console.log('Company document not found for reference:', (activeCompanyConnection as any).companyReference);
               setTeamProfile(activeCompanyConnection); // Fallback to connection data only
             }
           } catch (companyError) {
@@ -171,8 +288,8 @@ export default function ProfilePage() {
           console.log('No active and verified company connections found, or missing companyReference');
           console.log('activeCompanyConnection:', activeCompanyConnection);
           if (activeCompanyConnection) {
-            console.log('companyReference type:', typeof activeCompanyConnection.companyReference);
-            console.log('companyReference value:', activeCompanyConnection.companyReference);
+            console.log('companyReference type:', typeof (activeCompanyConnection as any).companyReference);
+            console.log('companyReference value:', (activeCompanyConnection as any).companyReference);
           }
           setTeamProfile(null);
         }
@@ -286,6 +403,14 @@ export default function ProfilePage() {
       fetchTeamProfile();
     }
   }, [userProfile]);
+
+  // Fetch company information from Firebase
+  useEffect(() => {
+    if (user?.uid) {
+      console.log('🔄 useEffect triggered for company info, user:', user.uid);
+      fetchCompanyInfo();
+    }
+  }, [user?.uid]);
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: "#1B1D21" }}>
@@ -442,14 +567,14 @@ export default function ProfilePage() {
                   <h3 className="text-sm font-semibold text-white uppercase tracking-wide mb-2">
                     Company
                   </h3>
-                  {isLoadingTeam ? (
+                  {isLoadingCompany ? (
                     <div className="text-gray-400 text-sm">Loading company information...</div>
-                  ) : teamProfile ? (
+                  ) : companyInfo ? (
                     <div className="flex items-center gap-3">
-                      {teamProfile.logoUrl && (
+                      {companyInfo.logoUrl && (
                         <div className="w-8 h-8 rounded-full overflow-hidden border border-[#454446]">
                           <img
-                            src={teamProfile.logoUrl}
+                            src={companyInfo.logoUrl}
                             alt="Company Logo"
                             className="w-full h-full object-cover"
                           />
@@ -457,26 +582,26 @@ export default function ProfilePage() {
                       )}
                       <div>
                         <p className="text-[#00DF71] font-medium">
-                          {teamProfile.companyName || teamProfile.name || "Company Member"}
+                          {companyInfo.companyName || companyInfo.name || companyInfo.company || companyInfo.title || "Company Member"}
                         </p>
                         <p className="text-gray-400 text-xs">
-                          {teamProfile.website ? (
+                          {companyInfo.website ? (
                             <a
-                              href={teamProfile.website}
+                              href={companyInfo.website}
                               target="_blank"
                               rel="noopener noreferrer"
                               className="hover:text-[#00DF71] transition-colors"
                             >
-                              {teamProfile.website}
+                              {companyInfo.website}
                             </a>
                           ) : (
                             "No website set"
                           )}
                         </p>
                         <p className="text-gray-400 text-xs mt-1">
-                          Active: <span className="text-[#00DF71]">{teamProfile.active ? "Yes" : "No"}</span> • 
-                          Verified: <span className={teamProfile.verified ? "text-[#00DF71]" : "text-yellow-400"}>
-                            {teamProfile.verified ? "Yes" : "No"}
+                          Active: <span className="text-[#00DF71]">{companyInfo.active ? "Yes" : "No"}</span> • 
+                          Verified: <span className={companyInfo.verified ? "text-[#00DF71]" : "text-yellow-400"}>
+                            {companyInfo.verified ? "Yes" : "No"}
                           </span>
                         </p>
                       </div>
