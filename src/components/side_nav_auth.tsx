@@ -22,6 +22,8 @@ export default function SideNavAuth({
     // Use Next.js routing for navigation
     if (view === "home") {
       router.push("/profile");
+    } else if (view === "skills") {
+      router.push("/skills");
     } else if (view === "digital-awards") {
       router.push("/digital-awards-generator");
     } else if (view === "team") {
@@ -76,6 +78,36 @@ export default function SideNavAuth({
                 }`}
               >
                 Home
+              </span>
+            </div>
+          </div>
+
+          {/* Skills - Active/Inactive State */}
+          <div
+            className={`flex items-center p-2 rounded-lg cursor-pointer transition-colors ${
+              currentView === "skills" ? "bg-[#181d21]" : "hover:bg-[#2a2e32]"
+            }`}
+            onClick={() => handleNavigationClick("skills")}
+          >
+            <div className="flex items-center gap-3 pl-2">
+              {/* Skills Icon */}
+              <img
+                src="/skills.svg"
+                alt="Skills"
+                className="h-7 w-7 flex-shrink-0"
+                style={{
+                  filter:
+                    currentView === "skills"
+                      ? "brightness(0) saturate(100%) invert(84%) sepia(11%) saturate(6382%) hue-rotate(86deg) brightness(101%) contrast(107%)" // #00DF71
+                      : "brightness(0) saturate(100%) invert(52%) sepia(8%) saturate(1234%) hue-rotate(202deg) brightness(94%) contrast(86%)", // #79828A
+                }}
+              />
+              <span
+                className={`font-medium text-base leading-none ${
+                  currentView === "skills" ? "text-[#00df71]" : "text-[#79828a]"
+                }`}
+              >
+                Skills
               </span>
             </div>
           </div>

@@ -62,6 +62,30 @@ export default function SideNavCollapsed() {
             </div>
           </div>
 
+          {/* Skills - Active/Inactive State */}
+          <div
+            className={`flex items-center justify-center w-11 h-11 rounded-lg cursor-pointer transition-colors ${
+              currentView === "skills" 
+                ? "bg-[#181d21]" 
+                : "hover:bg-[#181d21] hover:bg-opacity-50"
+            }`}
+            onClick={() => setCurrentView("skills")}
+          >
+            <div className="flex items-center justify-center w-full h-full">
+              {/* Skills Icon */}
+              <img
+                src="/skills.svg"
+                alt="Skills"
+                className="h-7 w-7 flex-shrink-0"
+                style={{
+                  filter: currentView === "skills" 
+                    ? "brightness(0) saturate(100%) invert(84%) sepia(11%) saturate(6382%) hue-rotate(86deg) brightness(101%) contrast(107%)" // #00DF71
+                    : "brightness(0) saturate(100%) invert(52%) sepia(8%) saturate(1234%) hue-rotate(202deg) brightness(94%) contrast(86%)" // #79828A
+                }}
+              />
+            </div>
+          </div>
+
           {/* Digital Awards - Active/Inactive State */}
           <div
             className={`flex items-center justify-center w-11 h-11 rounded-lg cursor-pointer transition-colors ${

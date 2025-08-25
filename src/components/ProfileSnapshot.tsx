@@ -4,10 +4,17 @@ import React from 'react';
 
 interface Employee {
   id: string;
+  employeeId: string;
   name: string;
   title: string;
-  start: string;
+  startDate: any; // Firestore datetime/timestamp
   birthday: string;
+  location: string;
+  fullTime: boolean;
+  isAdmin: boolean;
+  photo?: string;
+  role?: string;
+  skills?: string[];
 }
 
 interface ProfileSnapshotProps {
@@ -15,6 +22,74 @@ interface ProfileSnapshotProps {
 }
 
 export default function ProfileSnapshot({ employee }: ProfileSnapshotProps) {
+  // Debug logging for employee data
+  console.log('ProfileSnapshot received employee:', employee);
+  if (employee) {
+    console.log('Employee skills:', employee.skills);
+  }
+
+  // Helper function to format birthday without year
+  const formatBirthday = (birthday: string): string => {
+    if (!birthday || birthday === 'Unknown' || birthday === 'Invalid Date') return 'Unknown';
+    
+    try {
+      // If it's already in MM/DD/YYYY format, extract MM/DD
+      if (birthday.includes('/')) {
+        const parts = birthday.split('/');
+        if (parts.length >= 2) {
+          return `${parts[0]}/${parts[1]}`;
+        }
+      }
+      
+      // Try to parse as a date
+      const date = new Date(birthday);
+      if (!isNaN(date.getTime())) {
+        const month = (date.getMonth() + 1).toString().padStart(2, '0');
+        const day = date.getDate().toString().padStart(2, '0');
+        return `${month}/${day}`;
+      }
+      
+      return birthday;
+    } catch (error) {
+      return birthday;
+    }
+  };
+
+  // Helper function to format start date (Firestore datetime)
+  const formatStartDate = (startDate: any): string => {
+    if (!startDate) return 'Unknown';
+    
+    try {
+      // If it's a Firestore timestamp object
+      if (startDate && typeof startDate === 'object' && startDate.seconds) {
+        const date = new Date(startDate.seconds * 1000);
+        return date.toLocaleDateString('en-US', { 
+          month: 'long', 
+          day: 'numeric', 
+          year: 'numeric' 
+        });
+      }
+      
+      // If it's already a string, return as is
+      if (typeof startDate === 'string') {
+        return startDate;
+      }
+      
+      // If it's a Date object
+      if (startDate instanceof Date) {
+        return startDate.toLocaleDateString('en-US', { 
+          month: 'long', 
+          day: 'numeric', 
+          year: 'numeric' 
+        });
+      }
+      
+      return 'Unknown';
+    } catch (error) {
+      return 'Unknown';
+    }
+  };
+
   if (!employee) {
     return (
       <div className="bg-[#121417] rounded-none p-6 h-full flex items-center justify-center pb-16 border-l border-[#454446]">
@@ -36,7 +111,7 @@ export default function ProfileSnapshot({ employee }: ProfileSnapshotProps) {
             <p className="block leading-[1.5]">{employee.name}</p>
           </div>
           <div className="basis-0 grow h-7 min-h-px min-w-px relative shrink-0 text-right">
-            <p className="block leading-[1.5]">{employee.id}</p>
+            <p className="block leading-[1.5]">ID: {employee.employeeId}</p>
           </div>
         </div>
 
@@ -59,11 +134,24 @@ export default function ProfileSnapshot({ employee }: ProfileSnapshotProps) {
         {/* Profile image */}
         <div className="box-border content-stretch flex flex-row gap-3 items-center justify-center overflow-clip px-3 py-[18px] relative shrink-0 w-full">
           <div className="h-[211px] rounded-xl shrink-0 w-[218px] overflow-hidden">
-            <img 
-              src="profile_detail.png"
-              alt="Profile"
-              className="w-full h-full object-cover"
-            />
+            {employee.photo ? (
+              <img 
+                src={employee.photo}
+                alt={`${employee.name}'s profile photo`}
+                className="w-full h-full object-cover"
+                onError={(e) => {
+                  // Fallback to placeholder if image fails to load
+                  const target = e.target as HTMLImageElement;
+                  target.src = "profile_detail.png";
+                }}
+              />
+            ) : (
+              <div className="w-full h-full bg-[#454446] flex items-center justify-center">
+                <span className="text-white text-4xl font-bold">
+                  {employee.name.charAt(0).toUpperCase()}
+                </span>
+              </div>
+            )}
           </div>
         </div>
 
@@ -94,12 +182,40 @@ export default function ProfileSnapshot({ employee }: ProfileSnapshotProps) {
 
           {/* Location */}
           <div className="font-['Poppins:Regular',_sans-serif] h-[18px] leading-[0] not-italic relative shrink-0 text-[#aeaeae] text-[12px] text-left w-full">
-            <p className="block leading-[1.2]">Location: New York, NY</p>
+            <p className="block leading-[1.2]">Location: {employee.location}</p>
           </div>
 
           {/* Employment Type */}
           <div className="font-['Poppins:Regular',_sans-serif] h-[18px] leading-[0] not-italic relative shrink-0 text-[#aeaeae] text-[12px] text-left w-full">
-            <p className="block leading-[1.2]">Full time employee</p>
+            <p className="block leading-[1.2]">
+              {employee.fullTime ? 'Full time' : 'Part time'} employee
+              {employee.isAdmin && (
+                <span className="ml-2 text-[#00DF71] font-medium">• Admin</span>
+              )}
+            </p>
+          </div>
+
+          {/* Skills section header */}
+          <div className="box-border content-stretch flex flex-row gap-3 h-7 items-center justify-start overflow-clip px-0 py-[18px] relative shrink-0 w-full">
+            <div className="basis-0 font-['Poppins:Medium',_sans-serif] grow h-[15px] leading-[0] min-h-px min-w-px not-italic relative shrink-0 text-[#ffffff] text-[14px] text-left tracking-[0.28px]">
+              <p className="block leading-[1.2]">Skills</p>
+            </div>
+          </div>
+
+          {/* Skills list */}
+          <div className="box-border content-stretch flex flex-row flex-wrap gap-2 items-start justify-start overflow-clip px-0 py-[18px] relative shrink-0 w-full">
+            {employee.skills && employee.skills.length > 0 ? (
+              employee.skills.map((skill, index) => (
+                <span 
+                  key={index}
+                  className="px-3 py-1 bg-[#00DF71] text-[#212327] text-xs font-medium rounded-full"
+                >
+                  {skill}
+                </span>
+              ))
+            ) : (
+              <span className="text-[#aeaeae] text-xs">No skills listed</span>
+            )}
           </div>
 
           {/* Anniversaries section header */}
@@ -113,11 +229,11 @@ export default function ProfileSnapshot({ employee }: ProfileSnapshotProps) {
           <div className="box-border content-stretch flex flex-row font-['Roboto:Regular',_sans-serif] font-normal gap-3 h-[41px] items-start justify-start leading-[0] overflow-clip p-0 relative shrink-0 text-[#ffffff] text-[12px] text-left w-full">
             <div className="basis-0 grow h-[41px] leading-[1.5] min-h-px min-w-px relative shrink-0">
               <p className="block mb-0">Birthday</p>
-              <p className="block">{employee.birthday}</p>
+              <p className="block">{formatBirthday(employee.birthday)}</p>
             </div>
             <div className="basis-0 grow h-[41px] leading-[1.5] min-h-px min-w-px relative shrink-0">
               <p className="block mb-0">Work Anniversary</p>
-              <p className="block">{employee.start}</p>
+              <p className="block">{formatStartDate(employee.startDate)}</p>
             </div>
           </div>
 

@@ -1,88 +1,307 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import ProfileSnapshot from '@/components/ProfileSnapshot';
+import { collection, getDocs, doc, getDoc, collectionGroup, query, where } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
+import { useAuth } from '@/contexts/AuthContext';
 
-const EMPLOYEES = [
-  { id: '#FWB127364372', name: 'Hanna Saris', title: 'VP of Sales', start: '03/09/2023', birthday: '03/09/2023' },
-  { id: '#FWB125467980', name: 'Omar Dorwart', title: 'Product Manager', start: '03/12/2023', birthday: '03/12/2023' },
-  { id: '#FWB139485607', name: 'Chance Levin', title: 'Director of UX', start: '03/19/2023', birthday: '03/19/2023' },
-  { id: '#FWB14628462', name: 'Carla Baptista', title: 'Senior Developer', start: '03/22/2023', birthday: '03/22/2023' },
-  { id: '#FWB158392847', name: 'Sarah Johnson', title: 'Marketing Manager', start: '03/25/2023', birthday: '03/25/2023' },
-  { id: '#FWB167483920', name: 'Mike Chen', title: 'Data Analyst', start: '03/28/2023', birthday: '03/28/2023' },
-  { id: '#FWB176592847', name: 'Emma Wilson', title: 'HR Specialist', start: '04/01/2023', birthday: '04/01/2023' },
-  { id: '#FWB185601847', name: 'David Brown', title: 'Operations Lead', start: '04/04/2023', birthday: '04/04/2023' },
-  { id: '#FWB194710847', name: 'Alex Rodriguez', title: 'Software Engineer', start: '04/07/2023', birthday: '04/07/2023' },
-  { id: '#FWB203819847', name: 'Lisa Thompson', title: 'UX Designer', start: '04/10/2023', birthday: '04/10/2023' },
-  { id: '#FWB212928847', name: 'James Miller', title: 'Product Analyst', start: '04/13/2023', birthday: '04/13/2023' },
-  { id: '#FWB222037847', name: 'Maria Garcia', title: 'Content Strategist', start: '04/16/2023', birthday: '04/16/2023' },
-  { id: '#FWB231146847', name: 'Robert Davis', title: 'DevOps Engineer', start: '04/19/2023', birthday: '04/19/2023' },
-  { id: '#FWB240255847', name: 'Jennifer Lee', title: 'Business Analyst', start: '04/22/2023', birthday: '04/22/2023' },
-  { id: '#FWB249364847', name: 'Michael White', title: 'Frontend Developer', start: '04/25/2023', birthday: '04/25/2023' },
-  { id: '#FWB258473847', name: 'Amanda Taylor', title: 'Project Manager', start: '04/28/2023', birthday: '04/28/2023' },
-  { id: '#FWB267582847', name: 'Christopher Anderson', title: 'Backend Developer', start: '05/01/2023', birthday: '05/01/2023' },
-  { id: '#FWB276691847', name: 'Jessica Martinez', title: 'UI Designer', start: '05/04/2023', birthday: '05/04/2023' },
-  { id: '#FWB285700847', name: 'Daniel Clark', title: 'Data Scientist', start: '05/07/2023', birthday: '05/07/2023' },
-  { id: '#FWB294809847', name: 'Rachel Green', title: 'Marketing Specialist', start: '05/10/2023', birthday: '05/10/2023' },
-  { id: '#FWB303918847', name: 'Kevin Lewis', title: 'QA Engineer', start: '05/13/2023', birthday: '05/13/2023' },
-  { id: '#FWB313027847', name: 'Nicole Hall', title: 'Product Owner', start: '05/16/2023', birthday: '05/16/2023' },
-  { id: '#FWB322136847', name: 'Steven Allen', title: 'Systems Architect', start: '05/19/2023', birthday: '05/19/2023' },
-  { id: '#FWB331245847', name: 'Michelle Young', title: 'Brand Manager', start: '05/22/2023', birthday: '05/22/2023' },
-  { id: '#FWB340354847', name: 'Ryan King', title: 'Mobile Developer', start: '05/25/2023', birthday: '05/25/2023' },
-  { id: '#FWB349463847', name: 'Stephanie Wright', title: 'Customer Success', start: '05/28/2023', birthday: '05/28/2023' },
-  { id: '#FWB358572847', name: 'Thomas Moore', title: 'Sales Director', start: '06/01/2023', birthday: '06/01/2023' },
-  { id: '#FWB367681847', name: 'Ashley Johnson', title: 'Product Designer', start: '06/04/2023', birthday: '06/04/2023' },
-  { id: '#FWB376790847', name: 'Brandon Smith', title: 'Engineering Manager', start: '06/07/2023', birthday: '06/07/2023' },
-  { id: '#FWB385899847', name: 'Lauren Davis', title: 'Content Manager', start: '06/10/2023', birthday: '06/10/2023' },
-  { id: '#FWB395008847', name: 'Jason Wilson', title: 'Security Engineer', start: '06/13/2023', birthday: '06/13/2023' },
-  { id: '#FWB404117847', name: 'Melissa Brown', title: 'Recruitment Specialist', start: '06/16/2023', birthday: '06/16/2023' },
-  { id: '#FWB413226847', name: 'Andrew Garcia', title: 'Financial Analyst', start: '06/19/2023', birthday: '06/19/2023' },
-  { id: '#FWB422335847', name: 'Katherine Lee', title: 'Legal Counsel', start: '06/22/2023', birthday: '06/22/2023' },
-  { id: '#FWB431444847', name: 'Brian Taylor', title: 'Infrastructure Lead', start: '06/25/2023', birthday: '06/25/2023' },
-  { id: '#FWB440553847', name: 'Samantha Anderson', title: 'Event Coordinator', start: '06/28/2023', birthday: '06/28/2023' },
-  { id: '#FWB449662847', name: 'Gregory Martinez', title: 'Quality Assurance', start: '07/01/2023', birthday: '07/01/2023' },
-  { id: '#FWB458771847', name: 'Victoria Clark', title: 'Public Relations', start: '07/04/2023', birthday: '07/04/2023' },
-  { id: '#FWB467880847', name: 'Nathan Rodriguez', title: 'Research Analyst', start: '07/07/2023', birthday: '07/07/2023' },
-  { id: '#FWB476989847', name: 'Isabella White', title: 'Training Coordinator', start: '07/10/2023', birthday: '07/10/2023' },
-  { id: '#FWB486098847', name: 'Jonathan Thompson', title: 'Network Engineer', start: '07/13/2023', birthday: '07/13/2023' },
-  { id: '#FWB495207847', name: 'Sophia Lewis', title: 'Creative Director', start: '07/16/2023', birthday: '07/16/2023' },
-  { id: '#FWB504316847', name: 'Matthew Hall', title: 'Supply Chain Manager', start: '07/19/2023', birthday: '07/19/2023' },
-  { id: '#FWB513425847', name: 'Olivia Allen', title: 'Compliance Officer', start: '07/22/2023', birthday: '07/22/2023' },
-  { id: '#FWB522534847', name: 'Ethan Young', title: 'Database Administrator', start: '07/25/2023', birthday: '07/25/2023' },
-  { id: '#FWB531643847', name: 'Ava King', title: 'Business Development', start: '07/28/2023', birthday: '07/28/2023' },
-  { id: '#FWB540752847', name: 'Noah Wright', title: 'Technical Writer', start: '08/01/2023', birthday: '08/01/2023' },
-  { id: '#FWB549861847', name: 'Mia Moore', title: 'Customer Support Lead', start: '08/04/2023', birthday: '08/04/2023' },
-  { id: '#FWB558970847', name: 'Liam Johnson', title: 'Product Marketing', start: '08/07/2023', birthday: '08/07/2023' },
-  { id: '#FWB568079847', name: 'Emma Smith', title: 'Data Engineer', start: '08/10/2023', birthday: '08/10/2023' },
-  { id: '#FWB577188847', name: 'William Davis', title: 'UX Researcher', start: '08/13/2023', birthday: '08/13/2023' },
-  { id: '#FWB586297847', name: 'Sofia Wilson', title: 'Operations Analyst', start: '08/16/2023', birthday: '08/16/2023' },
-  { id: '#FWB595406847', name: 'James Brown', title: 'Strategic Planner', start: '08/19/2023', birthday: '08/19/2023' },
-  { id: '#FWB604515847', name: 'Charlotte Garcia', title: 'Performance Manager', start: '08/22/2023', birthday: '08/22/2023' },
-  { id: '#FWB613624847', name: 'Benjamin Lee', title: 'Innovation Lead', start: '08/25/2023', birthday: '08/25/2023' },
-  { id: '#FWB622733847', name: 'Harper Taylor', title: 'Sustainability Officer', start: '08/28/2023', birthday: '08/28/2023' },
-  { id: '#FWB631842847', name: 'Mason Anderson', title: 'Digital Transformation', start: '09/01/2023', birthday: '09/01/2023' },
-  { id: '#FWB640951847', name: 'Evelyn Martinez', title: 'Change Management', start: '09/04/2023', birthday: '09/04/2023' },
-  { id: '#FWB650060847', name: 'Logan Clark', title: 'Talent Acquisition', start: '09/07/2023', birthday: '09/07/2023' },
-  { id: '#FWB659169847', name: 'Abigail Rodriguez', title: 'Knowledge Manager', start: '09/10/2023', birthday: '09/10/2023' },
-  { id: '#FWB668278847', name: 'Alexander White', title: 'Process Improvement', start: '09/13/2023', birthday: '09/13/2023' },
-  { id: '#FWB677387847', name: 'Emily Thompson', title: 'Risk Management', start: '09/16/2023', birthday: '09/16/2023' },
-  { id: '#FWB686496847', name: 'Jacob Lewis', title: 'Corporate Communications', start: '09/19/2023', birthday: '09/19/2023' },
-  { id: '#FWB695605847', name: 'Madison Hall', title: 'Vendor Relations', start: '09/22/2023', birthday: '09/22/2023' },
-  { id: '#FWB704714847', name: 'Michael Allen', title: 'Facilities Manager', start: '09/25/2023', birthday: '09/25/2023' },
-  { id: '#FWB713823847', name: 'Elizabeth Young', title: 'Learning & Development', start: '09/28/2023', birthday: '09/28/2023' },
-];
+// Dynamic employee data structure
+interface Employee {
+  id: string;
+  employeeId: string;
+  name: string;
+  title: string;
+  startDate: any; // Firestore datetime/timestamp
+  birthday: string;
+  location: string;
+  fullTime: boolean;
+  isAdmin: boolean;
+  photo?: string;
+  role?: string;
+  skills?: string[];
+}
 
 export default function EmployeesContent() {
+  const { user } = useAuth();
+  const [employees, setEmployees] = useState<Employee[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [filter, setFilter] = useState('all');
   const [currentPage, setCurrentPage] = useState(1);
-  const [selectedEmployee, setSelectedEmployee] = useState<typeof EMPLOYEES[0] | null>(null);
+  const [selectedEmployee, setSelectedEmployee] = useState<Employee | null>(null);
   const [selectedEmployees, setSelectedEmployees] = useState<Set<string>>(new Set());
 
-  const filteredEmployees = EMPLOYEES.filter(employee => {
+  // Helper function to format birthday without year
+  const formatBirthday = (birthday: string): string => {
+    if (!birthday || birthday === 'Unknown' || birthday === 'Invalid Date') return 'Unknown';
+    
+    try {
+      // If it's already in MM/DD/YYYY format, extract MM/DD
+      if (birthday.includes('/')) {
+        const parts = birthday.split('/');
+        if (parts.length >= 2) {
+          return `${parts[0]}/${parts[1]}`;
+        }
+      }
+      
+      // Try to parse as a date
+      const date = new Date(birthday);
+      if (!isNaN(date.getTime())) {
+        const month = (date.getMonth() + 1).toString().padStart(2, '0');
+        const day = date.getDate().toString().padStart(2, '0');
+        return `${month}/${day}`;
+      }
+      
+      return birthday;
+    } catch (error) {
+      return birthday;
+    }
+  };
+
+    // Store company connections for lazy loading
+  const [companyConnections, setCompanyConnections] = useState<any[]>([]);
+  const [currentCompanyId, setCurrentCompanyId] = useState<string | null>(null);
+  const [isLoadingConnections, setIsLoadingConnections] = useState(true);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+
+  // Fetch company connections first (fast initial load)
+  const fetchCompanyConnections = async () => {
+    if (!user?.uid) return;
+    
+    setIsLoadingConnections(true);
+    try {
+      console.log('Fetching company connections...');
+      
+      // Query the top-level connectedCompanies collection to find the current user's company
+      const userConnectionsQuery = query(
+        collection(db, 'connectedCompanies'),
+        where('userRef', '==', doc(db, 'users', user.uid)),
+        where('active', '==', true)
+      );
+      
+      const userConnectionsSnapshot = await getDocs(userConnectionsQuery);
+      console.log(`Found ${userConnectionsSnapshot.docs.length} active connections for current user`);
+      
+      if (userConnectionsSnapshot.docs.length === 0) {
+        console.log('Current user is not connected to any active company');
+        setCompanyConnections([]);
+        return;
+      }
+      
+      // Get the company reference from the user's connection
+      const userConnection = userConnectionsSnapshot.docs[0];
+      const companyRef = userConnection.data().companyReference; // This is a DocumentReference
+      const isAdmin = userConnection.data().isAdmin || false; // Check if user is admin
+      
+      if (!companyRef) {
+        console.log('User connection missing companyReference');
+        setCompanyConnections([]);
+        return;
+      }
+      
+      const companyId = companyRef.id; // Extract the company ID from the document reference
+      setCurrentCompanyId(companyId);
+      console.log('Current user\'s company ID:', companyId, 'isAdmin:', isAdmin);
+      
+      // Now query all active connections for this company
+      const companyConnectionsQuery = query(
+        collection(db, 'connectedCompanies'),
+        where('companyReference', '==', companyRef), // Use the DocumentReference directly
+        where('active', '==', true)
+      );
+      
+      const companyConnectionsSnapshot = await getDocs(companyConnectionsQuery);
+      console.log(`Found ${companyConnectionsSnapshot.docs.length} total active company connections`);
+      
+      // Store company connections for lazy loading
+      const connections = companyConnectionsSnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+      
+      setCompanyConnections(connections);
+      console.log('Company connections loaded:', connections);
+      
+    } catch (error) {
+      console.error('Error fetching company connections:', error);
+      setCompanyConnections([]);
+    } finally {
+      setIsLoadingConnections(false);
+    }
+  };
+
+  // Helper function to convert Firestore timestamps to readable strings
+  const formatDate = (dateValue: any): string => {
+    if (!dateValue) return 'Unknown';
+    
+    // If it's a Firestore timestamp object
+    if (dateValue && typeof dateValue === 'object' && dateValue.seconds) {
+      try {
+        const date = new Date(dateValue.seconds * 1000);
+        return date.toLocaleDateString('en-US', { 
+          month: '2-digit', 
+          day: '2-digit', 
+          year: 'numeric' 
+        });
+      } catch (error) {
+        return 'Invalid Date';
+      }
+    }
+    
+    // If it's already a string, return as is
+    if (typeof dateValue === 'string') {
+      return dateValue;
+    }
+    
+    // If it's a Date object
+    if (dateValue instanceof Date) {
+      return dateValue.toLocaleDateString('en-US', { 
+        month: '2-digit', 
+        day: '2-digit', 
+        year: 'numeric' 
+      });
+    }
+    
+    return 'Unknown';
+  };
+
+  // Helper function to format start date (Firestore datetime)
+  const formatStartDate = (startDate: any): string => {
+    if (!startDate) return 'Unknown';
+    
+    try {
+      // If it's a Firestore timestamp object
+      if (startDate && typeof startDate === 'object' && startDate.seconds) {
+        const startDateTime = new Date(startDate.seconds * 1000);
+        return startDateTime.toLocaleDateString('en-US', { 
+          month: 'long', 
+          day: 'numeric', 
+          year: 'numeric' 
+        });
+      }
+      
+      // If it's already a string, return as is
+      if (typeof startDate === 'string') {
+        return startDate;
+      }
+      
+      // If it's a Date object
+      if (startDate instanceof Date) {
+        return startDate.toLocaleDateString('en-US', { 
+          month: 'long', 
+          day: 'numeric', 
+          year: 'numeric' 
+        });
+      }
+      
+      return 'Unknown';
+    } catch (error) {
+      return 'Unknown';
+    }
+  };
+
+  // Lazy load employees based on pagination
+  const loadEmployeesPage = async (page: number, pageSize: number = 10) => {
+    if (!companyConnections.length) return;
+    
+    setIsLoadingMore(true);
+    
+    try {
+      const startIndex = (page - 1) * pageSize;
+      const endIndex = startIndex + pageSize;
+      const pageConnections = companyConnections.slice(startIndex, endIndex);
+      
+      console.log(`Loading employees page ${page}: connections ${startIndex} to ${endIndex} of ${companyConnections.length}`);
+      console.log(`Page connections:`, pageConnections);
+      
+      if (pageConnections.length === 0) {
+        console.log('No more connections to load');
+        return;
+      }
+      
+      const newEmployees: Employee[] = [];
+      
+      // Fetch user data for this page only
+      for (const connection of pageConnections) {
+        try {
+          const userRef = connection.userRef;
+          
+          if (!userRef) {
+            console.log('Company connection missing userRef:', connection.id);
+            continue;
+          }
+          
+          console.log(`Fetching user data for connection:`, connection.id, 'userRef:', userRef);
+          
+          // Get user data using the userRef
+          const userDoc = await getDoc(userRef);
+          
+          if (userDoc.exists()) {
+            const userData = userDoc.data() as any;
+            const userId = userDoc.id;
+            
+            // Create employee object (without skills initially)
+            const employee: Employee = {
+              id: userId,
+              employeeId: userData.employeeID || userData.employeeId || userId,
+              name: userData.display_name || userData.displayName || userData.name || 'Unknown User',
+              title: userData.currentRole || connection.role || connection.title || 'Employee',
+              startDate: connection.startDate || connection.joinDate, // Keep as datetime for proper handling
+              birthday: formatDate(userData.birthday || userData.birthDate),
+              location: userData.location || userData.city || userData.state || 'Unknown',
+              fullTime: connection.fullTime === true,
+              isAdmin: connection.isAdmin === true,
+              photo: userData.photo_url || userData.photoURL || userData.photo || userData.profilePicture,
+              role: connection.role || 'Employee',
+              skills: []
+            };
+            
+            newEmployees.push(employee);
+            console.log(`Added employee: ${employee.name} (${newEmployees.length}/${pageConnections.length})`);
+          } else {
+            console.log(`User document not found for userRef:`, userRef);
+          }
+        } catch (error) {
+          console.error(`Error loading employee:`, error);
+        }
+      }
+      
+      console.log(`Finished loading page ${page}. New employees: ${newEmployees.length}`);
+      
+      // Add new employees to existing list
+      setEmployees(prev => {
+        const updated = [...prev, ...newEmployees];
+        console.log(`Total employees after update: ${updated.length}`);
+        return updated;
+      });
+    } finally {
+      setIsLoadingMore(false);
+    }
+  };
+
+  // Initial load of company connections
+  useEffect(() => {
+    fetchCompanyConnections();
+  }, [user]);
+
+  // Load first page of employees when connections are ready
+  useEffect(() => {
+    if (companyConnections.length > 0 && employees.length === 0) {
+      loadEmployeesPage(1, 10); // Load first 10 employees
+    }
+  }, [companyConnections, employees.length]);
+
+  // Initial load of company connections
+  useEffect(() => {
+    fetchCompanyConnections();
+  }, [user]);
+
+  const filteredEmployees = employees.filter(employee => {
     const matchesSearch = employee.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          employee.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         employee.id.toLowerCase().includes(searchTerm.toLowerCase());
+                         employee.employeeId.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         employee.location.toLowerCase().includes(searchTerm.toLowerCase());
     return matchesSearch;
   });
 
@@ -92,8 +311,39 @@ export default function EmployeesContent() {
   const endIndex = startIndex + itemsPerPage;
   const currentEmployees = filteredEmployees.slice(startIndex, endIndex);
 
-  const handleEmployeeClick = (employee: typeof EMPLOYEES[0]) => {
-    setSelectedEmployee(employee);
+  // ✅ UPDATED: Function to fetch skills from top-level skills collection
+  const fetchEmployeeSkills = async (userId: string): Promise<string[]> => {
+    try {
+      const skillsRef = collection(db, 'skills');
+      const q = query(skillsRef, where('userRef', '==', doc(db, 'users', userId)));
+      const skillsSnapshot = await getDocs(q);
+      console.log(`Skills snapshot for user ${userId}:`, skillsSnapshot.docs.length, 'skills found');
+      
+      const skills = skillsSnapshot.docs.map(doc => {
+        const skillData = doc.data();
+        console.log(`Skill document ${doc.id}:`, skillData);
+        return skillData.name; // Get the name field from each skill document
+      }).filter(Boolean); // Remove any undefined/null values
+      
+      console.log(`Final skills for user ${userId}:`, skills);
+      return skills;
+    } catch (error) {
+      console.error(`Error fetching skills for user ${userId}:`, error);
+      return [];
+    }
+  };
+
+  const handleEmployeeClick = async (employee: Employee) => {
+    // Fetch skills when employee is selected
+    const skills = await fetchEmployeeSkills(employee.id);
+    
+    // Create updated employee object with skills
+    const employeeWithSkills = {
+      ...employee,
+      skills: skills
+    };
+    
+    setSelectedEmployee(employeeWithSkills);
   };
 
   const handleSelectEmployee = (employeeId: string, checked: boolean) => {
@@ -177,6 +427,17 @@ export default function EmployeesContent() {
                 >
                   Inactive
                 </button>
+                <button
+                  onClick={() => {
+                    setEmployees([]); // Clear existing employees
+                    loadEmployeesPage(1, 10); // Reload first page
+                  }}
+                  disabled={isLoadingConnections}
+                  className="px-3 py-1.1.5 text-xs font-medium rounded transition-colors bg-[#00DF71] text-[#212327] hover:bg-[#00E676] disabled:opacity-50 disabled:cursor-not-allowed"
+                  title="Refresh employee list"
+                >
+                  {isLoadingConnections ? 'Refreshing...' : 'Refresh'}
+                </button>
               </div>
             </div>
           </div>
@@ -214,7 +475,22 @@ export default function EmployeesContent() {
                 <div className="rounded-none flex-1 flex flex-col min-h-0 overflow-hidden">
                   <div className="flex-1 flex flex-col justify-between min-h-0 overflow-hidden">
                     <div className="overflow-x-auto overflow-y-auto pb-20" style={{ height: 'calc(100vh - 200px)', maxHeight: 'calc(100vh - 200px)' }}>
-                      <table className="min-w-full divide-y divide-gray-800">
+                      {isLoadingConnections ? (
+                        <div className="flex items-center justify-center h-full">
+                          <div className="text-center">
+                            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#00DF71] mx-auto mb-4"></div>
+                            <p className="text-gray-400">Loading company connections...</p>
+                          </div>
+                        </div>
+                      ) : employees.length === 0 ? (
+                        <div className="flex items-center justify-center h-full">
+                          <div className="text-center">
+                            <p className="text-gray-400 text-lg mb-2">No employees found</p>
+                            <p className="text-gray-500 text-sm">Employees will appear here when they join your company</p>
+                          </div>
+                        </div>
+                      ) : (
+                        <table className="min-w-full divide-y divide-gray-800">
                         <thead className="bg-[#1B1D21] border-b border-[#3D3C3E] sticky top-0 z-10">
                           <tr>
                             <th className="pl-3 pr-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
@@ -241,6 +517,12 @@ export default function EmployeesContent() {
                             <th className="pl-3 pr-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
                               BIRTHDAY
                             </th>
+                            <th className="pl-3 pr-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+                              LOCATION
+                            </th>
+                            <th className="pl-3 pr-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+                              STATUS
+                            </th>
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-[#3D3C3E]">
@@ -263,7 +545,7 @@ export default function EmployeesContent() {
                                 />
                               </td>
                               <td className="pl-3 pr-6 py-4 whitespace-nowrap text-sm text-gray-300">
-                                {employee.id}
+                                {employee.employeeId}
                               </td>
                               <td className="pl-3 pr-6 py-4 whitespace-nowrap text-sm text-white font-medium">
                                 {employee.name}
@@ -272,15 +554,28 @@ export default function EmployeesContent() {
                                 {employee.title}
                               </td>
                               <td className="pl-3 pr-6 py-4 whitespace-nowrap text-sm text-gray-300">
-                                {employee.start}
+                                {formatStartDate(employee.startDate)}
                               </td>
                               <td className="pl-3 pr-6 py-4 whitespace-nowrap text-sm text-gray-300">
-                                {employee.birthday}
+                                {employee.birthday ? formatBirthday(employee.birthday) : 'Unknown'}
+                              </td>
+                              <td className="pl-3 pr-6 py-4 whitespace-nowrap text-sm text-gray-300">
+                                {employee.location}
+                              </td>
+                              <td className="pl-3 pr-6 py-4 whitespace-nowrap text-sm text-gray-300">
+                                <span className={`px-2 py-1 text-xs font-medium rounded-full ${
+                                  employee.fullTime 
+                                    ? 'bg-green-100 text-green-800' 
+                                    : 'bg-yellow-800'
+                                }`}>
+                                  {employee.fullTime ? 'Full Time' : 'Part Time'}
+                                </span>
                               </td>
                             </tr>
                           ))}
                         </tbody>
                       </table>
+                        )}
                     </div>
                   </div>
                 </div>
@@ -289,23 +584,22 @@ export default function EmployeesContent() {
               {/* Sticky Pagination */}
               <div className="fixed bottom-0 left-0 right-0 flex items-center py-4 border-t border-[#454446] bg-[#1F2327] z-10" style={{ left: '66px', right: '0px' }}>
                 <div className="text-sm text-gray-300 pl-3">
-                  Showing {startIndex + 1} to {Math.min(endIndex, filteredEmployees.length)} of {filteredEmployees.length} results
+                  Showing {employees.length} of {companyConnections.length} employees
                 </div>
                 <div className="flex space-x-2 ml-6">
-                  <button
-                    onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-                    disabled={currentPage === 1}
-                    className="px-3 py-2 text-sm font-medium text-gray-300 bg-[#1B1D21] border border-[#454446] rounded hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    Previous
-                  </button>
-                  <button
-                    onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
-                    disabled={currentPage === totalPages}
-                    className="px-3 py-2 text-sm font-medium text-sm font-medium text-gray-300 bg-[#1B1D21] border border-[#454446] rounded hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    Next
-                  </button>
+                  {employees.length < companyConnections.length && (
+                    <button
+                      onClick={() => {
+                        const nextPage = Math.floor(employees.length / 10) + 1;
+                        console.log(`Load More clicked. Current employees: ${employees.length}, Next page: ${nextPage}`);
+                        loadEmployeesPage(nextPage, 10);
+                      }}
+                      disabled={isLoadingMore}
+                      className="px-3 py-2 text-sm font-medium text-gray-300 bg-[#1B1D21] border border-[#454446] rounded hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {isLoadingMore ? 'Loading...' : `Load More (${companyConnections.length - employees.length} remaining)`}
+                    </button>
+                  )}
                 </div>
               </div>
 

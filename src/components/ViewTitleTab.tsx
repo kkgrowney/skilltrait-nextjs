@@ -12,14 +12,14 @@ export default function ViewTitleTab({ activeTab, onTabChange }: ViewTitleTabPro
     <div className="flex items-center border-b border-[#454446] bg-[#1e2327] px-8" style={{ marginTop: '-12px' }}>
       <div className="flex space-x-8">
         <button
-          onClick={() => onTabChange('admin')}
+          onClick={() => onTabChange('skill-search')}
           className={`py-2 px-1 border-b-2 font-medium text-sm transition-colors ${
-            activeTab === 'admin'
+            activeTab === 'skill-search'
               ? 'border-[#00DF71] text-[#00DF71]'
               : 'border-transparent text-gray-400 hover:text-gray-300'
           }`}
         >
-          Admin
+          Skill Search
         </button>
         <button
           onClick={() => onTabChange('employees')}
@@ -30,6 +30,16 @@ export default function ViewTitleTab({ activeTab, onTabChange }: ViewTitleTabPro
           }`}
         >
           Employees
+        </button>
+        <button
+          onClick={() => onTabChange('admin')}
+          className={`py-2 px-1 border-b-2 font-medium text-sm transition-colors ${
+            activeTab === 'admin'
+              ? 'border-[#00DF71] text-[#00DF71]'
+              : 'border-transparent text-gray-400 hover:text-gray-300'
+          }`}
+        >
+          Admin
         </button>
         <button
           onClick={() => onTabChange('brand-assets')}
