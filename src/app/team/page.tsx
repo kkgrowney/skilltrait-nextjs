@@ -275,6 +275,7 @@ function SkillRankSection({ skillData, employeesRanked, onChevronClick }: SkillR
                     <div className="pl-3 pr-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider flex-1">NAME</div>
                     <div className="pl-3 pr-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider flex-1">TITLE</div>
                     <div className="pl-3 pr-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider flex-1">START DATE</div>
+                    <div className="pl-3 pr-20 py-3 text-right text-xs font-medium text-gray-300 uppercase tracking-wider flex-1">RANKING</div>
                   </div>
                 </div>
 
@@ -291,10 +292,15 @@ function SkillRankSection({ skillData, employeesRanked, onChevronClick }: SkillR
                             style={{ accentColor: '#00DF71' }}
                           />
                         </div>
-                        <div className="py-4 whitespace-nowrap text-sm text-gray-300 flex-1">{employee.id}</div>
+                        <div className="py-4 whitespace-nowrap text-sm text-gray-300 flex-1">
+                          {employee.id.length > 14 ? `${employee.id.substring(0, 14)}...` : employee.id}
+                        </div>
                         <div className="pl-3 pr-6 py-4 whitespace-nowrap text-sm text-white font-medium flex-1">{employee.name}</div>
                         <div className="pl-3 pr-6 py-4 whitespace-nowrap text-sm text-gray-300 flex-1">{employee.title}</div>
                         <div className="pl-3 pr-6 py-4 whitespace-nowrap text-sm text-gray-300 flex-1">{employee.startDate}</div>
+                        <div className="pl-3 pr-20 py-4 whitespace-nowrap text-sm text-gray-300 flex-1 text-right">
+                          {(99.9 - (index * 6.66)).toFixed(1)}%
+                        </div>
                       </div>
                     ))}
                 </div>
