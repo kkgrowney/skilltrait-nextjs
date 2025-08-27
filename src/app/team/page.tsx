@@ -367,6 +367,7 @@ export default function Team() {
   const [notification, setNotification] = useState<string | null>(null);
   const [rankEmployeesSkills, setRankEmployeesSkills] = useState<{ skill: string; proficiency: string; motivation: string }[]>([]);
   const [employeesRanked, setEmployeesRanked] = useState(false);
+  const [isAllSkillsExpanded, setIsAllSkillsExpanded] = useState(false);
   const [showRemoveConfirmation, setShowRemoveConfirmation] = useState(false);
   const [skillsToRemove, setSkillsToRemove] = useState<string[]>([]);
 
@@ -1415,6 +1416,74 @@ export default function Team() {
                           <h3 className="text-lg font-bold text-white">Rank Employees</h3>
                         </div>
                         
+                        {/* All Skills Container */}
+                        <div className="bg-gray-600 rounded-lg border border-gray-400 overflow-hidden mb-4">
+                          <div className="p-4">
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-4">
+                                <span className="text-lg font-semibold text-[#00DF71]">All Skills</span>
+                                <div className="text-xs text-white">
+                                  {rankEmployeesSkills.length} skill{rankEmployeesSkills.length !== 1 ? 's' : ''} selected
+                                </div>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <div className="ml-5 flex items-end gap-2">
+                                  <span className="text-xs text-[#00DF71] whitespace-nowrap">
+                                    Rank Employees
+                                  </span>
+                                  <svg 
+                                    className="w-5 h-5" 
+                                    viewBox="0 0 20 20" 
+                                    fill="none" 
+                                    xmlns="http://www.w3.org/2000/svg"
+                                  >
+                                    <path d="M6.16667 16.3333H2V8.08333C2 7.97283 2.0439 7.86685 2.12204 7.78871C2.20018 7.71057 2.30616 7.66667 2.41667 7.66667H5.75C5.86051 7.66667 5.96649 7.71057 6.04463 7.78871C6.12277 7.86685 6.16667 7.97283 6.16667 8.08333V16.3333ZM12.4167 3.41667C12.4167 3.30616 12.3728 3.20018 12.2946 3.12204C12.2165 3.0439 12.1105 3 12 3H8.66667C8.55616 3 8.45018 3.0439 8.37204 3.12204C8.2939 3.20018 8.25 3.30616 8.25 3.41667V16.3333H12.4167V3.41667ZM18.25 10.3333H14.9167C14.8062 10.3333 14.7002 10.3772 14.622 10.4554C14.5439 10.5335 14.5 10.6395 14.5 10.75V16.3333H18.6667V10.75C18.6667 10.6395 18.6228 10.5335 18.5446 10.4554C18.4665 10.3772 18.3605 10.3333 18.25 10.3333Z" fill="#00DF71"/>
+                                  </svg>
+                                </div>
+                                <button 
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    e.preventDefault();
+                                    if (!notification) {
+                                      setNotification("Click Rank Employee to see the results.");
+                                      setTimeout(() => setNotification(null), 2000);
+                                    }
+                                  }}
+                                  className="p-2 transition-colors text-gray-400 hover:text-white cursor-pointer"
+                                >
+                                  <svg 
+                                    className={`w-5 h-5 transition-transform ${isAllSkillsExpanded ? 'rotate-180' : ''}`} 
+                                    fill="none" 
+                                    stroke="currentColor" 
+                                    viewBox="0 0 24 24"
+                                  >
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7" />
+                                  </svg>
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                          
+                          {/* Expanded All Skills Content */}
+                          {isAllSkillsExpanded && (
+                            <div className="px-4 pb-4 border-t border-gray-500">
+                              <div className="pt-4 space-y-3">
+                                <div className="text-sm text-gray-300 font-medium">Skills Summary</div>
+                                <div className="grid grid-cols-2 gap-4 text-xs">
+                                  <div className="space-y-2">
+                                    <div className="text-gray-400">Total Skills: {rankEmployeesSkills.length}</div>
+                                    <div className="text-gray-400">Average Proficiency: {rankEmployeesSkills.length > 0 ? 'Calculating...' : 'N/A'}</div>
+                                  </div>
+                                  <div className="space-y-2">
+                                    <div className="text-gray-400">Average Motivation: {rankEmployeesSkills.length > 0 ? 'Calculating...' : 'N/A'}</div>
+                                    <div className="text-gray-400">Status: {employeesRanked ? 'Ranked' : 'Pending'}</div>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+
                         {/* Rank Employees Container */}
                         <div className="space-y-4">
                           {rankEmployeesSkills.length > 0 ? (
@@ -1424,10 +1493,7 @@ export default function Team() {
                                 skillData={skillData}
                                 employeesRanked={employeesRanked}
                                 onChevronClick={() => {
-                                  if (!employeesRanked) {
-                                    setNotification("Click Rank Employees view rankings.");
-                                    setTimeout(() => setNotification(null), 2000);
-                                  }
+                                  // Notification removed - keeping only the All Skills container notification
                                 }}
                               />
                             ))
