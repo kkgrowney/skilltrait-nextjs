@@ -18,9 +18,11 @@ interface SkillRankSectionProps {
     proficiency: string;
     motivation: string;
   };
+  employeesRanked: boolean;
+  onChevronClick: () => void;
 }
 
-function SkillRankSection({ skillData }: SkillRankSectionProps) {
+function SkillRankSection({ skillData, employeesRanked, onChevronClick }: SkillRankSectionProps) {
   const { user } = useAuth();
   const [isExpanded, setIsExpanded] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
@@ -202,20 +204,39 @@ function SkillRankSection({ skillData }: SkillRankSectionProps) {
                         <div className="flex items-center gap-2">
               {/* Custom Container */}
               <div className="ml-5 flex items-end gap-2">
-                <span className="text-xs text-gray-400 whitespace-nowrap">Rank Employees</span>
-                <svg 
-                  className="w-5 h-5" 
-                  viewBox="0 0 20 20" 
-                  fill="none" 
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path d="M6.16667 16.3333H2V8.08333C2 7.97283 2.0439 7.86685 2.12204 7.78871C2.20018 7.71057 2.30616 7.66667 2.41667 7.66667H5.75C5.86051 7.66667 5.96649 7.71057 6.04463 7.78871C6.12277 7.86685 6.16667 7.97283 6.16667 8.08333V16.3333ZM12.4167 3.41667C12.4167 3.30616 12.3728 3.20018 12.2946 3.12204C12.2165 3.0439 12.1105 3 12 3H8.66667C8.55616 3 8.45018 3.0439 8.37204 3.12204C8.2939 3.20018 8.25 3.30616 8.25 3.41667V16.3333H12.4167V3.41667ZM18.25 10.3333H14.9167C14.8062 10.3333 14.7002 10.3772 14.622 10.4554C14.5439 10.5335 14.5 10.6395 14.5 10.75V16.3333H18.6667V10.75C18.6667 10.6395 18.6228 10.5335 18.5446 10.4554C18.4665 10.3772 18.3605 10.3333 18.25 10.3333Z" fill="#00DF71"/>
-                </svg>
+                <span className={`text-xs whitespace-nowrap ${employeesRanked ? 'text-gray-400' : 'text-gray-400'}`}>
+                  {employeesRanked ? 'Ranked' : 'Rank Employees'}
+                </span>
+                {employeesRanked ? (
+                  <svg 
+                    className="w-5 h-5" 
+                    viewBox="0 0 20 20" 
+                    fill="none" 
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path d="M5.02587 7.07015C2.31003 9.81552 2.32479 14.2583 5.07015 16.9741C7.81552 19.69 12.2583 19.6752 14.9741 16.9298C17.69 14.1845 17.6752 9.74172 14.9298 7.02587C12.1845 4.31003 7.74172 4.32479 5.02587 7.07015ZM13.4096 10.6568L9.60148 14.5092C9.27676 14.8339 8.7454 14.8339 8.42068 14.5092L8.27308 14.3616L7.83028 13.9188L6.59044 12.6937C6.26571 12.369 6.26571 11.8376 6.59044 11.5129C6.91516 11.1882 7.44652 11.1882 7.77124 11.5129L9.01108 12.738L12.2288 9.4908C12.5535 9.16608 13.0848 9.16608 13.4096 9.4908C13.7343 9.80076 13.7343 10.3321 13.4096 10.6568Z" fill="#9CA3AF"/>
+                  </svg>
+                ) : (
+                  <svg 
+                    className="w-5 h-5" 
+                    viewBox="0 0 20 20" 
+                    fill="none" 
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path d="M6.16667 16.3333H2V8.08333C2 7.97283 2.0439 7.86685 2.12204 7.78871C2.20018 7.71057 2.30616 7.66667 2.41667 7.66667H5.75C5.86051 7.66667 5.96649 7.71057 6.04463 7.78871C6.12277 7.86685 6.16667 7.97283 6.16667 8.08333V16.3333ZM12.4167 3.41667C12.4167 3.30616 12.3728 3.20018 12.2946 3.12204C12.2165 3.0439 12.1105 3 12 3H8.66667C8.55616 3 8.45018 3.0439 8.37204 3.12204C8.2939 3.20018 8.25 3.30616 8.25 3.41667V16.3333H12.4167V3.41667ZM18.25 10.3333H14.9167C14.8062 10.3333 14.7002 10.3772 14.622 10.4554C14.5439 10.5335 14.5 10.6395 14.5 10.75V16.3333H18.6667V10.75C18.6667 10.6395 18.6228 10.5335 18.5446 10.4554C18.4665 10.3772 18.3605 10.3333 18.25 10.3333Z" fill="#00DF71"/>
+                  </svg>
+                )}
               </div>
               {/* Expand/Collapse Arrow */}
             <button 
-              onClick={() => setIsExpanded(!isExpanded)}
-              className="p-2 text-gray-400 hover:text-white transition-colors"
+              onClick={() => {
+                if (employeesRanked) {
+                  setIsExpanded(!isExpanded);
+                } else {
+                  onChevronClick();
+                }
+              }}
+              className={`p-2 transition-colors ${employeesRanked ? 'text-gray-400 hover:text-white cursor-pointer' : 'text-gray-600 cursor-not-allowed'}`}
             >
               <svg 
                 className={`w-5 h-5 transition-transform ${isExpanded ? 'rotate-180' : ''}`} 
@@ -345,6 +366,7 @@ export default function Team() {
   const [rightContainerTab, setRightContainerTab] = useState<'required-skills' | 'rank-employees'>('required-skills');
   const [notification, setNotification] = useState<string | null>(null);
   const [rankEmployeesSkills, setRankEmployeesSkills] = useState<{ skill: string; proficiency: string; motivation: string }[]>([]);
+  const [employeesRanked, setEmployeesRanked] = useState(false);
   const [showRemoveConfirmation, setShowRemoveConfirmation] = useState(false);
   const [skillsToRemove, setSkillsToRemove] = useState<string[]>([]);
 
@@ -404,6 +426,11 @@ export default function Team() {
     setRightContainerTab('rank-employees');
     setSelectedSkillsForAction([]);
     setPendingChanges({});
+    
+    // Simulate AI processing delay - in real implementation, this would be an actual API call
+    setTimeout(() => {
+      setEmployeesRanked(true);
+    }, 2000); // 2 second delay to simulate AI processing
   };
 
   // Handle remove confirmation
@@ -1394,7 +1421,14 @@ export default function Team() {
                             rankEmployeesSkills.map((skillData, index) => (
                               <SkillRankSection 
                                 key={index} 
-                                skillData={skillData} 
+                                skillData={skillData}
+                                employeesRanked={employeesRanked}
+                                onChevronClick={() => {
+                                  if (!employeesRanked) {
+                                    setNotification("Click Rank Employees view rankings.");
+                                    setTimeout(() => setNotification(null), 2000);
+                                  }
+                                }}
                               />
                             ))
                           ) : (
