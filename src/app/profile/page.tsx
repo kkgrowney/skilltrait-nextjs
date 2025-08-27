@@ -5,13 +5,15 @@ import { useRouter } from 'next/navigation';
 import SideNavigation, { useSideNavMargin } from '@/components/SideNavigation';
 import ProfileViewTitleTab from '@/components/ProfileViewTitleTab';
 import { useAuth } from '@/contexts/AuthContext';
+import { auth } from '@/lib/firebase';
 import { doc, getDoc, getDocs, collection, query, orderBy, onSnapshot, updateDoc, where } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import Link from 'next/link';
 
 export default function ProfilePage() {
   const [activeTab, setActiveTab] = useState('summary');
-  const { user } = useAuth();
+  const { user, logout, isLoggingOut } = useAuth();
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
   const router = useRouter();
   const sideNavMargin = useSideNavMargin();
   const [userProfile, setUserProfile] = useState<any>(null);
@@ -99,6 +101,26 @@ export default function ProfilePage() {
       console.error('Error fetching recent templates:', error);
       setRecentTemplates([]);
       setIsLoadingRecentTemplates(false);
+    }
+  };
+
+  // Logout functions
+  const openLogoutModal = () => {
+    setShowLogoutModal(true);
+  };
+
+  const closeLogoutModal = () => {
+    setShowLogoutModal(false);
+  };
+
+  const confirmLogout = async () => {
+    try {
+      closeLogoutModal();
+      await logout();
+      router.push('/signin');
+    } catch (error) {
+      console.error('Error during logout:', error);
+      alert('An error occurred during logout. Please try again.');
     }
   };
 
@@ -420,11 +442,20 @@ export default function ProfilePage() {
         {/* Fixed Header Container */}
         <div className="flex-shrink-0 z-20">
           {/* ViewTitle Container */}
-          <div className="w-full bg-[#1e2327] flex items-center h-16" style={{ height: "64px !important", minHeight: "64px", maxHeight: "64px", paddingLeft: "32px" }}>
+          <div className="w-full bg-[#1e2327] flex items-center justify-between h-16" style={{ height: "64px !important", minHeight: "64px", maxHeight: "64px", paddingLeft: "32px", paddingRight: "32px" }}>
             {/* Title text */}
             <div className="font-semibold text-[#ffffff] text-[18px] whitespace-nowrap md:ml-0 ml-9 flex items-center">
               Profile
             </div>
+            
+            {/* Logout Button */}
+            <button
+              onClick={openLogoutModal}
+              disabled={isLoggingOut}
+              className="px-4 py-2 text-sm font-medium transition-colors bg-gray-600 text-white rounded hover:bg-gray-500 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isLoggingOut ? "Signing out..." : "Logout"}
+            </button>
           </div>
           
           {/* ProfileViewTitleTab Component */}
@@ -822,6 +853,34 @@ export default function ProfilePage() {
           )}
         </div>
       </div>
+
+      {/* Logout Modal */}
+      {showLogoutModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-[#212327] rounded-lg p-6 max-w-md w-full mx-4 border border-[#454446]">
+            <div className="text-center">
+              <h3 className="text-lg font-semibold text-white mb-4">Confirm Logout</h3>
+              <p className="text-gray-300 mb-6">Are you sure you want to log out?</p>
+              <div className="flex gap-3 justify-center">
+                <button
+                  onClick={closeLogoutModal}
+                  className="px-4 py-2 text-sm font-medium transition-colors bg-gray-600 text-white rounded hover:bg-gray-500"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={confirmLogout}
+                  disabled={isLoggingOut}
+                  className="px-4 py-2 text-sm font-medium text-white rounded disabled:opacity-50 disabled:cursor-not-allowed hover:opacity-90"
+                  style={{ backgroundColor: "#ED6568" }}
+                >
+                  {isLoggingOut ? "Signing out..." : "Logout"}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

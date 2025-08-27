@@ -585,6 +585,10 @@ This digital award recognizes excellence and dedication in professional developm
                 type="checkbox"
                 checked={saveAsTemplate}
                 onChange={(e) => setSaveAsTemplate(e.target.checked)}
+                className="w-4 h-4 text-[#458CE0] bg-[#1B1D21] border-[#454446] rounded focus:ring-[#458CE0] focus:ring-2 focus:ring-offset-0"
+                style={{
+                  accentColor: '#458CE0'
+                }}
               />
               Save as reusable template
             </label>
@@ -608,7 +612,7 @@ This digital award recognizes excellence and dedication in professional developm
               </div>
             )}
             <button
-              className="w-full bg-[var(--primary-dark)] text-white font-semibold py-2 rounded mb-4 mt-2 hover:bg-[var(--primary)] transition"
+              className="w-full bg-[var(--primary-dark)] text-white font-semibold py-2 rounded mb-4 mt-2 hover:bg-[var(--primary)] hover:text-[#191d21] transition"
               onClick={
                 !isLoggedIn
                   ? () => setisSignupModalOpen(true)

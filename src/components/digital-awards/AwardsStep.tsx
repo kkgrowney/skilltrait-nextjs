@@ -27,6 +27,9 @@ export default function AwardsStep({
   const [recipientName, setRecipientName] = useState("");
   const [achievement, setAchievement] = useState("");
   const [activeTab, setActiveTab] = useState<"props" | "achievements">("props");
+  const [showComingSoon, setShowComingSoon] = useState(false);
+  const [templates, setTemplates] = useState<any[]>([]);
+  const [filteredTemplates, setFilteredTemplates] = useState<any[]>([]);
 
   useEffect(() => {
     const fetchTemplates = async () => {
@@ -41,10 +44,9 @@ export default function AwardsStep({
           templates.push(data);
         });
 
-        // Filter templates that have 'achievement.props'
-        const templatesWithProps = templates.filter(
-          (t) => t.achievement && t.achievement.props
-        );
+        // Store all templates and set initial filtered list (no filtering)
+        setTemplates(templates);
+        setFilteredTemplates(templates);
 
         // Define the specific filters we want to show
         const allowedFilters = [
@@ -62,7 +64,11 @@ export default function AwardsStep({
           filtersObj[tag] = false;
         });
 
-        console.log({ templatesWithProps, filtersObj });
+        console.log({ 
+          totalTemplates: templates.length, 
+          templates: templates,
+          filtersObj 
+        });
         setFilters(filtersObj);
       } catch (error) {
         console.error("Error fetching templates:", error);
@@ -71,6 +77,34 @@ export default function AwardsStep({
 
     fetchTemplates();
   }, []);
+
+  // Filter templates based on search query and filter selections
+  useEffect(() => {
+    let filtered = templates;
+
+    // Apply search filter
+    if (searchQuery) {
+      filtered = filtered.filter(template => 
+        template.company?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        template.achievement?.props?.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+    }
+
+    // Apply tag filters
+    const activeFilters = Object.keys(filters).filter(key => filters[key]);
+    if (activeFilters.length > 0) {
+      filtered = filtered.filter(template => {
+        // Check if template has any of the active filter tags
+        return activeFilters.some(tag => 
+          template.tags?.includes(tag) || 
+          template.category === tag ||
+          template.type === tag
+        );
+      });
+    }
+
+    setFilteredTemplates(filtered);
+  }, [templates, searchQuery, filters]);
 
   const toggleFilter = (filterName: keyof typeof filters) => {
     setFilters({
@@ -89,6 +123,18 @@ export default function AwardsStep({
         boxSizing: "border-box",
       }}
     >
+      <style jsx>{`
+        @keyframes slideDown {
+          from {
+            transform: translateY(-100%);
+            opacity: 0;
+          }
+          to {
+            transform: translateY(0);
+            opacity: 1;
+          }
+        }
+      `}</style>
       <div
         className="text-center mb-6"
         style={{ paddingTop: "0px", flexShrink: 0, marginTop: "16px" }}
@@ -125,8 +171,9 @@ export default function AwardsStep({
               if (showTemplateDetail && setShowAchievementsModal) {
                 setShowAchievementsModal(true);
               } else {
-                setActiveTab("achievements");
-                onTabChange("achievements");
+                setShowComingSoon(true);
+                // Auto-hide notification after 1 second
+                setTimeout(() => setShowComingSoon(false), 1000);
               }
             }}
             className={`px-4 py-2 text-sm font-medium transition-colors relative ${
@@ -201,6 +248,22 @@ export default function AwardsStep({
             ))}
         </div>
       </div>
+
+
+
+      {/* Coming Soon Notification */}
+      {showComingSoon && (
+        <div className="fixed top-0 left-0 right-0 z-[9999] flex justify-center">
+          <div 
+            className="bg-[#00DF71] text-[#212327] px-6 py-3 rounded-b-lg shadow-lg transform transition-transform duration-300 ease-out"
+            style={{
+              animation: 'slideDown 0.3s ease-out'
+            }}
+          >
+            <span className="text-sm font-semibold">Coming soon!</span>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
