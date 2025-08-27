@@ -307,6 +307,23 @@ function SkillRankSection({ skillData }: SkillRankSectionProps) {
 }
 
 export default function Team() {
+  // Add CSS animation for notification
+  useEffect(() => {
+    const style = document.createElement('style');
+    style.textContent = `
+      @keyframes slideDown {
+        0% { opacity: 0; transform: translateY(-100%); }
+        20% { opacity: 1; transform: translateY(0); }
+        80% { opacity: 1; transform: translateY(0); }
+        100% { opacity: 0; transform: translateY(-100%); }
+      }
+    `;
+    document.head.appendChild(style);
+    
+    return () => {
+      document.head.removeChild(style);
+    };
+  }, []);
   const { user, loading } = useAuth();
   const router = useRouter();
   const sideNavMargin = useSideNavMargin();
@@ -336,6 +353,10 @@ export default function Team() {
   const [searchQuery, setSearchQuery] = useState('');
   const [showSearchDropdown, setShowSearchDropdown] = useState(false);
   const [rightContainerTab, setRightContainerTab] = useState<'required-skills' | 'rank-employees'>('required-skills');
+  const [notification, setNotification] = useState<string | null>(null);
+  const [rankEmployeesSkills, setRankEmployeesSkills] = useState<{ skill: string; proficiency: string; motivation: string }[]>([]);
+  const [showRemoveConfirmation, setShowRemoveConfirmation] = useState(false);
+  const [skillsToRemove, setSkillsToRemove] = useState<string[]>([]);
 
   // Handle adding a skill to required skills
   const handleAddSkill = (skill: string) => {
@@ -373,6 +394,35 @@ export default function Team() {
     setSkillMotivations(updatedMotivations);
     setSelectedSkillsForAction([]);
     setPendingChanges({}); // Clear pending changes after saving
+  };
+
+  // Handle rank employees action
+  const handleRankEmployees = () => {
+    const skillsToRank = selectedSkillsForAction.map(skill => {
+      // Get the most current value: pending changes first, then saved values, then defaults
+      const currentProficiency = pendingChanges[skill]?.proficiency || skillProficiencies[skill] || 'Beginner';
+      const currentMotivation = pendingChanges[skill]?.motivation || skillMotivations[skill] || 'Low';
+      
+      return {
+        skill,
+        proficiency: currentProficiency,
+        motivation: currentMotivation
+      };
+    });
+    
+    setRankEmployeesSkills(skillsToRank);
+    setRightContainerTab('rank-employees');
+    setSelectedSkillsForAction([]);
+    setPendingChanges({});
+  };
+
+  // Handle remove confirmation
+  const handleRemoveConfirmation = () => {
+    setRequiredSkills(requiredSkills.filter(skill => !skillsToRemove.includes(skill)));
+    setSelectedSkillsForAction([]);
+    setPendingChanges({});
+    setShowRemoveConfirmation(false);
+    setSkillsToRemove([]);
   };
 
   // Apply pending changes to table rows in real-time
@@ -917,6 +967,44 @@ export default function Team() {
         
         {/* Scrollable Content Area */}
         <div className="flex-1 overflow-y-auto p-4 md:p-8" style={{ height: 'calc(100vh - 64px - 48px - 48px)' }}>
+          {/* Notification */}
+          {notification && (
+            <div 
+              className="fixed top-0 left-1/2 transform -translate-x-1/2 z-50 text-white px-4 py-2 rounded-b-lg shadow-lg text-center"
+              style={{
+                backgroundColor: '#EB7686',
+                animation: 'slideDown 1s ease-in-out'
+              }}
+            >
+              {notification}
+            </div>
+          )}
+
+          {/* Remove Confirmation Dialog */}
+          {showRemoveConfirmation && (
+            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+              <div className="bg-[#212327] border border-[#454446] rounded-lg p-6 max-w-md mx-4">
+                <h3 className="text-lg font-semibold text-white mb-4">Confirm Removal</h3>
+                <p className="text-gray-300 mb-6">
+                  Are you sure you want to remove {skillsToRemove.length} skill{skillsToRemove.length !== 1 ? 's' : ''}? This action cannot be undone.
+                </p>
+                <div className="flex gap-3 justify-end">
+                  <button
+                    onClick={() => setShowRemoveConfirmation(false)}
+                    className="px-4 py-2 text-sm bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleRemoveConfirmation}
+                    className="px-4 py-2 text-sm bg-red-500 hover:bg-red-600 text-white rounded-lg transition-colors"
+                  >
+                    Remove
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
           {activeTab === 'skill-search' ? (
             // Skill Search tab content
             <div className="w-full h-full">
@@ -1084,7 +1172,7 @@ export default function Team() {
                         className={`px-4 py-2 text-sm font-medium transition-colors ${
                           rightContainerTab === 'rank-employees'
                             ? 'text-[#00DF71] border-b-2 border-[#00DF71]'
-                            : 'text-white'
+                            : 'text-gray-400 hover:text-white'
                         }`}
                       >
                         Rank Employees
@@ -1096,14 +1184,6 @@ export default function Team() {
                       <div>
                     <div className="flex items-center justify-between mb-4">
                       <h3 className="text-lg font-bold text-white">Required Skills</h3>
-                      {requiredSkills.length > 0 && (
-                        <button
-                          onClick={() => setRequiredSkills([])}
-                          className="px-3 py-1 text-xs bg-red-500 hover:bg-red-600 text-white rounded-full transition-colors"
-                        >
-                          Clear All
-                        </button>
-                      )}
                     </div>
                     
                     {requiredSkills.length > 0 ? (
@@ -1251,33 +1331,56 @@ export default function Team() {
                             </div>
                             
                             {/* Bulk Actions */}
-                            {selectedSkillsForAction.length > 0 && (
-                              <div className="p-4 bg-[#2a2e32] border-t border-[#454446]">
-                                <div className="flex items-center justify-between">
-                                  <span className="text-sm text-gray-300">
-                                    {selectedSkillsForAction.length} skill{selectedSkillsForAction.length !== 1 ? 's' : ''} selected
-                                  </span>
-                                  <div className="flex gap-2">
-                                    <button
-                                      onClick={() => {
-                                        setRequiredSkills(requiredSkills.filter(skill => !selectedSkillsForAction.includes(skill)));
-                                        setSelectedSkillsForAction([]);
-                                        setPendingChanges({});
-                                      }}
-                                      className="px-3 py-1 text-xs bg-red-500 hover:bg-red-600 text-white rounded-full transition-colors"
-                                    >
-                                      Remove
-                                    </button>
-                                    <button
+                            <div className="p-4 bg-[#2a2e32] border-t border-[#454446]">
+                              <div className="flex items-center justify-between">
+                                <span className="text-sm text-gray-300">
+                                  {selectedSkillsForAction.length > 0 
+                                    ? `${selectedSkillsForAction.length} skill${selectedSkillsForAction.length !== 1 ? 's' : ''} selected`
+                                    : 'No skills selected'
+                                  }
+                                </span>
+                                <div className="flex gap-2">
+                                  <button
+                                    onClick={() => {
+                                      if (selectedSkillsForAction.length > 0) {
+                                        setSkillsToRemove([...selectedSkillsForAction]);
+                                        setShowRemoveConfirmation(true);
+                                      }
+                                    }}
+                                    disabled={selectedSkillsForAction.length === 0}
+                                    className={`px-3 py-1 text-xs rounded-full transition-colors ${
+                                      selectedSkillsForAction.length > 0
+                                        ? 'bg-red-500 hover:bg-red-600 text-white cursor-pointer'
+                                        : 'bg-gray-500 text-gray-300 cursor-not-allowed'
+                                    }`}
+                                  >
+                                    Remove
+                                  </button>
+                                                                      <button
                                       onClick={handleBulkUpdate}
-                                      className="px-3 py-1 text-xs bg-[#00DF71] hover:bg-[#0AFB84] text-[#212327] font-medium rounded-full transition-colors"
+                                      disabled={selectedSkillsForAction.length === 0}
+                                      className={`px-3 py-1 text-xs rounded-full transition-colors ${
+                                        selectedSkillsForAction.length > 0
+                                          ? 'bg-gray-600 hover:bg-gray-700 text-white font-medium cursor-pointer border border-gray-500'
+                                          : 'bg-gray-500 text-gray-300 cursor-not-allowed'
+                                      }`}
                                     >
                                       Update
                                     </button>
-                                  </div>
+                                    <button
+                                      onClick={handleRankEmployees}
+                                      disabled={selectedSkillsForAction.length === 0 || Object.keys(pendingChanges).length > 0}
+                                      className={`px-3 py-1 text-xs rounded-full transition-colors ${
+                                        selectedSkillsForAction.length > 0 && Object.keys(pendingChanges).length === 0
+                                          ? 'bg-[#00DF71] hover:bg-[#0AFB84] text-[#212327] font-medium cursor-pointer'
+                                          : 'bg-gray-500 text-gray-300 cursor-not-allowed'
+                                      }`}
+                                    >
+                                      Rank Employees
+                                    </button>
                                 </div>
                               </div>
-                            )}
+                            </div>
                           </div>
                         ) : (
                           <div className="min-h-[400px] bg-[#1e2327] rounded-lg border border-[#454446] flex items-center justify-center">
@@ -1297,19 +1400,19 @@ export default function Team() {
                         
                         {/* Rank Employees Container */}
                         <div className="space-y-4">
-                          {/* Sample Required Skills - Replace with actual data later */}
-                          {[
-                            { skill: 'React', proficiency: 'Master', motivation: 'High' },
-                            { skill: 'UX', proficiency: 'Beginner', motivation: 'Low' },
-                            { skill: 'JavaScript', proficiency: 'Expert', motivation: 'Very High' },
-                            { skill: 'Project Management', proficiency: 'Advanced', motivation: 'Moderate' },
-                            { skill: 'Data Analysis', proficiency: 'Intermediate', motivation: 'High' }
-                          ].map((skillData, index) => (
-                            <SkillRankSection 
-                              key={index} 
-                              skillData={skillData} 
-                            />
-                          ))}
+                          {rankEmployeesSkills.length > 0 ? (
+                            rankEmployeesSkills.map((skillData, index) => (
+                              <SkillRankSection 
+                                key={index} 
+                                skillData={skillData} 
+                              />
+                            ))
+                          ) : (
+                            <div className="text-center text-gray-400 py-8">
+                              <p className="text-sm">No skills selected for ranking</p>
+                              <p className="text-xs mt-1">Select skills from the Required Skills tab and click "Rank Employees" to get started</p>
+                            </div>
+                          )}
                         </div>
                       </div>
                     )}
