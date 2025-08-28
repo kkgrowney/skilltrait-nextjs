@@ -30,10 +30,7 @@ const AUTHENTICATED_ROUTES = [
   "/digital-awards-generator",
 ];
 
-const AUTH_ROUTES = [
-  "/signin",
-  "/signup",
-];
+const AUTH_ROUTES = ["/signin", "/signup"];
 
 export default function ClientLayout({
   children,
@@ -54,10 +51,13 @@ export default function ClientLayout({
     user && !loading && isAuthenticatedRoute;
 
   return (
-    <div className={`min-h-screen ${isAuthRoute ? '' : 'bg-gray-100'}`}>
+    <div className={`min-h-screen ${isAuthRoute ? "" : "bg-gray-100"}`}>
       {shouldShowNavPrelogin && <NavPrelogin />}
       {shouldShowAuthenticatedLayout ? (
-        <div className="min-h-screen" style={{ backgroundColor: "#1A1D21" }}>
+        <div
+          className="min-h-screen relative z-[90]"
+          style={{ backgroundColor: "#1A1D21" }}
+        >
           <SideNavigation />
           <div className="h-full flex flex-col">{children}</div>
         </div>

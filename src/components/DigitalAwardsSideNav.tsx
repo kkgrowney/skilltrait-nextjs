@@ -27,7 +27,7 @@ export default function DigitalAwardsSideNav({
   ];
 
   return (
-    <div className="bg-[#191d21] pt-5 flex flex-col gap-2.5 items-center justify-start px-0 h-full w-[94px]">
+    <div className="bg-[#191d21] pt-5 flex flex-col gap-2.5 items-center justify-start px-0 h-full w-[94px] relative z-[80]">
       <div className="flex flex-col gap-4">
         {steps.map((step, index) => (
           <div

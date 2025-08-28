@@ -46,6 +46,18 @@ export default function DigitalAwardsView() {
   const [filteredTemplates, setFilteredTemplates] = useState<any[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [showAchievementsModal, setShowAchievementsModal] = useState(false);
+  const [isStepsSidebarOpen, setIsStepsSidebarOpen] = useState(false);
+  const [selectedSidebarStep, setSelectedSidebarStep] =
+    useState<StepType | null>(null);
+
+  const openStepsSidebar = () => {
+    setIsStepsSidebarOpen(true);
+    setSelectedSidebarStep(null); // Reset to steps list view
+  };
+
+  const handleSidebarStepSelect = (step: StepType) => {
+    setSelectedSidebarStep(step);
+  };
 
   const handleStepChange = (step: StepType) => {
     // Check if user can navigate to this step
@@ -162,13 +174,16 @@ export default function DigitalAwardsView() {
       if (saved.selectedTemplate) setSelectedTemplate(saved.selectedTemplate);
       if (typeof saved.showTemplateDetail === "boolean")
         setShowTemplateDetail(saved.showTemplateDetail);
-      if (typeof saved.logoVisible === "boolean") setLogoVisible(saved.logoVisible);
+      if (typeof saved.logoVisible === "boolean")
+        setLogoVisible(saved.logoVisible);
       if (saved.companyNameText) setCompanyNameText(saved.companyNameText);
       if (typeof saved.backgroundVisible === "boolean")
         setBackgroundVisible(saved.backgroundVisible);
-      if (saved.backgroundNameText) setBackgroundNameText(saved.backgroundNameText);
+      if (saved.backgroundNameText)
+        setBackgroundNameText(saved.backgroundNameText);
       if (saved.propsTitle) setPropsTitle(saved.propsTitle);
-      if (Array.isArray(saved.propsRecipients)) setPropsRecipients(saved.propsRecipients);
+      if (Array.isArray(saved.propsRecipients))
+        setPropsRecipients(saved.propsRecipients);
       if (saved.fromName) setFromName(saved.fromName);
       if (saved.fromDate) setFromDate(saved.fromDate);
       if (saved.fromMessage) setFromMessage(saved.fromMessage);
@@ -210,6 +225,11 @@ export default function DigitalAwardsView() {
             onTabChange={setActiveTab}
             showTemplateDetail={showTemplateDetail}
             setShowAchievementsModal={setShowAchievementsModal}
+            selectedTemplate={selectedTemplate}
+            onStepChange={handleStepChange}
+            currentStep={currentStep}
+            isStepsSidebarOpen={isStepsSidebarOpen}
+            setIsStepsSidebarOpen={setIsStepsSidebarOpen}
           />
         );
       case "company":
@@ -292,6 +312,11 @@ export default function DigitalAwardsView() {
             onTabChange={setActiveTab}
             showTemplateDetail={showTemplateDetail}
             setShowAchievementsModal={setShowAchievementsModal}
+            selectedTemplate={selectedTemplate}
+            onStepChange={handleStepChange}
+            currentStep={currentStep}
+            isStepsSidebarOpen={isStepsSidebarOpen}
+            setIsStepsSidebarOpen={setIsStepsSidebarOpen}
           />
         );
     }
@@ -359,10 +384,17 @@ export default function DigitalAwardsView() {
         {/* Parent Container for Left and Right */}
         <div
           className="w-full flex"
-          style={{ marginLeft: "-64px", width: "calc(100vw - 64px)", minWidth: "1200px" }}
+          style={{
+            marginLeft: "-64px",
+            width: "calc(100vw - 64px)",
+            minWidth: "1200px",
+          }}
         >
           {/* Left Container - Fixed Height (3 parts) */}
-          <div className="w-3/12 h-full overflow-y-auto flex" style={{ minWidth: "400px", marginLeft: "8px", marginRight: "8px" }}>
+          <div
+            className="w-3/12 h-full overflow-y-auto flex"
+            style={{ minWidth: "400px", marginLeft: "8px", marginRight: "8px" }}
+          >
             {/* Awards Generator Side Navigation - Now inside left container */}
             <div className="w-[94px] h-full" style={{ marginTop: "20px" }}>
               <DigitalAwardsSideNav
@@ -385,6 +417,11 @@ export default function DigitalAwardsView() {
                   onTabChange={setActiveTab}
                   showTemplateDetail={showTemplateDetail}
                   setShowAchievementsModal={setShowAchievementsModal}
+                  selectedTemplate={selectedTemplate}
+                  onStepChange={handleStepChange}
+                  currentStep={currentStep}
+                  isStepsSidebarOpen={isStepsSidebarOpen}
+                  setIsStepsSidebarOpen={setIsStepsSidebarOpen}
                 />
               ) : (
                 renderCurrentStep()
@@ -620,9 +657,10 @@ export default function DigitalAwardsView() {
                                     className="text-white text-sm font-medium"
                                     style={{ color: "white", opacity: 1 }}
                                   >
-                                    {(() => { 
-                                      const [year, month, day] = fromDate.split('-'); 
-                                      return `${month}/${day}/${year.slice(2)}`; 
+                                    {(() => {
+                                      const [year, month, day] =
+                                        fromDate.split("-");
+                                      return `${month}/${day}/${year.slice(2)}`;
                                     })()}
                                   </p>
                                 )}
@@ -689,18 +727,27 @@ export default function DigitalAwardsView() {
                         </button>
                       </>
                     ) : (
-                      <button
-                        onClick={() => {
-                          // Return to template grid
-                          setShowTemplateDetail(false);
-                          setSelectedTemplate(null);
-                          setCurrentStep("awards");
-                        }}
-                        className="px-6 py-3 text-sm font-medium transition-colors border rounded text-gray-300 hover:text-white whitespace-nowrap"
-                        style={{ borderColor: "#454446", width: "150px" }}
-                      >
-                        Change Template
-                      </button>
+                      <>
+                        <button
+                          onClick={() => {
+                            // Return to template grid
+                            setShowTemplateDetail(false);
+                            setSelectedTemplate(null);
+                            setCurrentStep("awards");
+                          }}
+                          className="px-6 py-3 text-sm font-medium transition-colors border rounded text-gray-300 hover:text-white whitespace-nowrap"
+                          style={{ borderColor: "#454446", width: "150px" }}
+                        >
+                          Change Template
+                        </button>
+                        <button
+                          onClick={openStepsSidebar}
+                          className="lg:hidden px-6 py-3 text-sm font-medium transition-colors bg-[#00DF71] text-[#212327] rounded hover:bg-opacity-90 whitespace-nowrap"
+                          style={{ width: "150px" }}
+                        >
+                          Open Steps Sidebar
+                        </button>
+                      </>
                     )}
                   </div>
                 </div>
@@ -1015,6 +1062,247 @@ export default function DigitalAwardsView() {
           </div>
         </div>
       )}
+
+      {/* Steps Sidebar - Always accessible from main layout */}
+      {isStepsSidebarOpen && (
+        <div
+          className="fixed inset-0 bg-black bg-opacity-50 z-[60]"
+          onClick={() => setIsStepsSidebarOpen(false)}
+        />
+      )}
+      <div
+        className={`fixed top-0 right-0 h-full w-full bg-[#212327] z-[70] transform transition-transform duration-300 ease-in-out ${
+          isStepsSidebarOpen ? "translate-x-0" : "translate-x-full"
+        }`}
+      >
+        <div className="h-full overflow-y-auto p-4">
+          {/* Desktop Message */}
+          <div className="hidden xl:block mb-6 p-4 bg-[#00DF71] bg-opacity-10 border border-[#00DF71] border-opacity-30 rounded-lg">
+            <div className="flex items-center space-x-2">
+              <svg
+                className="w-5 h-5 text-[#00DF71]"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M9 12l2 2 4-4m6 2a9 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
+              <span className="text-white font-medium">
+                SkillTrait Awards Generator is best used on desktop.
+              </span>
+            </div>
+          </div>
+
+          {/* Back Button */}
+          <div className="mb-6">
+            <button
+              onClick={() => {
+                if (selectedSidebarStep) {
+                  setSelectedSidebarStep(null); // Go back to steps list
+                } else {
+                  setIsStepsSidebarOpen(false); // Close sidebar
+                }
+              }}
+              className="flex items-center text-gray-300 hover:text-white transition-colors"
+            >
+              <svg
+                className="w-5 h-5 mr-2"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M15 19l-7-7 7-7"
+                />
+              </svg>
+              {selectedSidebarStep ? "Back to Steps" : "Back to Main View"}
+            </button>
+          </div>
+
+          {!selectedSidebarStep ? (
+            // Steps List View
+            <>
+              <div className="text-center mb-6">
+                <h1 className="text-[24px] font-bold text-white mb-4">Steps</h1>
+                <p className="text-md text-gray-300 mb-0">
+                  Navigate through the award creation process
+                </p>
+              </div>
+
+              {/* Steps Navigation */}
+              <div className="space-y-3">
+                {[
+                  { step: "awards" as const, label: "Awards", icon: "🏆" },
+                  { step: "company" as const, label: "Company", icon: "🏢" },
+                  {
+                    step: "background" as const,
+                    label: "Background",
+                    icon: "🖼️",
+                  },
+                  {
+                    step: "props-details" as const,
+                    label: "Details",
+                    icon: "📝",
+                  },
+                  { step: "share" as const, label: "Share", icon: "📤" },
+                ].map(({ step, label, icon }) => (
+                  <button
+                    key={step}
+                    onClick={() => handleSidebarStepSelect(step)}
+                    className={`w-full p-4 text-left rounded-lg transition-colors ${
+                      currentStep === step
+                        ? "bg-[var(--primary-dark)] text-[#212327]"
+                        : "bg-[#1B1D21] text-white hover:bg-[#454446]"
+                    }`}
+                  >
+                    <div className="flex items-center space-x-3">
+                      <span className="text-xl">{icon}</span>
+                      <span className="font-medium">{label}</span>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </>
+          ) : (
+            // Step Content View
+            <>
+              <div className="text-center mb-6">
+                <h1 className="text-[24px] font-bold text-white mb-4">
+                  {selectedSidebarStep === "awards" && "🏆 Awards"}
+                  {selectedSidebarStep === "company" && "🏢 Company"}
+                  {selectedSidebarStep === "background" && "🖼️ Background"}
+                  {selectedSidebarStep === "props-details" && "📝 Details"}
+                  {selectedSidebarStep === "share" && "📤 Share"}
+                </h1>
+                <p className="text-md text-gray-300 mb-0">
+                  {selectedSidebarStep === "awards" &&
+                    "Select and customize award templates"}
+                  {selectedSidebarStep === "company" &&
+                    "Configure company branding and logo"}
+                  {selectedSidebarStep === "background" &&
+                    "Choose and customize background images"}
+                  {selectedSidebarStep === "props-details" &&
+                    "Add recipient details and personal message"}
+                  {selectedSidebarStep === "share" &&
+                    "Generate and share your digital award"}
+                </p>
+              </div>
+
+              {/* Step-specific content */}
+              <div className="space-y-4">
+                {selectedSidebarStep === "awards" && (
+                  <div className="bg-[#1B1D21] p-4 rounded-lg">
+                    <h3 className="text-lg font-medium text-white mb-3">
+                      Award Templates
+                    </h3>
+                    <p className="text-gray-300 mb-4">
+                      Choose from our collection of professional award
+                      templates.
+                    </p>
+                    <button
+                      onClick={() => {
+                        handleStepChange("awards");
+                        setIsStepsSidebarOpen(false);
+                      }}
+                      className="w-full px-4 py-2 bg-[var(--primary-dark)] text-[#212327] rounded hover:bg-opacity-90 transition-colors"
+                    >
+                      Go to Awards
+                    </button>
+                  </div>
+                )}
+
+                {selectedSidebarStep === "company" && (
+                  <div className="bg-[#1B1D21] p-4 rounded-lg">
+                    <h3 className="text-lg font-medium text-white mb-3">
+                      Company Setup
+                    </h3>
+                    <p className="text-gray-300 mb-4">
+                      Configure your company branding and upload logos.
+                    </p>
+                    <button
+                      onClick={() => {
+                        handleStepChange("company");
+                        setIsStepsSidebarOpen(false);
+                      }}
+                      className="w-full px-4 py-2 bg-[var(--primary-dark)] text-[#212327] rounded hover:bg-opacity-90 transition-colors"
+                    >
+                      Go to Company
+                    </button>
+                  </div>
+                )}
+
+                {selectedSidebarStep === "background" && (
+                  <div className="bg-[#1B1D21] p-4 rounded-lg">
+                    <h3 className="text-lg font-medium text-white mb-3">
+                      Background Selection
+                    </h3>
+                    <p className="text-gray-300 mb-4">
+                      Choose and customize background images for your awards.
+                    </p>
+                    <button
+                      onClick={() => {
+                        handleStepChange("background");
+                        setIsStepsSidebarOpen(false);
+                      }}
+                      className="w-full px-4 py-2 bg-[var(--primary-dark)] text-[#212327] rounded hover:bg-opacity-90 transition-colors"
+                    >
+                      Go to Background
+                    </button>
+                  </div>
+                )}
+
+                {selectedSidebarStep === "props-details" && (
+                  <div className="bg-[#1B1D21] p-4 rounded-lg">
+                    <h3 className="text-lg font-medium text-white mb-3">
+                      Recipient Details
+                    </h3>
+                    <p className="text-gray-300 mb-4">
+                      Add recipient information and personal messages.
+                    </p>
+                    <button
+                      onClick={() => {
+                        handleStepChange("props-details");
+                        setIsStepsSidebarOpen(false);
+                      }}
+                      className="w-full px-4 py-2 bg-[var(--primary-dark)] text-[#212327] rounded hover:bg-opacity-90 transition-colors"
+                    >
+                      Go to Details
+                    </button>
+                  </div>
+                )}
+
+                {selectedSidebarStep === "share" && (
+                  <div className="bg-[#1B1D21] p-4 rounded-lg">
+                    <h3 className="text-lg font-medium text-white mb-3">
+                      Share Award
+                    </h3>
+                    <p className="text-gray-300 mb-4">
+                      Generate and share your completed digital award.
+                    </p>
+                    <button
+                      onClick={() => {
+                        handleStepChange("share");
+                        setIsStepsSidebarOpen(false);
+                      }}
+                      className="w-full px-4 py-2 bg-[var(--primary-dark)] text-[#212327] rounded hover:bg-opacity-90 transition-colors"
+                    >
+                      Go to Share
+                    </button>
+                  </div>
+                )}
+              </div>
+            </>
+          )}
+        </div>
+      </div>
     </div>
   );
 }
