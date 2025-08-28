@@ -30,6 +30,7 @@ function SkillRankSection({ skillData, employeesRanked, onChevronClick }: SkillR
   const [selectedEmployee, setSelectedEmployee] = useState<any>(null);
   const [showProfileModal, setShowProfileModal] = useState(false);
   const [isClosing, setIsClosing] = useState(false);
+  const [selectedEmployees, setSelectedEmployees] = useState<Set<string>>(new Set());
 
   // Sample employee data - replace with actual data later
   const sampleEmployees = [
@@ -92,6 +93,29 @@ function SkillRankSection({ skillData, employeesRanked, onChevronClick }: SkillR
       default: return 0;
     }
   };
+
+  // Handle employee selection
+  const handleSelectEmployee = (employeeId: string, checked: boolean) => {
+    const newSelected = new Set(selectedEmployees);
+    if (checked) {
+      newSelected.add(employeeId);
+    } else {
+      newSelected.delete(employeeId);
+    }
+    setSelectedEmployees(newSelected);
+  };
+
+  // Handle select all employees
+  const handleSelectAll = (checked: boolean) => {
+    if (checked) {
+      const allIds = sampleEmployees.slice(0, 10).map(emp => emp.id);
+      setSelectedEmployees(new Set(allIds));
+    } else {
+      setSelectedEmployees(new Set());
+    }
+  };
+
+
 
   // Cloud function trigger for vector search
   const triggerVectorSearch = async () => {
@@ -259,6 +283,31 @@ function SkillRankSection({ skillData, employeesRanked, onChevronClick }: SkillR
       {isExpanded && (
         <div className="p-4">
 
+          {/* Selection Counter */}
+          {selectedEmployees.size > 0 && (
+            <div className="mb-4 flex items-center justify-between bg-[#1B1D21] rounded-lg border border-[#454446] p-3">
+              <div className="flex items-center gap-3">
+                <span className="text-sm text-gray-300">
+                  {selectedEmployees.size} employee{selectedEmployees.size !== 1 ? 's' : ''} selected
+                </span>
+                <button
+                  onClick={() => setSelectedEmployees(new Set())}
+                  className="text-xs text-gray-400 hover:text-white transition-colors underline"
+                >
+                  Clear selection
+                </button>
+              </div>
+              <div className="flex gap-2">
+                <button className="px-3 py-1.5 bg-[#00DF71] text-black text-xs font-medium rounded hover:bg-[#00DF71]/90 transition-colors">
+                  Export Selected
+                </button>
+                <button className="px-3 py-1.5 bg-[#454446] text-white text-xs font-medium rounded hover:bg-[#454446]/80 transition-colors">
+                  Compare Selected
+                </button>
+              </div>
+            </div>
+          )}
+
           {/* Employee Table */}
           <div className="bg-[#1e2327] rounded-lg border border-[#454446] overflow-hidden">
             {/* Horizontal Scrollable Container */}
@@ -271,6 +320,8 @@ function SkillRankSection({ skillData, employeesRanked, onChevronClick }: SkillR
                     <div className="w-[54px] py-3 flex justify-center">
                       <input
                         type="checkbox"
+                        checked={selectedEmployees.size === sampleEmployees.slice(0, 10).length && selectedEmployees.size > 0}
+                        onChange={(e) => handleSelectAll(e.target.checked)}
                         className="h-4 w-4 text-[#00DF71] focus:ring-[#00DF71] border-gray-600 rounded bg-[#1B1D21]"
                         style={{ accentColor: '#00DF71' }}
                       />
@@ -288,23 +339,33 @@ function SkillRankSection({ skillData, employeesRanked, onChevronClick }: SkillR
                   {sampleEmployees
                     .slice(0, 10) // Show top 10 employees
                     .map((employee, index) => (
-                      <div key={employee.id} className="flex bg-[#191D21] hover:bg-[#202327] transition-colors">
+                      <div 
+                        key={employee.id} 
+                        className={`flex cursor-pointer transition-all duration-200 ${
+                          selectedEmployees.has(employee.id) 
+                            ? 'bg-[#202327] border-l-2 border-[#00DF71]' 
+                            : 'bg-[#191D21] hover:bg-[#202327]'
+                        }`}
+                                                  onClick={() => {
+                            setSelectedEmployee(employee);
+                            setShowProfileModal(true);
+                          }}
+                      >
                         <div className="w-[54px] py-4 flex justify-center">
                           <input
                             type="checkbox"
+                            checked={selectedEmployees.has(employee.id)}
+                            onChange={(e) => handleSelectEmployee(employee.id, e.target.checked)}
                             className="h-4 w-4 text-[#00DF71] focus:ring-[#00DF71] border-gray-600 rounded bg-[#1B1D21]"
                             style={{ accentColor: '#00DF71' }}
+                            onClick={(e) => e.stopPropagation()}
                           />
                         </div>
                         <div className="py-4 whitespace-nowrap text-sm text-gray-300 flex-1">
                           {employee.id.length > 14 ? `${employee.id.substring(0, 14)}...` : employee.id}
                         </div>
                         <div 
-                          className="pl-3 pr-6 py-4 whitespace-nowrap text-sm text-white font-medium flex-1 underline cursor-pointer hover:text-gray-300 transition-colors"
-                          onClick={() => {
-                            setSelectedEmployee(employee);
-                            setShowProfileModal(true);
-                          }}
+                          className="pl-3 pr-6 py-4 whitespace-nowrap text-sm text-white font-medium flex-1 underline hover:text-gray-300 transition-colors"
                         >
                           {employee.name}
                         </div>
@@ -335,7 +396,7 @@ function SkillRankSection({ skillData, employeesRanked, onChevronClick }: SkillR
       {/* ProfileSnapshot Modal */}
       {showProfileModal && selectedEmployee && (
         <div 
-          className="fixed inset-0 z-50 transition-all duration-1000"
+          className="fixed inset-0 z-50 transition-all duration-500"
           style={{
             backgroundColor: isClosing ? 'rgba(0, 0, 0, 0)' : 'rgba(0, 0, 0, 0.3)'
           }}
@@ -345,12 +406,12 @@ function SkillRankSection({ skillData, employeesRanked, onChevronClick }: SkillR
               setShowProfileModal(false);
               setSelectedEmployee(null);
               setIsClosing(false);
-            }, 1000);
+            }, 500);
           }}
         >
           <div 
-            className={`absolute right-0 top-0 h-full bg-[#1A1D21] transform transition-transform duration-1000 ease-in-out ${
-              isClosing ? 'animate-slideOutRight' : 'animate-slideInRight'
+            className={`absolute right-0 top-0 h-full bg-[#1A1D21] transform transition-transform duration-500 ease-in-out ${
+              isClosing ? 'translate-x-full' : 'translate-x-0'
             }`}
             onClick={(e) => e.stopPropagation()}
           >
@@ -362,7 +423,7 @@ function SkillRankSection({ skillData, employeesRanked, onChevronClick }: SkillR
                   setShowProfileModal(false);
                   setSelectedEmployee(null);
                   setIsClosing(false);
-                }, 1000);
+                }, 500);
               }}
               className="absolute top-4 right-4 text-gray-400 hover:text-white transition-colors p-2 hover:bg-[#2a2e32] rounded-lg z-10"
             >
@@ -405,11 +466,13 @@ export default function Team() {
       }
       
       .animate-slideInRight {
-        animation: slideInRight 1s ease-in-out;
+        transform: translateX(0);
+        transition: transform 0.5s ease-in-out;
       }
       
       .animate-slideOutRight {
-        animation: slideOutRight 1s ease-in-out;
+        transform: translateX(100%);
+        transition: transform 0.5s ease-in-out;
       }
     `;
     document.head.appendChild(style);
