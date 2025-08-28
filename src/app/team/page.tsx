@@ -10,6 +10,7 @@ import { db } from '@/lib/firebase';
 import ViewTitleTab from '@/components/ViewTitleTab';
 import EmployeesContent from '@/components/EmployeesContent';
 import DragDropUpload from '@/components/DragDropUpload';
+import ProfileSnapshot from '@/components/ProfileSnapshot';
 
 // SkillRankSection Component
 interface SkillRankSectionProps {
@@ -26,6 +27,9 @@ function SkillRankSection({ skillData, employeesRanked, onChevronClick }: SkillR
   const { user } = useAuth();
   const [isExpanded, setIsExpanded] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
+  const [selectedEmployee, setSelectedEmployee] = useState<any>(null);
+  const [showProfileModal, setShowProfileModal] = useState(false);
+  const [isClosing, setIsClosing] = useState(false);
 
   // Sample employee data - replace with actual data later
   const sampleEmployees = [
@@ -295,7 +299,15 @@ function SkillRankSection({ skillData, employeesRanked, onChevronClick }: SkillR
                         <div className="py-4 whitespace-nowrap text-sm text-gray-300 flex-1">
                           {employee.id.length > 14 ? `${employee.id.substring(0, 14)}...` : employee.id}
                         </div>
-                        <div className="pl-3 pr-6 py-4 whitespace-nowrap text-sm text-white font-medium flex-1">{employee.name}</div>
+                        <div 
+                          className="pl-3 pr-6 py-4 whitespace-nowrap text-sm text-white font-medium flex-1 underline cursor-pointer hover:text-gray-300 transition-colors"
+                          onClick={() => {
+                            setSelectedEmployee(employee);
+                            setShowProfileModal(true);
+                          }}
+                        >
+                          {employee.name}
+                        </div>
                         <div className="pl-3 pr-6 py-4 whitespace-nowrap text-sm text-gray-300 flex-1">{employee.title}</div>
                         <div className="pl-3 pr-6 py-4 whitespace-nowrap text-sm text-gray-300 flex-1">{employee.startDate}</div>
                         <div className="pl-3 pr-20 py-4 whitespace-nowrap text-sm text-gray-300 flex-1 text-right">
@@ -319,6 +331,53 @@ function SkillRankSection({ skillData, employeesRanked, onChevronClick }: SkillR
           </div>
         </div>
       )}
+
+      {/* ProfileSnapshot Modal */}
+      {showProfileModal && selectedEmployee && (
+        <div 
+          className="fixed inset-0 z-50 transition-all duration-1000"
+          style={{
+            backgroundColor: isClosing ? 'rgba(0, 0, 0, 0)' : 'rgba(0, 0, 0, 0.3)'
+          }}
+          onClick={() => {
+            setIsClosing(true);
+            setTimeout(() => {
+              setShowProfileModal(false);
+              setSelectedEmployee(null);
+              setIsClosing(false);
+            }, 1000);
+          }}
+        >
+          <div 
+            className={`absolute right-0 top-0 h-full bg-[#1A1D21] transform transition-transform duration-1000 ease-in-out ${
+              isClosing ? 'animate-slideOutRight' : 'animate-slideInRight'
+            }`}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Close Button - positioned in top-right corner */}
+            <button
+              onClick={() => {
+                setIsClosing(true);
+                setTimeout(() => {
+                  setShowProfileModal(false);
+                  setSelectedEmployee(null);
+                  setIsClosing(false);
+                }, 1000);
+              }}
+              className="absolute top-4 right-4 text-gray-400 hover:text-white transition-colors p-2 hover:bg-[#2a2e32] rounded-lg z-10"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+            
+            {/* Full Height ProfileSnapshot Content */}
+            <div className="h-full overflow-y-auto">
+              <ProfileSnapshot employee={selectedEmployee} />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -333,6 +392,24 @@ export default function Team() {
         20% { opacity: 1; transform: translateY(0); }
         80% { opacity: 1; transform: translateY(0); }
         100% { opacity: 0; transform: translateY(-100%); }
+      }
+      
+      @keyframes slideInRight {
+        0% { opacity: 0; transform: translateX(100%); }
+        100% { opacity: 1; transform: translateX(0); }
+      }
+      
+      @keyframes slideOutRight {
+        0% { opacity: 1; transform: translateX(0); }
+        100% { opacity: 0; transform: translateX(100%); }
+      }
+      
+      .animate-slideInRight {
+        animation: slideInRight 1s ease-in-out;
+      }
+      
+      .animate-slideOutRight {
+        animation: slideOutRight 1s ease-in-out;
       }
     `;
     document.head.appendChild(style);
