@@ -12,7 +12,7 @@ import {
   saveUserTemplateAssets,
 } from "@/lib/firebase";
 import Link from "next/link";
-import SignUpModal from "./SignupModal";
+import AuthModal from "./AuthModal";
 
 interface ShareStepProps {
   onPrevious: () => void;
@@ -46,7 +46,7 @@ export default function ShareStep({
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedAward, setGeneratedAward] = useState("");
   const [isLoggedIn, setIsLoggedIn] = useState<boolean | null>(null);
-  const [isSignupModalOpen, setisSignupModalOpen] = useState<boolean>(false);
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState<boolean>(false);
   const [savedPropId, setSavedPropId] = useState<string | null>(null);
   const [processStep, setProcessStep] = useState<string>("");
   const [generatedImageUrl, setGeneratedImageUrl] = useState<string | null>(
@@ -84,11 +84,15 @@ export default function ShareStep({
 
       // Step 3: Generate image and saving to prop document
       setProcessStep("Generating image and saving to prop document...");
-      
+
       // Add a small delay to ensure the prop document is fully written to Firestore
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      const imageUrl = await generateAndSaveImage(user.uid, propId, uploadedAssets);
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+
+      const imageUrl = await generateAndSaveImage(
+        user.uid,
+        propId,
+        uploadedAssets
+      );
 
       setSavedPropId(propId);
       setGeneratedImageUrl(imageUrl);
@@ -110,7 +114,14 @@ for outstanding achievement in
 
 ${fromMessage || "Excellence in customer service and team collaboration"}
 
-Date: ${fromDate ? (() => { const [year, month, day] = fromDate.split('-'); return `${month}/${day}/${year.slice(2)}`; })() : new Date().toLocaleDateString()}
+Date: ${
+          fromDate
+            ? (() => {
+                const [year, month, day] = fromDate.split("-");
+                return `${month}/${day}/${year.slice(2)}`;
+              })()
+            : new Date().toLocaleDateString()
+        }
 Certificate ID: ${propId}
 
 This digital award recognizes excellence and dedication in professional development.
@@ -160,7 +171,10 @@ This digital award recognizes excellence and dedication in professional developm
       if (selectedTemplate?.achievement) {
         uploadedAssets.baseTemplateData = {
           // props should contain the background image, not the props text
-          props: uploadedAssets.backgroundUrl || selectedTemplate.achievement.backgroundImage || "",
+          props:
+            uploadedAssets.backgroundUrl ||
+            selectedTemplate.achievement.backgroundImage ||
+            "",
           logoImage: selectedTemplate.achievement.logoImage || "",
           // backgroundImage should contain the props title text
           backgroundImage: propsTitle || "",
@@ -174,7 +188,10 @@ This digital award recognizes excellence and dedication in professional developm
         const templateData = {
           achievement: {
             // props should contain the background image, not the props text
-            props: uploadedAssets.backgroundUrl || selectedTemplate?.achievement?.backgroundImage || "",
+            props:
+              uploadedAssets.backgroundUrl ||
+              selectedTemplate?.achievement?.backgroundImage ||
+              "",
             logoImage:
               uploadedAssets.logoUrl ||
               selectedTemplate?.achievement?.logoImage ||
@@ -218,11 +235,18 @@ This digital award recognizes excellence and dedication in professional developm
         try {
           const templateData = {
             achievement: {
-              props: uploadedAssets.backgroundUrl || selectedTemplate?.achievement?.backgroundImage || "",
-              logoImage: uploadedAssets.logoUrl || selectedTemplate?.achievement?.logoImage || "",
+              props:
+                uploadedAssets.backgroundUrl ||
+                selectedTemplate?.achievement?.backgroundImage ||
+                "",
+              logoImage:
+                uploadedAssets.logoUrl ||
+                selectedTemplate?.achievement?.logoImage ||
+                "",
               backgroundImage: propsTitle || "",
               tags: selectedTemplate?.achievement?.tags || [],
-              company: companyNameText || selectedTemplate?.achievement?.company || "",
+              company:
+                companyNameText || selectedTemplate?.achievement?.company || "",
             },
             isPrivate: true,
             userRef: userId,
@@ -235,7 +259,8 @@ This digital award recognizes excellence and dedication in professional developm
           const userTemplateId = await saveUserTemplateAssets(userId, {
             logoUrl: uploadedAssets.logoUrl || null,
             backgroundUrl: uploadedAssets.backgroundUrl || null,
-            company: companyNameText || selectedTemplate?.achievement?.company || "",
+            company:
+              companyNameText || selectedTemplate?.achievement?.company || "",
             templateId: templateId,
             basePropsUrl: selectedTemplate?.achievement?.props || null,
             achievement: templateData.achievement,
@@ -264,12 +289,19 @@ This digital award recognizes excellence and dedication in professional developm
         // Include the achievement data that the cloud function needs - EXACTLY like props
         achievement: {
           // props should contain the background image, not the props text
-          props: uploadedAssets.backgroundUrl || selectedTemplate?.achievement?.backgroundImage || "",
-          logoImage: uploadedAssets.logoUrl || selectedTemplate?.achievement?.logoImage || "",
+          props:
+            uploadedAssets.backgroundUrl ||
+            selectedTemplate?.achievement?.backgroundImage ||
+            "",
+          logoImage:
+            uploadedAssets.logoUrl ||
+            selectedTemplate?.achievement?.logoImage ||
+            "",
           // backgroundImage should contain the props title text
           backgroundImage: propsTitle || "",
           tags: selectedTemplate?.achievement?.tags || [],
-          company: companyNameText || selectedTemplate?.achievement?.company || "",
+          company:
+            companyNameText || selectedTemplate?.achievement?.company || "",
         },
         createdAt: new Date(),
         updatedAt: new Date(),
@@ -287,11 +319,13 @@ This digital award recognizes excellence and dedication in professional developm
   const generateAndSaveImage = async (
     userId: string,
     propId: string,
-    uploadedAssets: { logoUrl?: string | null; backgroundUrl?: string | null; templateId?: string | null } = {}
+    uploadedAssets: {
+      logoUrl?: string | null;
+      backgroundUrl?: string | null;
+      templateId?: string | null;
+    } = {}
   ) => {
     try {
-
-      
       // Call our proxy API route instead of the cloud function directly
       const imageUrl = `/api/generate-image?user=${userId}&prop=${propId}`;
 
@@ -523,24 +557,24 @@ This digital award recognizes excellence and dedication in professional developm
           ]
             .filter(({ label }) => label !== "Link")
             .map(({ label, bg, icon }, idx) => (
-            <button
-              key={idx}
-              type="button"
-              disabled={!isLoggedIn}
-              className={`disabled:opacity-50 p-3 sm:p-2 md:p-3 rounded-full ${bg} transition-colors flex items-center justify-center`}
-              aria-label={label}
-            >
-              <svg
-                width="20"
-                height="20"
-                viewBox="0 0 24 24"
-                fill="currentColor"
-                className="text-white"
+              <button
+                key={idx}
+                type="button"
+                disabled={!isLoggedIn}
+                className={`disabled:opacity-50 p-3 sm:p-2 md:p-3 rounded-full ${bg} transition-colors flex items-center justify-center`}
+                aria-label={label}
               >
-                {icon}
-              </svg>
-            </button>
-          ))}
+                <svg
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="currentColor"
+                  className="text-white"
+                >
+                  {icon}
+                </svg>
+              </button>
+            ))}
         </div>
 
         {showLoginNotice && !isLoggedIn && (
@@ -553,16 +587,19 @@ This digital award recognizes excellence and dedication in professional developm
   }
 
   return (
-    <div className="h-full flex flex-col" style={{ paddingLeft: "8px", paddingRight: "8px" }}>
+    <div
+      className="h-full flex flex-col"
+      style={{ paddingLeft: "8px", paddingRight: "8px" }}
+    >
       <div className="text-center flex-shrink-0" style={{ marginTop: "24px" }}>
         <h1 className="text-[30px] font-bold text-white mb-4">Share</h1>
       </div>
 
-      <SignUpModal
-        isOpen={isSignupModalOpen}
-        setIsOpen={setisSignupModalOpen}
+      <AuthModal
+        isOpen={isAuthModalOpen}
+        setIsOpen={setIsAuthModalOpen}
         onSuccess={() => {
-          setisSignupModalOpen(false);
+          setIsAuthModalOpen(false);
           if (onAuthSuccess) onAuthSuccess();
         }}
       />
@@ -587,7 +624,7 @@ This digital award recognizes excellence and dedication in professional developm
                 onChange={(e) => setSaveAsTemplate(e.target.checked)}
                 className="w-4 h-4 text-[#458CE0] bg-[#1B1D21] border-[#454446] rounded focus:ring-[#458CE0] focus:ring-2 focus:ring-offset-0"
                 style={{
-                  accentColor: '#458CE0'
+                  accentColor: "#458CE0",
                 }}
               />
               Save as reusable template
@@ -602,7 +639,10 @@ This digital award recognizes excellence and dedication in professional developm
                     onClick={async () => {
                       if (!auth.currentUser || !savedPropId) return;
                       setProcessStep("Retrying image generation...");
-                      await generateAndSaveImage(auth.currentUser.uid, savedPropId);
+                      await generateAndSaveImage(
+                        auth.currentUser.uid,
+                        savedPropId
+                      );
                       setProcessStep("");
                     }}
                   >
@@ -615,7 +655,7 @@ This digital award recognizes excellence and dedication in professional developm
               className="w-full bg-[var(--primary-dark)] text-white font-semibold py-2 rounded mb-4 mt-2 hover:bg-[var(--primary)] hover:text-[#191d21] transition"
               onClick={
                 !isLoggedIn
-                  ? () => setisSignupModalOpen(true)
+                  ? () => setIsAuthModalOpen(true)
                   : handleGenerateAward
               }
               disabled={isGenerating}
@@ -693,10 +733,8 @@ This digital award recognizes excellence and dedication in professional developm
                       />
                     </div>
                   )}
-                  
                 </div>
               )}
-              
             </div>
 
             <div className="flex gap-2">

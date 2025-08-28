@@ -84,26 +84,32 @@ export default function DigitalAwardsLayout({
           onStepChange={onStepChange}
         />
 
-        {/* Main Content with Sticky Nav */}
-        <div className="h-full flex flex-1" style={{ overflow: "hidden" }}>
-          {/* Left Container - Fixed and Independent */}
+        {/* Main Content - Stack vertically on mobile, horizontally on desktop */}
+        <div
+          className="flex-1 flex flex-col lg:flex-row h-full w-full"
+          style={{ overflow: "hidden" }}
+        >
+          {/* Left Container - Hidden on mobile/tablet (handled by hamburger), visible on desktop */}
           <div
-            className="w-3/12 flex-shrink-0"
+            className="hidden lg:flex w-3/12 xl:w-1/4 flex-shrink-0 relative z-[75]"
             style={{
               backgroundColor: "#212327",
-              padding: "20px",
+              padding: "16px",
               overflow: "hidden",
-              maxWidth: "25%",
+              minHeight: "200px",
             }}
           >
             <div className="h-full overflow-y-auto">{leftContent}</div>
           </div>
 
-          {/* Right Container - Scrollable */}
-          <div className="w-9/12 flex flex-col" style={{ overflow: "hidden" }}>
+          {/* Right Container - Full width on mobile/tablet, proportional on desktop */}
+          <div
+            className="w-full lg:w-9/12 xl:w-3/4 flex flex-col"
+            style={{ overflow: "hidden" }}
+          >
             {/* Content Area */}
             <div
-              className="h-full overflow-y-auto px-6"
+              className="h-full overflow-y-auto px-4 lg:px-6"
               style={{ backgroundColor: "#1B1D21" }}
             >
               {rightContent}
@@ -127,9 +133,9 @@ export default function DigitalAwardsLayout({
       {/* Main Content Area */}
       <div
         className="h-full flex flex-col"
-        style={{ 
-          marginLeft: user ? navState.navMargin : "0px", 
-          overflow: "hidden" 
+        style={{
+          marginLeft: user ? navState.navMargin : "0px",
+          overflow: "hidden",
         }}
       >
         {/* ViewTitle Container */}
@@ -162,9 +168,9 @@ export default function DigitalAwardsLayout({
 
         {/* Parent Container for Left and Right */}
         <div className="flex h-full flex-1" style={{ overflow: "hidden" }}>
-          {/* Left Container - Fixed and Independent */}
+          {/* Left Container - Hidden on mobile/tablet (handled by hamburger), visible on desktop */}
           <div
-            className="w-3/12 flex-shrink-0 flex"
+            className="hidden lg:flex w-3/12 flex-shrink-0 flex"
             style={{
               backgroundColor: "#212327",
               padding: "0px",
@@ -193,11 +199,14 @@ export default function DigitalAwardsLayout({
             </div>
           </div>
 
-          {/* Right Container - Scrollable */}
-          <div className="w-9/12 flex flex-col" style={{ overflow: "hidden" }}>
+          {/* Right Container - Full width on mobile/tablet, proportional on desktop */}
+          <div
+            className="w-full lg:w-9/12 flex flex-col"
+            style={{ overflow: "hidden" }}
+          >
             {/* Sticky Header */}
             <div
-              className="flex-shrink-0 px-6 pt-5"
+              className="flex-shrink-0 px-4 lg:px-6 pt-4 lg:pt-5"
               style={{
                 backgroundColor: "#1B1D21",
                 position: "sticky",
@@ -205,14 +214,14 @@ export default function DigitalAwardsLayout({
                 zIndex: 10,
               }}
             >
-              <h1 className="text-[30px] font-bold text-white mb-4">
+              <h1 className="text-[24px] lg:text-[30px] font-bold text-white mb-3 lg:mb-4">
                 {viewTitleText}
               </h1>
             </div>
 
             {/* Content Area */}
             <div
-              className="flex-1 overflow-y-auto px-6"
+              className="flex-1 overflow-y-auto px-4 lg:px-6"
               style={{ backgroundColor: "#1B1D21" }}
             >
               {rightContent}
