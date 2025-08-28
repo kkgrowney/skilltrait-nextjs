@@ -4,7 +4,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
 import SideNavigation, { useSideNavMargin } from '@/components/SideNavigation';
 import { useNavigation } from '@/contexts/NavigationContext';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { doc, getDoc, collection, getDocs, query, where } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import ViewTitleTab from '@/components/ViewTitleTab';
@@ -21,6 +21,7 @@ interface SkillRankSectionProps {
   };
   employeesRanked: boolean;
   onChevronClick: () => void;
+  rankedEmployees: any[];
 }
 
 function SkillRankSection({ skillData, employeesRanked, onChevronClick }: SkillRankSectionProps) {
@@ -32,19 +33,11 @@ function SkillRankSection({ skillData, employeesRanked, onChevronClick }: SkillR
   const [isClosing, setIsClosing] = useState(false);
   const [selectedEmployees, setSelectedEmployees] = useState<Set<string>>(new Set());
 
-  // Sample employee data - replace with actual data later
-  const sampleEmployees = [
-    { id: 'jcTGHjDFmlX4Lnmp5KJ1IXXeW573', name: 'James', title: 'Employee', startDate: 'Unknown', birthday: 'Unknown', location: 'Unknown', status: 'Part Time' },
-    { id: 'EMP-411703', name: 'Avery Martin', title: 'AI Engineer', startDate: 'January 17, 2000', birthday: '10/20', location: 'San Francisco, CA', status: 'Part Time' },
-    { id: 'EMP-195807', name: 'Jamie Thomas', title: 'Copywriter', startDate: 'June 18, 1989', birthday: '05/04', location: 'Detroit, MI', status: 'Full Time' },
-    { id: 'EMP-824226', name: 'Sage Jones', title: 'Graphic Designer', startDate: 'September 26, 2018', birthday: '10/29', location: 'Boston, MA', status: 'Part Time' },
-    { id: 'EMP-485985', name: 'Charlie Thomas', title: 'Data Analyst', startDate: 'September 2, 1999', birthday: '03/22', location: 'Houston, TX', status: 'Full Time' },
-    { id: 'EMP-123456', name: 'Sarah Johnson', title: 'Product Manager', startDate: 'March 15, 2021', birthday: '07/12', location: 'Seattle, WA', status: 'Full Time' },
-    { id: 'EMP-789012', name: 'Michael Chen', title: 'Software Engineer', startDate: 'November 8, 2020', birthday: '12/03', location: 'Austin, TX', status: 'Full Time' },
-    { id: 'EMP-345678', name: 'Emily Rodriguez', title: 'UX Designer', startDate: 'August 22, 2019', birthday: '04/18', location: 'Miami, FL', status: 'Part Time' },
-    { id: 'EMP-901234', name: 'David Kim', title: 'Data Scientist', startDate: 'January 30, 2022', birthday: '09/25', location: 'Denver, CO', status: 'Full Time' },
-    { id: 'EMP-567890', name: 'Lisa Wang', title: 'Marketing Specialist', startDate: 'May 12, 2021', birthday: '02/14', location: 'Portland, OR', status: 'Part Time' }
-  ];
+  // Get ranked employees from parent component
+  const rankedEmployees = useMemo(() => {
+    // This will be populated when ranking is complete
+    return [];
+  }, []);
 
   const getProficiencyColor = (proficiency: string) => {
     switch (proficiency) {
@@ -107,8 +100,8 @@ function SkillRankSection({ skillData, employeesRanked, onChevronClick }: SkillR
 
   // Handle select all employees
   const handleSelectAll = (checked: boolean) => {
-    if (checked) {
-      const allIds = sampleEmployees.slice(0, 10).map(emp => emp.id);
+    if (checked && rankedEmployees.length > 0) {
+      const allIds = rankedEmployees.slice(0, 10).map(emp => emp.id);
       setSelectedEmployees(new Set(allIds));
     } else {
       setSelectedEmployees(new Set());
@@ -117,75 +110,7 @@ function SkillRankSection({ skillData, employeesRanked, onChevronClick }: SkillR
 
 
 
-  // Cloud function trigger for vector search
-  const triggerVectorSearch = async () => {
-    if (!user) return;
-    
-    setIsSearching(true);
-    try {
-      // Get company document ID from user's connected company
-      const userConnectionsQuery = query(
-        collection(db, 'connectedCompanies'),
-        where('userRef', '==', doc(db, 'users', user.uid)),
-        where('active', '==', true),
-        where('verified', '==', true)
-      );
-      
-      const userConnectionsSnapshot = await getDocs(userConnectionsQuery);
-      if (userConnectionsSnapshot.empty) {
-        console.error('No active company connection found');
-        return;
-      }
-      
-      const userConnection = userConnectionsSnapshot.docs[0];
-      const companyRef = userConnection.data().companyReference;
-      
-      // Extract company ID from reference
-      let companyId: string;
-      if (typeof companyRef === 'string') {
-        companyId = companyRef;
-      } else if (companyRef && typeof companyRef === 'object' && 'path' in companyRef) {
-        companyId = companyRef.path.split('/').pop() || '';
-      } else {
-        console.error('Invalid company reference format');
-        return;
-      }
-      
-      // Prepare request body
-      const requestBody = {
-        query: skillData.skill,
-        comp: companyId,
-        mot: skillData.motivation,
-        prof: skillData.proficiency
-      };
-      
-      console.log('Triggering vector search with:', requestBody);
-      
-      // Make POST request to cloud function
-      const response = await fetch('https://us-central1-skill-trait-rwubkx.cloudfunctions.net/vectorSearch', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(requestBody)
-      });
-      
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      
-      const result = await response.json();
-      console.log('Vector search result:', result);
-      
-      // TODO: Handle the search results (replace sample employees with actual results)
-      // For now, just log the results
-      
-    } catch (error) {
-      console.error('Error triggering vector search:', error);
-    } finally {
-      setIsSearching(false);
-    }
-  };
+  // This function is no longer needed - we use the new ranking system instead
 
   return (
     <div className="bg-[#212327] rounded-lg border border-[#454446] overflow-hidden">
@@ -199,72 +124,88 @@ function SkillRankSection({ skillData, employeesRanked, onChevronClick }: SkillR
             <div className="flex items-center gap-6">
               <div className="flex items-center gap-3">
                 <span className="text-xs text-gray-400 whitespace-nowrap">Proficiency</span>
-                <div className="flex gap-1">
-                  {['Beginner', 'Intermediate', 'Advanced', 'Expert', 'Master'].map((level, index) => (
-                    <div
-                      key={level}
-                      className={`w-1.5 h-1.5 rounded-full transition-colors ${
-                        getProficiencyLevel(skillData.proficiency) >= index + 1
-                          ? 'bg-[#00DF71]'
-                          : 'bg-[#454446]'
-                      }`}
-                    />
-                  ))}
-                </div>
+                                  <div className="flex items-center gap-2">
+                    <div className="flex gap-1">
+                      {['Beginner', 'Intermediate', 'Advanced', 'Expert', 'Master'].map((level, index) => (
+                        <div
+                          key={level}
+                          className={`w-1.5 h-1.5 rounded-full transition-colors ${
+                            getProficiencyLevel(skillData.proficiency) >= index + 1
+                              ? 'bg-[#00DF71]'
+                              : 'bg-[#454446]'
+                          }`}
+                        />
+                      ))}
+                    </div>
+                  </div>
               </div>
               <div className="flex items-center gap-3">
                 <span className="text-xs text-gray-400 whitespace-nowrap">Motivation</span>
-                <div className="flex gap-1">
-                  {['Very Low', 'Low', 'Moderate', 'High', 'Very High'].map((level, index) => (
-                    <div
-                      key={level}
-                      className={`w-1.5 h-1.5 rounded-full transition-colors ${
-                        getMotivationLevel(skillData.motivation) >= index + 1
-                          ? 'bg-[#00DF71]'
-                          : 'bg-[#454446]'
-                      }`}
-                    />
-                  ))}
-                </div>
+                                  <div className="flex items-center gap-2">
+                    <div className="flex gap-1">
+                      {['Very Low', 'Low', 'Moderate', 'High', 'Very High'].map((level, index) => (
+                        <div
+                          key={level}
+                          className={`w-1.5 h-1.5 rounded-full transition-colors ${
+                            getMotivationLevel(skillData.motivation) >= index + 1
+                              ? 'bg-[#00DF71]'
+                              : 'bg-[#454446]'
+                          }`}
+                        />
+                      ))}
+                    </div>
+                  </div>
               </div>
             </div>
                       </div>
                         <div className="flex items-center gap-2">
               {/* Custom Container */}
-              <div className="ml-5 flex items-end gap-2">
-                <span className={`text-xs whitespace-nowrap ${employeesRanked ? 'text-gray-400' : 'text-gray-400'}`}>
-                  {employeesRanked ? 'Ranked' : 'Rank Employees'}
+              <button 
+                onClick={() => {
+                  // Trigger ranking for this specific skill
+                  const skillToRank = [{
+                    skill: skillData.skill,
+                    proficiency: skillData.proficiency,
+                    motivation: skillData.motivation
+                  }];
+                  
+                  console.log('🔍 Debug: Individual skill ranking triggered for:', skillData.skill);
+                  console.log('🔍 Debug: skillToRank array:', skillToRank);
+                  
+                  // Call the parent's ranking function
+                  if (typeof window !== 'undefined') {
+                    // Use a custom event to communicate with parent component
+                    const event = new CustomEvent('rankSingleSkill', {
+                      detail: { skillToRank }
+                    });
+                    window.dispatchEvent(event);
+                  }
+                }}
+                className="ml-5 flex items-center gap-2 px-3 py-2 rounded-lg transition-all bg-[#00DF71] hover:bg-[#0AFB84] text-[#212327] font-medium cursor-pointer shadow-lg hover:shadow-xl transform hover:scale-105"
+                title={`Rank employees based on ${skillData.skill} skill`}
+              >
+                <span className="text-xs whitespace-nowrap">
+                  Rank Employees
                 </span>
-                {employeesRanked ? (
-                  <svg 
-                    className="w-5 h-5" 
-                    viewBox="0 0 20 20" 
-                    fill="none" 
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path d="M5.02587 7.07015C2.31003 9.81552 2.32479 14.2583 5.07015 16.9741C7.81552 19.69 12.2583 19.6752 14.9741 16.9298C17.69 14.1845 17.6752 9.74172 14.9298 7.02587C12.1845 4.31003 7.74172 4.32479 5.02587 7.07015ZM13.4096 10.6568L9.60148 14.5092C9.27676 14.8339 8.7454 14.8339 8.42068 14.5092L8.27308 14.3616L7.83028 13.9188L6.59044 12.6937C6.26571 12.369 6.26571 11.8376 6.59044 11.5129C6.91516 11.1882 7.44652 11.1882 7.77124 11.5129L9.01108 12.738L12.2288 9.4908C12.5535 9.16608 13.0848 9.16608 13.4096 9.4908C13.7343 9.80076 13.7343 10.3321 13.4096 10.6568Z" fill="#9CA3AF"/>
-                  </svg>
-                ) : (
-                  <svg 
-                    className="w-5 h-5" 
-                    viewBox="0 0 20 20" 
-                    fill="none" 
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path d="M6.16667 16.3333H2V8.08333C2 7.97283 2.0439 7.86685 2.12204 7.78871C2.20018 7.71057 2.30616 7.66667 2.41667 7.66667H5.75C5.86051 7.66667 5.96649 7.71057 6.04463 7.78871C6.12277 7.86685 6.16667 7.97283 6.16667 8.08333V16.3333ZM12.4167 3.41667C12.4167 3.30616 12.3728 3.20018 12.2946 3.12204C12.2165 3.0439 12.1105 3 12 3H8.66667C8.55616 3 8.45018 3.0439 8.37204 3.12204C8.2939 3.20018 8.25 3.30616 8.25 3.41667V16.3333H12.4167V3.41667ZM18.25 10.3333H14.9167C14.8062 10.3333 14.7002 10.3772 14.622 10.4554C14.5439 10.5335 14.5 10.6395 14.5 10.75V16.3333H18.6667V10.75C18.6667 10.6395 18.6228 10.5335 18.5446 10.4554C18.4665 10.3772 18.3605 10.3333 18.25 10.3333Z" fill="#00DF71"/>
-                  </svg>
-                )}
-              </div>
+                <svg 
+                  className="w-5 h-5" 
+                  viewBox="0 0 20 20" 
+                  fill="none" 
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path d="M6.16667 16.3333H2V8.08333C2 7.97283 2.0439 7.86685 2.12204 7.78871C2.20018 7.71057 2.30616 7.66667 2.41667 7.66667H5.75C5.86051 7.66667 5.96649 7.71057 6.04463 7.78871C6.12277 7.86685 6.16667 7.97283 6.16667 8.08333V16.3333ZM12.4167 3.41667C12.4167 3.30616 12.3728 3.20018 12.2946 3.12204C12.2165 3.0439 12.1105 3 12 3H8.66667C8.55616 3 8.45018 3.0439 8.37204 3.12204C8.2939 3.20018 8.25 3.30616 8.25 3.41667V16.3333H12.4167V3.41667ZM18.25 10.3333H14.9167C14.8062 10.3333 14.7002 10.3772 14.622 10.4554C14.5439 10.5335 14.5 10.6395 14.5 10.75V16.3333H18.6667V10.75C18.6667 10.6395 18.6228 10.5335 18.5446 10.4554C18.4665 10.3772 18.3605 10.3333 18.25 10.3333Z" fill="currentColor"/>
+                </svg>
+              </button>
               {/* Expand/Collapse Arrow */}
             <button 
               onClick={() => {
-                if (employeesRanked) {
+                // Only allow expansion when ranking is actually completed and table exists
+                if (employeesRanked && isExpanded) {
                   setIsExpanded(!isExpanded);
-                } else {
-                  onChevronClick();
                 }
               }}
-              className={`p-2 transition-colors ${employeesRanked ? 'text-gray-400 hover:text-white cursor-pointer' : 'text-gray-600 cursor-not-allowed'}`}
+              className="p-2 transition-colors text-gray-600 cursor-not-allowed"
+              title="Ranking not completed yet"
             >
               <svg 
                 className={`w-5 h-5 transition-transform ${isExpanded ? 'rotate-180' : ''}`} 
@@ -320,7 +261,7 @@ function SkillRankSection({ skillData, employeesRanked, onChevronClick }: SkillR
                     <div className="w-[54px] py-3 flex justify-center">
                       <input
                         type="checkbox"
-                        checked={selectedEmployees.size === sampleEmployees.slice(0, 10).length && selectedEmployees.size > 0}
+                        checked={selectedEmployees.size === rankedEmployees.slice(0, 10).length && selectedEmployees.size > 0}
                         onChange={(e) => handleSelectAll(e.target.checked)}
                         className="h-4 w-4 text-[#00DF71] focus:ring-[#00DF71] border-gray-600 rounded bg-[#1B1D21]"
                         style={{ accentColor: '#00DF71' }}
@@ -336,7 +277,7 @@ function SkillRankSection({ skillData, employeesRanked, onChevronClick }: SkillR
 
                 {/* Table Body */}
                 <div className="divide-y divide-[#3D3C3E]">
-                  {sampleEmployees
+                  {rankedEmployees
                     .slice(0, 10) // Show top 10 employees
                     .map((employee, index) => (
                       <div 
@@ -520,11 +461,36 @@ export default function Team() {
   const [csvFileName, setCsvFileName] = useState<string>('');
   const [editingSkill, setEditingSkill] = useState<string | null>(null);
   const [editingSkillValue, setEditingSkillValue] = useState<string>('');
+  const [rankedEmployeeResults, setRankedEmployeeResults] = useState<any[]>([]);
+  const [isRankingLoading, setIsRankingLoading] = useState(false);
 
   // Handle adding a skill to required skills
   const handleAddSkill = (skill: string) => {
     if (!requiredSkills.includes(skill)) {
       setRequiredSkills([...requiredSkills, skill]);
+    }
+  };
+
+  // Helper functions to convert proficiency/motivation to integers
+  const getProficiencyInt = (proficiency: string): number => {
+    switch (proficiency) {
+      case 'Beginner': return 1;
+      case 'Intermediate': return 2;
+      case 'Advanced': return 3;
+      case 'Expert': return 4;
+      case 'Master': return 5;
+      default: return 1;
+    }
+  };
+
+  const getMotivationInt = (motivation: string): number => {
+    switch (motivation) {
+      case 'Very Low': return 1;
+      case 'Low': return 2;
+      case 'Moderate': return 3;
+      case 'High': return 4;
+      case 'Very High': return 5;
+      default: return 1;
     }
   };
 
@@ -696,10 +662,303 @@ export default function Team() {
     setSelectedSkillsForAction([]);
     setPendingChanges({});
     
-    // Simulate AI processing delay - in real implementation, this would be an actual API call
-    setTimeout(() => {
+    // Start the ranking process
+    startEmployeeRanking(skillsToRank);
+  };
+
+  // Start employee ranking process
+  const startEmployeeRanking = async (skillsToRank: any[]) => {
+    try {
+      // Set loading state
+      setIsRankingLoading(true);
+      setNotification('Starting employee ranking process...');
+      
+      // Get company ID from existing companyRef
+      let companyId: string = '';
+      console.log('🔍 Debug: teamProfile:', teamProfile);
+      console.log('🔍 Debug: teamProfile.companyReference:', teamProfile?.companyReference);
+      console.log('🔍 Debug: typeof teamProfile.companyReference:', typeof teamProfile?.companyReference);
+      
+      if (teamProfile && teamProfile.companyReference) {
+        if (typeof teamProfile.companyReference === 'string') {
+          companyId = teamProfile.companyReference;
+          console.log('🔍 Debug: Using string company ID:', companyId);
+        } else if (teamProfile.companyReference && typeof teamProfile.companyReference === 'object') {
+          // Handle Firestore document reference object
+          if ('path' in teamProfile.companyReference) {
+            companyId = teamProfile.companyReference.path.split('/').pop() || '';
+            console.log('🔍 Debug: Using path company ID:', companyId);
+            console.log('🔍 Debug: Full path:', teamProfile.companyReference.path);
+          } else if ('referencePath' in teamProfile.companyReference) {
+            companyId = teamProfile.companyReference.referencePath.split('/').pop() || '';
+            console.log('🔍 Debug: Using referencePath company ID:', companyId);
+            console.log('🔍 Debug: Full referencePath:', teamProfile.companyReference.referencePath);
+          }
+        }
+      }
+      
+      // If teamProfile doesn't have companyReference, try to get it from the user's active connection
+      if (!companyId) {
+        console.log('🔄 teamProfile missing companyReference, checking user connections...');
+        
+        try {
+          // Query user connections directly to get company ID
+          const userConnectionsQuery = query(
+            collection(db, 'connectedCompanies'),
+            where('userRef', '==', doc(db, 'users', user!.uid)),
+            where('active', '==', true),
+            where('verified', '==', true)
+          );
+          
+          const userConnectionsSnapshot = await getDocs(userConnectionsQuery);
+          
+          if (!userConnectionsSnapshot.empty) {
+            const userConnection = userConnectionsSnapshot.docs[0];
+            const companyData = userConnection.data();
+            
+            if (companyData.companyReference) {
+              if (typeof companyData.companyReference === 'string') {
+                companyId = companyData.companyReference;
+                console.log('🔍 Debug: From user connection - Using string company ID:', companyId);
+              } else if (companyData.companyReference && typeof companyData.companyReference === 'object') {
+                if ('path' in companyData.companyReference) {
+                  companyId = companyData.companyReference.path.split('/').pop() || '';
+                  console.log('🔍 Debug: From user connection - Using path company ID:', companyId);
+                } else if ('referencePath' in companyData.companyReference) {
+                  companyId = companyData.companyReference.referencePath.split('/').pop() || '';
+                  console.log('🔍 Debug: From user connection - Using referencePath company ID:', companyId);
+                }
+              }
+            }
+          }
+        } catch (connectionError) {
+          console.error('❌ Error fetching user connections:', connectionError);
+        }
+      }
+      
+      console.log('🔍 Debug: Final companyId:', companyId);
+      
+      if (!companyId) {
+        console.error('❌ Company ID not found after refetch. teamProfile:', teamProfile);
+        throw new Error('Company ID not found. Please ensure you have an active company connection.');
+      }
+      
+      // Call cloud function for each skill
+      const allRankedEmployees: any[] = [];
+      
+      console.log('🚀 Starting ranking for skills:', skillsToRank);
+      console.log('🏢 Using company ID:', companyId);
+      console.log('🔍 skillsToRank type:', typeof skillsToRank);
+      console.log('🔍 skillsToRank length:', skillsToRank.length);
+      console.log('🔍 skillsToRank structure:', JSON.stringify(skillsToRank, null, 2));
+      
+      for (const skillData of skillsToRank) {
+        try {
+          console.log('📋 Processing skill:', skillData);
+          console.log('📋 skillData type:', typeof skillData);
+          console.log('📋 skillData keys:', Object.keys(skillData));
+          console.log('📋 skillData.skill:', skillData.skill);
+          console.log('📋 skillData.proficiency:', skillData.proficiency);
+          console.log('📋 skillData.motivation:', skillData.motivation);
+          
+          const rankedEmployees = await callVectorSearchAPI(skillData, companyId);
+          allRankedEmployees.push({
+            skill: skillData.skill,
+            employees: rankedEmployees
+          });
+        } catch (error) {
+          console.error(`Error ranking for skill ${skillData.skill}:`, error);
+          // Continue with other skills even if one fails
+        }
+      }
+      
+      // Store the ranked results
+      setRankedEmployeeResults(allRankedEmployees);
+      
+      // Mark ranking as complete
       setEmployeesRanked(true);
-    }, 2000); // 2 second delay to simulate AI processing
+      
+      setNotification('Employee ranking completed successfully!');
+      setTimeout(() => setNotification(null), 3000);
+      
+    } catch (error) {
+      console.error('Error ranking employees:', error);
+      setNotification(`Error ranking employees: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      setTimeout(() => setNotification(null), 5000);
+    } finally {
+      setIsRankingLoading(false);
+    }
+  };
+
+  // Call the vectorSearch cloud function
+  const callVectorSearchAPI = async (skillData: any, companyId: string) => {
+    console.log('🎯 callVectorSearchAPI called with:');
+    console.log('  - skillData:', skillData);
+    console.log('  - companyId:', companyId);
+    console.log('  - skillData type:', typeof skillData);
+    console.log('  - companyId type:', typeof companyId);
+    
+    // Validate skillData structure
+    if (!skillData || typeof skillData !== 'object') {
+      throw new Error('Invalid skillData: must be an object');
+    }
+    
+    if (!skillData.skill) {
+      throw new Error('Missing skill name in skillData');
+    }
+    
+    // Use default values if proficiency/motivation are missing
+    const proficiency = skillData.proficiency || 'Intermediate';
+    const motivation = skillData.motivation || 'Moderate';
+    
+    console.log('  - Using proficiency:', proficiency);
+    console.log('  - Using motivation:', motivation);
+    
+    // Map proficiency and motivation to integers
+    const proficiencyInt = getProficiencyInt(proficiency);
+    const motivationInt = getMotivationInt(motivation);
+    
+    console.log('  - skillData.proficiency:', skillData.proficiency);
+    console.log('  - skillData.motivation:', skillData.motivation);
+    console.log('  - proficiencyInt mapped:', proficiencyInt);
+    console.log('  - motivationInt mapped:', motivationInt);
+    
+    const requestBody = {
+      query: skillData.skill,
+      comp: companyId,
+      mot: motivationInt,
+      prof: proficiencyInt
+    };
+    
+    console.log('🔍 Debug: skillData received:', skillData);
+    console.log('🔍 Debug: companyId received:', companyId);
+    console.log('🔍 Debug: proficiencyInt calculated:', proficiencyInt);
+    console.log('🔍 Debug: motivationInt calculated:', motivationInt);
+    console.log('🔍 Debug: requestBody object:', requestBody);
+    console.log('🔍 Debug: requestBody JSON stringified:', JSON.stringify(requestBody));
+    console.log('🔍 Debug: requestBody type:', typeof requestBody);
+    console.log('🔍 Debug: JSON.stringify result type:', typeof JSON.stringify(requestBody));
+    
+    console.log('📤 Sending request to cloud function with body:', JSON.stringify(requestBody, null, 2));
+    
+    // Use our Next.js API route to avoid CORS issues
+    const apiUrl = '/api/vector-search';
+    
+    console.log('🌐 Making request to Next.js API route:', apiUrl);
+    
+    const response = await fetch(apiUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(requestBody)
+    });
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
+    const result = await response.json();
+    console.log('Vector search result for', skillData.skill, ':', result);
+    
+    return result;
+  };
+
+
+
+  // Rank employees based on skills (simulated algorithm)
+  const rankEmployeesBySkills = async (skillsToRank: any[]): Promise<any[]> => {
+    // Simulate API delay
+    await new Promise(resolve => setTimeout(resolve, 2000));
+    
+    // Generate sample employee rankings based on skills
+    const sampleEmployees = [
+      { id: 'EMP-001', name: 'Sarah Johnson', title: 'Senior Developer', skills: ['JavaScript', 'React', 'Node.js'], experience: 5, location: 'San Francisco, CA' },
+      { id: 'EMP-002', name: 'Michael Chen', title: 'Full Stack Engineer', skills: ['Python', 'Django', 'React'], experience: 4, location: 'New York, NY' },
+      { id: 'EMP-003', name: 'Emily Rodriguez', title: 'UX Designer', skills: ['UI/UX Design', 'Figma', 'Prototyping'], experience: 3, location: 'Austin, TX' },
+      { id: 'EMP-004', name: 'David Kim', title: 'Data Scientist', skills: ['Python', 'Machine Learning', 'Data Analysis'], experience: 6, location: 'Seattle, WA' },
+      { id: 'EMP-005', name: 'Lisa Wang', title: 'Product Manager', skills: ['Product Management', 'Agile', 'User Research'], experience: 4, location: 'Boston, MA' },
+      { id: 'EMP-006', name: 'James Wilson', title: 'DevOps Engineer', skills: ['Docker', 'Kubernetes', 'AWS'], experience: 5, location: 'Denver, CO' },
+      { id: 'EMP-007', name: 'Alex Thompson', title: 'Frontend Developer', skills: ['React', 'TypeScript', 'CSS'], experience: 2, location: 'Portland, OR' },
+      { id: 'EMP-008', name: 'Maria Garcia', title: 'Backend Developer', skills: ['Java', 'Spring Boot', 'PostgreSQL'], experience: 4, location: 'Miami, FL' },
+      { id: 'EMP-009', name: 'Ryan Lee', title: 'Mobile Developer', skills: ['React Native', 'iOS', 'Android'], experience: 3, location: 'Chicago, IL' },
+      { id: 'EMP-010', name: 'Jennifer Brown', title: 'QA Engineer', skills: ['Testing', 'Automation', 'Selenium'], experience: 3, location: 'Phoenix, AZ' }
+    ];
+
+    // Calculate rankings based on skill requirements
+    const rankedEmployees = sampleEmployees.map(employee => {
+      let totalScore = 0;
+      let skillMatches = 0;
+      
+      skillsToRank.forEach(requiredSkill => {
+        const hasSkill = employee.skills.some(skill => 
+          skill.toLowerCase().includes(requiredSkill.skill.toLowerCase()) ||
+          requiredSkill.skill.toLowerCase().includes(skill.toLowerCase())
+        );
+        
+        if (hasSkill) {
+          skillMatches++;
+          // Base score for having the skill
+          totalScore += 50;
+          
+          // Bonus for experience level
+          totalScore += Math.min(employee.experience * 5, 25);
+          
+          // Bonus for skill proficiency match
+          const proficiencyBonus = getProficiencyBonus(requiredSkill.proficiency);
+          totalScore += proficiencyBonus;
+          
+          // Bonus for motivation level
+          const motivationBonus = getMotivationBonus(requiredSkill.motivation);
+          totalScore += motivationBonus;
+        }
+      });
+      
+      // Calculate match percentage
+      const matchPercentage = (skillMatches / skillsToRank.length) * 100;
+      
+      // Final score with match percentage weight
+      const finalScore = (totalScore * matchPercentage) / 100;
+      
+      return {
+        ...employee,
+        skillMatches,
+        matchPercentage: Math.round(matchPercentage * 10) / 10,
+        totalScore: Math.round(finalScore * 10) / 10,
+        ranking: 0 // Will be set after sorting
+      };
+    });
+
+    // Sort by score and assign rankings
+    rankedEmployees.sort((a, b) => b.totalScore - a.totalScore);
+    rankedEmployees.forEach((employee, index) => {
+      employee.ranking = index + 1;
+    });
+
+    return rankedEmployees;
+  };
+
+  // Helper functions for scoring
+  const getProficiencyBonus = (proficiency: string): number => {
+    switch (proficiency) {
+      case 'Beginner': return 10;
+      case 'Intermediate': return 20;
+      case 'Advanced': return 30;
+      case 'Expert': return 40;
+      case 'Master': return 50;
+      default: return 10;
+    }
+  };
+
+  const getMotivationBonus = (motivation: string): number => {
+    switch (motivation) {
+      case 'Very Low': return 5;
+      case 'Low': return 10;
+      case 'Moderate': return 15;
+      case 'High': return 20;
+      case 'Very High': return 25;
+      default: return 10;
+    }
   };
 
   // Handle remove confirmation
@@ -736,6 +995,34 @@ export default function Team() {
 
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  // Handle single skill ranking from child components
+  useEffect(() => {
+    const handleSingleSkillRank = (event: CustomEvent) => {
+      const { skillToRank } = event.detail;
+      
+      console.log('🔍 Debug: handleSingleSkillRank received event:', event);
+      console.log('🔍 Debug: event.detail:', event.detail);
+      console.log('🔍 Debug: skillToRank:', skillToRank);
+      console.log('🔍 Debug: skillToRank type:', typeof skillToRank);
+      console.log('🔍 Debug: skillToRank length:', skillToRank?.length);
+      
+      // Set the skills for ranking
+      setRankEmployeesSkills(skillToRank);
+      
+      // Switch to rank-employees tab
+      setRightContainerTab('rank-employees');
+      
+      // Start the ranking process for this single skill
+      startEmployeeRanking(skillToRank);
+    };
+
+    window.addEventListener('rankSingleSkill', handleSingleSkillRank as EventListener);
+    
+    return () => {
+      window.removeEventListener('rankSingleSkill', handleSingleSkillRank as EventListener);
+    };
   }, []);
 
   // Fetch team profile data from connectedCompanies collection (EFFICIENT - using Firestore queries)
@@ -1739,17 +2026,36 @@ export default function Team() {
                                     >
                                       Update
                                     </button>
-                                    <button
-                                      onClick={handleRankEmployees}
-                                      disabled={selectedSkillsForAction.length === 0 || Object.keys(pendingChanges).length > 0}
-                                      className={`px-3 py-1 text-xs rounded-full transition-colors ${
-                                        selectedSkillsForAction.length > 0 && Object.keys(pendingChanges).length === 0
-                                          ? 'bg-[#00DF71] hover:bg-[#0AFB84] text-[#212327] font-medium cursor-pointer'
-                                          : 'bg-gray-500 text-gray-300 cursor-not-allowed'
-                                      }`}
-                                    >
-                                      Rank Employees
-                                    </button>
+                                                          <button
+                        onClick={() => {
+                          // Convert selected skill names to full skill objects with proficiency and motivation
+                          console.log('🔍 Debug: selectedSkillsForAction:', selectedSkillsForAction);
+                          console.log('🔍 Debug: pendingChanges:', pendingChanges);
+                          
+                          const skillsToRank = selectedSkillsForAction.map(skillName => {
+                            const pendingSkillData = pendingChanges[skillName];
+                            const skillObject = {
+                              skill: skillName,
+                              proficiency: pendingSkillData?.proficiency || 'Intermediate', // Use pending changes or default
+                              motivation: pendingSkillData?.motivation || 'Moderate' // Use pending changes or default
+                            };
+                            console.log('🔍 Debug: Created skill object for', skillName, ':', skillObject);
+                            return skillObject;
+                          });
+                          
+                          console.log('🔍 Debug: Final skillsToRank array:', skillsToRank);
+                          setRankEmployeesSkills(skillsToRank);
+                          setRightContainerTab('rank-employees');
+                        }}
+                        disabled={selectedSkillsForAction.length === 0 || Object.keys(pendingChanges).length > 0}
+                        className={`px-3 py-1 text-xs rounded-full transition-colors ${
+                          selectedSkillsForAction.length > 0 && Object.keys(pendingChanges).length === 0
+                            ? 'bg-[#00DF71] hover:bg-[#0AFB84] text-[#212327] font-medium cursor-pointer'
+                            : 'bg-gray-500 text-gray-300 cursor-not-allowed'
+                        }`}
+                      >
+                        Rank Employees
+                      </button>
                                 </div>
                               </div>
                             </div>
@@ -1781,8 +2087,23 @@ export default function Team() {
                                 </div>
                               </div>
                               <div className="flex items-center gap-2">
-                                <div className="ml-5 flex items-end gap-2">
-                                  <span className="text-xs text-[#00DF71] whitespace-nowrap">
+                                                        <button 
+                          onClick={handleRankEmployees}
+                          disabled={rankEmployeesSkills.length === 0 || !teamProfile?.companyReference}
+                          className={`ml-5 flex items-center gap-2 px-3 py-2 rounded-lg transition-all ${
+                            rankEmployeesSkills.length > 0 && teamProfile?.companyReference
+                              ? 'bg-[#00DF71] hover:bg-[#0AFB84] text-[#212327] font-medium cursor-pointer shadow-lg hover:shadow-xl transform hover:scale-105'
+                              : 'bg-gray-500 text-gray-300 cursor-not-allowed'
+                          }`}
+                          title={
+                            !teamProfile?.companyReference 
+                              ? "Company profile not loaded yet" 
+                              : rankEmployeesSkills.length > 0 
+                                ? "Click to rank employees based on selected skills" 
+                                : "No skills selected for ranking"
+                          }
+                        >
+                                  <span className="text-xs whitespace-nowrap">
                                     Rank Employees
                                   </span>
                                   <svg 
@@ -1791,9 +2112,9 @@ export default function Team() {
                                     fill="none" 
                                     xmlns="http://www.w3.org/2000/svg"
                                   >
-                                    <path d="M6.16667 16.3333H2V8.08333C2 7.97283 2.0439 7.86685 2.12204 7.78871C2.20018 7.71057 2.30616 7.66667 2.41667 7.66667H5.75C5.86051 7.66667 5.96649 7.71057 6.04463 7.78871C6.12277 7.86685 6.16667 7.97283 6.16667 8.08333V16.3333ZM12.4167 3.41667C12.4167 3.30616 12.3728 3.20018 12.2946 3.12204C12.2165 3.0439 12.1105 3 12 3H8.66667C8.55616 3 8.45018 3.0439 8.37204 3.12204C8.2939 3.20018 8.25 3.30616 8.25 3.41667V16.3333H12.4167V3.41667ZM18.25 10.3333H14.9167C14.8062 10.3333 14.7002 10.3772 14.622 10.4554C14.5439 10.5335 14.5 10.6395 14.5 10.75V16.3333H18.6667V10.75C18.6667 10.6395 18.6228 10.5335 18.5446 10.4554C18.4665 10.3772 18.3605 10.3333 18.25 10.3333Z" fill="#00DF71"/>
+                                    <path d="M6.16667 16.3333H2V8.08333C2 7.97283 2.0439 7.86685 2.12204 7.78871C2.20018 7.71057 2.30616 7.66667 2.41667 7.66667H5.75C5.86051 7.66667 5.96649 7.71057 6.04463 7.78871C6.12277 7.86685 6.16667 7.97283 6.16667 8.08333V16.3333ZM12.4167 3.41667C12.4167 3.30616 12.3728 3.20018 12.2946 3.12204C12.2165 3.0439 12.1105 3 12 3H8.66667C8.55616 3 8.45018 3.0439 8.37204 3.12204C8.2939 3.20018 8.25 3.30616 8.25 3.41667V16.3333H12.4167V3.41667ZM18.25 10.3333H14.9167C14.8062 10.3333 14.7002 10.3772 14.622 10.4554C14.5439 10.5335 14.5 10.6395 14.5 10.75V16.3333H18.6667V10.75C18.6667 10.6395 18.6228 10.5335 18.5446 10.4554C18.4665 10.3772 18.3605 10.3333 18.25 10.3333Z" fill="currentColor"/>
                                   </svg>
-                                </div>
+                                </button>
                                 <button 
                                   onClick={(e) => {
                                     e.stopPropagation();
@@ -1849,6 +2170,7 @@ export default function Team() {
                                 onChevronClick={() => {
                                   // Notification removed - keeping only the All Skills container notification
                                 }}
+                                rankedEmployees={rankedEmployeeResults}
                               />
                             ))
                           ) : (
