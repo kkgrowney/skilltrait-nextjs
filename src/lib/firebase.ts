@@ -37,7 +37,7 @@ export const uploadAsset = async (file: File, path: string): Promise<string> => 
 // Function to create template with uploaded assets
 export const createTemplateWithAssets = async (templateData: any) => {
   try {
-    const templatesRef = collection(db, 'templates');
+    const templatesRef = collection(db, 'template');
     const docRef = await addDoc(templatesRef, {
       ...templateData,
       createdAt: new Date(),
@@ -65,7 +65,7 @@ export const saveUserTemplateAssets = async (
   }
 ) => {
   try {
-    const userTemplatesRef = collection(db, 'users', userId, 'templates');
+    const userTemplatesRef = collection(db, 'users', userId, 'template');
     const docRef = await addDoc(userTemplatesRef, {
       logoUrl: data.logoUrl || null,
       backgroundUrl: data.backgroundUrl || null,

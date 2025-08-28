@@ -224,7 +224,7 @@ export default function Home() {
   useEffect(() => {
     if (!user?.uid) return;
     setIsLoadingRecentTemplates(true);
-    const templatesRef = collection(db, "users", user.uid, "templates");
+          const templatesRef = collection(db, "users", user.uid, "template");
     const q = query(templatesRef, orderBy("createdAt", "desc"), limit(12));
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const items: any[] = [];

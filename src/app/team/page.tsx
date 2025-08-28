@@ -103,7 +103,7 @@ function SkillRankSection({ skillData, employeesRanked, onChevronClick }: SkillR
     if (checked && rankedEmployees.length > 0) {
       const allIds = rankedEmployees.slice(0, 10).map(emp => emp.id);
       setSelectedEmployees(new Set(allIds));
-    } else {
+      } else {
       setSelectedEmployees(new Set());
     }
   };
@@ -125,36 +125,36 @@ function SkillRankSection({ skillData, employeesRanked, onChevronClick }: SkillR
               <div className="flex items-center gap-3">
                 <span className="text-xs text-gray-400 whitespace-nowrap">Proficiency</span>
                                   <div className="flex items-center gap-2">
-                    <div className="flex gap-1">
-                      {['Beginner', 'Intermediate', 'Advanced', 'Expert', 'Master'].map((level, index) => (
-                        <div
-                          key={level}
-                          className={`w-1.5 h-1.5 rounded-full transition-colors ${
-                            getProficiencyLevel(skillData.proficiency) >= index + 1
-                              ? 'bg-[#00DF71]'
-                              : 'bg-[#454446]'
-                          }`}
-                        />
-                      ))}
+                <div className="flex gap-1">
+                  {['Beginner', 'Intermediate', 'Advanced', 'Expert', 'Master'].map((level, index) => (
+                    <div
+                      key={level}
+                      className={`w-1.5 h-1.5 rounded-full transition-colors ${
+                        getProficiencyLevel(skillData.proficiency) >= index + 1
+                          ? 'bg-[#00DF71]'
+                          : 'bg-[#454446]'
+                      }`}
+                    />
+                  ))}
                     </div>
-                  </div>
+                </div>
               </div>
               <div className="flex items-center gap-3">
                 <span className="text-xs text-gray-400 whitespace-nowrap">Motivation</span>
                                   <div className="flex items-center gap-2">
-                    <div className="flex gap-1">
-                      {['Very Low', 'Low', 'Moderate', 'High', 'Very High'].map((level, index) => (
-                        <div
-                          key={level}
-                          className={`w-1.5 h-1.5 rounded-full transition-colors ${
-                            getMotivationLevel(skillData.motivation) >= index + 1
-                              ? 'bg-[#00DF71]'
-                              : 'bg-[#454446]'
-                          }`}
-                        />
-                      ))}
+                <div className="flex gap-1">
+                  {['Very Low', 'Low', 'Moderate', 'High', 'Very High'].map((level, index) => (
+                    <div
+                      key={level}
+                      className={`w-1.5 h-1.5 rounded-full transition-colors ${
+                        getMotivationLevel(skillData.motivation) >= index + 1
+                          ? 'bg-[#00DF71]'
+                          : 'bg-[#454446]'
+                      }`}
+                    />
+                  ))}
                     </div>
-                  </div>
+                </div>
               </div>
             </div>
                       </div>
@@ -187,14 +187,14 @@ function SkillRankSection({ skillData, employeesRanked, onChevronClick }: SkillR
                 <span className="text-xs whitespace-nowrap">
                   Rank Employees
                 </span>
-                <svg 
-                  className="w-5 h-5" 
-                  viewBox="0 0 20 20" 
-                  fill="none" 
-                  xmlns="http://www.w3.org/2000/svg"
-                >
+                  <svg 
+                    className="w-5 h-5" 
+                    viewBox="0 0 20 20" 
+                    fill="none" 
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
                   <path d="M6.16667 16.3333H2V8.08333C2 7.97283 2.0439 7.86685 2.12204 7.78871C2.20018 7.71057 2.30616 7.66667 2.41667 7.66667H5.75C5.86051 7.66667 5.96649 7.71057 6.04463 7.78871C6.12277 7.86685 6.16667 7.97283 6.16667 8.08333V16.3333ZM12.4167 3.41667C12.4167 3.30616 12.3728 3.20018 12.2946 3.12204C12.2165 3.0439 12.1105 3 12 3H8.66667C8.55616 3 8.45018 3.0439 8.37204 3.12204C8.2939 3.20018 8.25 3.30616 8.25 3.41667V16.3333H12.4167V3.41667ZM18.25 10.3333H14.9167C14.8062 10.3333 14.7002 10.3772 14.622 10.4554C14.5439 10.5335 14.5 10.6395 14.5 10.75V16.3333H18.6667V10.75C18.6667 10.6395 18.6228 10.5335 18.5446 10.4554C18.4665 10.3772 18.3605 10.3333 18.25 10.3333Z" fill="currentColor"/>
-                </svg>
+                  </svg>
               </button>
               {/* Expand/Collapse Arrow */}
             <button 
@@ -1592,7 +1592,7 @@ export default function Team() {
                     </p>
                     <div className="flex gap-3">
                       <div className="flex-1">
-                        <input
+                      <input
                           type="file"
                           accept=".csv"
                           onChange={(e) => {
@@ -2026,7 +2026,7 @@ export default function Team() {
                                     >
                                       Update
                                     </button>
-                                                          <button
+                                    <button
                         onClick={() => {
                           // Convert selected skill names to full skill objects with proficiency and motivation
                           console.log('🔍 Debug: selectedSkillsForAction:', selectedSkillsForAction);
@@ -2047,15 +2047,15 @@ export default function Team() {
                           setRankEmployeesSkills(skillsToRank);
                           setRightContainerTab('rank-employees');
                         }}
-                        disabled={selectedSkillsForAction.length === 0 || Object.keys(pendingChanges).length > 0}
-                        className={`px-3 py-1 text-xs rounded-full transition-colors ${
-                          selectedSkillsForAction.length > 0 && Object.keys(pendingChanges).length === 0
-                            ? 'bg-[#00DF71] hover:bg-[#0AFB84] text-[#212327] font-medium cursor-pointer'
-                            : 'bg-gray-500 text-gray-300 cursor-not-allowed'
-                        }`}
-                      >
-                        Rank Employees
-                      </button>
+                                      disabled={selectedSkillsForAction.length === 0 || Object.keys(pendingChanges).length > 0}
+                                      className={`px-3 py-1 text-xs rounded-full transition-colors ${
+                                        selectedSkillsForAction.length > 0 && Object.keys(pendingChanges).length === 0
+                                          ? 'bg-[#00DF71] hover:bg-[#0AFB84] text-[#212327] font-medium cursor-pointer'
+                                          : 'bg-gray-500 text-gray-300 cursor-not-allowed'
+                                      }`}
+                                    >
+                                      Rank Employees
+                                    </button>
                                 </div>
                               </div>
                             </div>

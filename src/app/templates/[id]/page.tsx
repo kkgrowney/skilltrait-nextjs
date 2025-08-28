@@ -98,7 +98,7 @@ export default function TemplateDetailPage() {
     const load = async () => {
       if (!user?.uid || !params?.id) return;
       setLoading(true);
-      const ref = doc(db, "users", user.uid, "templates", params.id as string);
+      const ref = doc(db, "users", user.uid, "template", params.id as string);
       const snap = await getDoc(ref);
       if (snap.exists()) {
         setTemplate({ id: snap.id, ...snap.data() });
@@ -241,7 +241,7 @@ export default function TemplateDetailPage() {
                             if (!user?.uid || !params?.id) return;
                             try {
                               setIsDeleting(true);
-                              const ref = doc(db, "users", user.uid, "templates", params.id as string);
+                              const ref = doc(db, "users", user.uid, "template", params.id as string);
                               await deleteDoc(ref);
                               setIsDeleting(false);
                               setShowDeleteModal(false);

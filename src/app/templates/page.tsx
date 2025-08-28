@@ -16,7 +16,7 @@ export default function TemplatesListPage() {
   useEffect(() => {
     if (!user?.uid) return;
     setIsLoading(true);
-    const ref = collection(db, "users", user.uid, "templates");
+    const ref = collection(db, "users", user.uid, "template");
     const q = query(ref, orderBy("createdAt", "desc"));
     const unsub = onSnapshot(q, (snap) => {
       const items: any[] = [];

@@ -88,7 +88,7 @@ export default function ProfilePage() {
     
     setIsLoadingRecentTemplates(true);
     try {
-      const templatesRef = collection(db, "users", user.uid, "templates");
+      const templatesRef = collection(db, "users", user.uid, "template");
       const q = query(templatesRef, orderBy("createdAt", "desc"));
       const unsub = onSnapshot(q, (snap) => {
         const items: any[] = [];

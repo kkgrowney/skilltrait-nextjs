@@ -270,7 +270,7 @@ export default function DigitalAwardsPage() {
       setLoadingTemplates(true);
       try {
         // Try the new collection name first (Kevin's approach)
-        let templatesRef = collection(db, "templates");
+        let templatesRef = collection(db, "template");
         let q = query(templatesRef);
         let querySnapshot = await getDocs(q);
 
