@@ -22,30 +22,179 @@ export default function DigitalAwardsPage() {
   const getCompanyName = (templateIndex: number) => {
     return companyNames[templateIndex % companyNames.length];
   };
-  const [currentStep, setCurrentStep] = useState<StepType>("awards");
-  const [activeTab, setActiveTab] = useState<"props" | "achievements">("props");
-  const [selectedTemplate, setSelectedTemplate] = useState<any | null>(null);
-  const [showTemplateDetail, setShowTemplateDetail] = useState(false);
+  const [currentStep, setCurrentStep] = useState<StepType>(() => {
+    // Try to get the current step from localStorage first
+    if (typeof window !== "undefined") {
+      const savedStep = localStorage.getItem("digital-awards-current-step");
+      if (
+        savedStep &&
+        ["awards", "company", "background", "props-details", "share"].includes(
+          savedStep
+        )
+      ) {
+        return savedStep as StepType;
+      }
+    }
+    return "awards";
+  });
+  const [activeTab, setActiveTab] = useState<"props" | "achievements">(() => {
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem("digital-awards-active-tab");
+      return saved === "achievements" ? "achievements" : "props";
+    }
+    return "props";
+  });
+  const [selectedTemplate, setSelectedTemplate] = useState<any | null>(() => {
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem("digital-awards-selected-template");
+      return saved ? JSON.parse(saved) : null;
+    }
+    return null;
+  });
+  const [showTemplateDetail, setShowTemplateDetail] = useState(() => {
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem("digital-awards-show-template-detail");
+      return saved === "true";
+    }
+    return false;
+  });
   const [showAlert, setShowAlert] = useState(false);
   const [alertMessage, setAlertMessage] = useState("");
-  const [logoVisible, setLogoVisible] = useState(true);
+  const [logoVisible, setLogoVisible] = useState(() => {
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem("digital-awards-logo-visible");
+      return saved !== "false"; // Default to true
+    }
+    return true;
+  });
   const [uploadedLogoFile, setUploadedLogoFile] = useState<File | null>(null);
   const [propsTemplates, setPropsTemplates] = useState<any[]>([]);
   const [loadingTemplates, setLoadingTemplates] = useState<boolean>(false);
-  const [companyNameText, setCompanyNameText] = useState<string>("");
-  const [backgroundVisible, setBackgroundVisible] = useState(true);
+  const [companyNameText, setCompanyNameText] = useState<string>(() => {
+    if (typeof window !== "undefined") {
+      return localStorage.getItem("digital-awards-company-name") || "";
+    }
+    return "";
+  });
+  const [backgroundVisible, setBackgroundVisible] = useState(() => {
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem("digital-awards-background-visible");
+      return saved !== "false"; // Default to true
+    }
+    return true;
+  });
   const [uploadedBackgroundFile, setUploadedBackgroundFile] =
     useState<File | null>(null);
-  const [backgroundNameText, setBackgroundNameText] = useState<string>("");
-  const [propsTitle, setPropsTitle] = useState<string>("");
-  const [propsRecipients, setPropsRecipients] = useState<string[]>([]);
-  const [fromName, setFromName] = useState<string>("");
-  const [fromDate, setFromDate] = useState<string>("");
-  const [fromMessage, setFromMessage] = useState<string>("");
-  const [filters, setFilters] = useState<{ [tag: string]: boolean }>({});
+  const [backgroundNameText, setBackgroundNameText] = useState<string>(() => {
+    if (typeof window !== "undefined") {
+      return localStorage.getItem("digital-awards-background-name") || "";
+    }
+    return "";
+  });
+  const [propsTitle, setPropsTitle] = useState<string>(() => {
+    if (typeof window !== "undefined") {
+      return localStorage.getItem("digital-awards-props-title") || "";
+    }
+    return "";
+  });
+  const [propsRecipients, setPropsRecipients] = useState<string[]>(() => {
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem("digital-awards-props-recipients");
+      return saved ? JSON.parse(saved) : [];
+    }
+    return [];
+  });
+  const [fromName, setFromName] = useState<string>(() => {
+    if (typeof window !== "undefined") {
+      return localStorage.getItem("digital-awards-from-name") || "";
+    }
+    return "";
+  });
+  const [fromDate, setFromDate] = useState<string>(() => {
+    if (typeof window !== "undefined") {
+      return localStorage.getItem("digital-awards-from-date") || "";
+    }
+    return "";
+  });
+  const [fromMessage, setFromMessage] = useState<string>(() => {
+    if (typeof window !== "undefined") {
+      return localStorage.getItem("digital-awards-from-message") || "";
+    }
+    return "";
+  });
+  const [filters, setFilters] = useState<{ [tag: string]: boolean }>(() => {
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem("digital-awards-filters");
+      return saved ? JSON.parse(saved) : {};
+    }
+    return {};
+  });
   const [filteredTemplates, setFilteredTemplates] = useState<any[]>([]);
-  const [searchQuery, setSearchQuery] = useState("");
+  const [searchQuery, setSearchQuery] = useState(() => {
+    if (typeof window !== "undefined") {
+      return localStorage.getItem("digital-awards-search-query") || "";
+    }
+    return "";
+  });
   const [showAchievementsModal, setShowAchievementsModal] = useState(false);
+
+  // Helper function to save all form state to localStorage
+  const saveFormStateToLocalStorage = () => {
+    if (typeof window !== "undefined") {
+      localStorage.setItem("digital-awards-active-tab", activeTab);
+      localStorage.setItem(
+        "digital-awards-selected-template",
+        JSON.stringify(selectedTemplate)
+      );
+      localStorage.setItem(
+        "digital-awards-show-template-detail",
+        showTemplateDetail.toString()
+      );
+      localStorage.setItem(
+        "digital-awards-logo-visible",
+        logoVisible.toString()
+      );
+      localStorage.setItem("digital-awards-company-name", companyNameText);
+      localStorage.setItem(
+        "digital-awards-background-visible",
+        backgroundVisible.toString()
+      );
+      localStorage.setItem(
+        "digital-awards-background-name",
+        backgroundNameText
+      );
+      localStorage.setItem("digital-awards-props-title", propsTitle);
+      localStorage.setItem(
+        "digital-awards-props-recipients",
+        JSON.stringify(propsRecipients)
+      );
+      localStorage.setItem("digital-awards-from-name", fromName);
+      localStorage.setItem("digital-awards-from-date", fromDate);
+      localStorage.setItem("digital-awards-from-message", fromMessage);
+      localStorage.setItem("digital-awards-filters", JSON.stringify(filters));
+      localStorage.setItem("digital-awards-search-query", searchQuery);
+    }
+  };
+
+  // Save form state to localStorage whenever any form value changes
+  useEffect(() => {
+    saveFormStateToLocalStorage();
+  }, [
+    activeTab,
+    selectedTemplate,
+    showTemplateDetail,
+    logoVisible,
+    companyNameText,
+    backgroundVisible,
+    backgroundNameText,
+    propsTitle,
+    propsRecipients,
+    fromName,
+    fromDate,
+    fromMessage,
+    filters,
+    searchQuery,
+  ]);
 
   // Prefill from query params (logo/bg/company/base, step)
   useEffect(() => {
@@ -76,6 +225,10 @@ export default function DigitalAwardsPage() {
 
     if (step === "props-details") {
       setCurrentStep("props-details");
+      // Save the current step to localStorage
+      if (typeof window !== "undefined") {
+        localStorage.setItem("digital-awards-current-step", "props-details");
+      }
     }
   }, [searchParams]);
 
@@ -118,6 +271,10 @@ export default function DigitalAwardsPage() {
     }
 
     setCurrentStep(step);
+    // Save the current step to localStorage
+    if (typeof window !== "undefined") {
+      localStorage.setItem("digital-awards-current-step", step);
+    }
   };
 
   const handleNext = () => {
@@ -130,7 +287,12 @@ export default function DigitalAwardsPage() {
     ];
     const currentIndex = steps.indexOf(currentStep);
     if (currentIndex < steps.length - 1) {
-      setCurrentStep(steps[currentIndex + 1]);
+      const nextStep = steps[currentIndex + 1];
+      setCurrentStep(nextStep);
+      // Save the current step to localStorage
+      if (typeof window !== "undefined") {
+        localStorage.setItem("digital-awards-current-step", nextStep);
+      }
     }
   };
 
@@ -144,7 +306,12 @@ export default function DigitalAwardsPage() {
     ];
     const currentIndex = steps.indexOf(currentStep);
     if (currentIndex > 0) {
-      setCurrentStep(steps[currentIndex - 1]);
+      const prevStep = steps[currentIndex - 1];
+      setCurrentStep(prevStep);
+      // Save the current step to localStorage
+      if (typeof window !== "undefined") {
+        localStorage.setItem("digital-awards-current-step", prevStep);
+      }
     }
   };
 
@@ -154,11 +321,67 @@ export default function DigitalAwardsPage() {
     setLogoVisible(true); // Reset logo visibility for new template
     setUploadedLogoFile(null); // Reset uploaded logo for new template
     setCompanyNameText(""); // Reset company name for new template
+    // Clear form data when new template is selected
+    setPropsTitle("");
+    setPropsRecipients([]);
+    setFromName("");
+    setFromDate("");
+    setFromMessage("");
+    setBackgroundNameText("");
+    setUploadedBackgroundFile(null);
+  };
+
+  // Function to clear all localStorage data
+  const clearAllLocalStorage = () => {
+    if (typeof window !== "undefined") {
+      localStorage.removeItem("digital-awards-current-step");
+      localStorage.removeItem("digital-awards-active-tab");
+      localStorage.removeItem("digital-awards-selected-template");
+      localStorage.removeItem("digital-awards-show-template-detail");
+      localStorage.removeItem("digital-awards-logo-visible");
+      localStorage.removeItem("digital-awards-company-name");
+      localStorage.removeItem("digital-awards-background-visible");
+      localStorage.removeItem("digital-awards-background-name");
+      localStorage.removeItem("digital-awards-props-title");
+      localStorage.removeItem("digital-awards-props-recipients");
+      localStorage.removeItem("digital-awards-from-name");
+      localStorage.removeItem("digital-awards-from-date");
+      localStorage.removeItem("digital-awards-from-message");
+      localStorage.removeItem("digital-awards-filters");
+      localStorage.removeItem("digital-awards-search-query");
+    }
   };
 
   const handleBackToTemplates = () => {
     setShowTemplateDetail(false);
     setSelectedTemplate(null);
+    // Reset to first step when going back to templates
+    setCurrentStep("awards");
+    // Clear all localStorage data
+    clearAllLocalStorage();
+  };
+
+  // Function to start over completely (reset all state and go back to first step)
+  const handleStartOver = () => {
+    setCurrentStep("awards");
+    setSelectedTemplate(null);
+    setShowTemplateDetail(false);
+    setLogoVisible(true);
+    setUploadedLogoFile(null);
+    setCompanyNameText("");
+    setBackgroundVisible(true);
+    setUploadedBackgroundFile(null);
+    setBackgroundNameText("");
+    setPropsTitle("");
+    setPropsRecipients([]);
+    setFromName("");
+    setFromDate("");
+    setFromMessage("");
+    setActiveTab("props");
+    setFilters({});
+    setSearchQuery("");
+    // Clear all localStorage data
+    clearAllLocalStorage();
   };
 
   const handleChangeSearch = (e: React.ChangeEvent<HTMLInputElement>) => {

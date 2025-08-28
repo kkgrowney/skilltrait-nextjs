@@ -15,11 +15,7 @@ interface AuthModalProps {
   onSuccess?: () => void;
 }
 
-export default function AuthModal({
-  isOpen,
-  setIsOpen,
-  onSuccess,
-}: AuthModalProps) {
+export default function AuthModal({ isOpen, setIsOpen, onSuccess }: AuthModalProps) {
   const [mounted, setMounted] = useState(false);
   const [isSignUp, setIsSignUp] = useState(false);
   const [email, setEmail] = useState("");
@@ -71,7 +67,7 @@ export default function AuthModal({
       } else {
         await signInWithEmailAndPassword(auth, email, password);
       }
-
+      
       // Success - close modal and call onSuccess callback
       setIsOpen(false);
       resetForm();
@@ -79,8 +75,7 @@ export default function AuthModal({
         onSuccess();
       }
     } catch (error: unknown) {
-      const errorMessage =
-        error instanceof Error ? error.message : "An error occurred";
+      const errorMessage = error instanceof Error ? error.message : "An error occurred";
       setError(errorMessage);
       console.error("Auth error:", errorMessage);
     } finally {
@@ -95,7 +90,7 @@ export default function AuthModal({
     try {
       const provider = new GoogleAuthProvider();
       await signInWithPopup(auth, provider);
-
+      
       // Success - close modal and call onSuccess callback
       setIsOpen(false);
       resetForm();
@@ -103,8 +98,7 @@ export default function AuthModal({
         onSuccess();
       }
     } catch (error: unknown) {
-      const errorMessage =
-        error instanceof Error ? error.message : "An error occurred";
+      const errorMessage = error instanceof Error ? error.message : "An error occurred";
       setError(errorMessage);
       console.error("Google auth error:", errorMessage);
     } finally {
@@ -120,10 +114,7 @@ export default function AuthModal({
   if (!mounted || !isOpen) return null;
 
   return (
-    <div
-      className="fixed inset-0 flex items-center justify-center"
-      style={{ zIndex: 10000 }}
-    >
+    <div className="fixed inset-0 flex items-center justify-center" style={{ zIndex: 10000 }}>
       {/* Overlay */}
       <div
         className="fixed inset-0 bg-black/50"
@@ -147,9 +138,10 @@ export default function AuthModal({
               {isSignUp ? "Sign up" : "Sign in"}
             </h2>
             <p className="text-gray-300 text-sm mt-1">
-              {isSignUp
+              {isSignUp 
                 ? "Create your account to get started with SkillTrait."
-                : "Sign in to your account to continue."}
+                : "Sign in to your account to continue."
+              }
             </p>
           </div>
 
@@ -268,7 +260,7 @@ export default function AuthModal({
               disabled={loading}
               className="bg-green-500 hover:bg-green-400 text-black font-semibold py-2 rounded-lg disabled:opacity-50"
             >
-              {loading ? "Loading..." : isSignUp ? "Sign Up" : "Sign In"}
+              {loading ? "Loading..." : (isSignUp ? "Sign Up" : "Sign In")}
             </button>
 
             <div className="text-center text-sm text-white mt-2">

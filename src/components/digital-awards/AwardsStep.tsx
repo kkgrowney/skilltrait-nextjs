@@ -64,10 +64,10 @@ export default function AwardsStep({
           filtersObj[tag] = false;
         });
 
-        console.log({ 
-          totalTemplates: templates.length, 
+        console.log({
+          totalTemplates: templates.length,
           templates: templates,
-          filtersObj 
+          filtersObj,
         });
         setFilters(filtersObj);
       } catch (error) {
@@ -84,21 +84,25 @@ export default function AwardsStep({
 
     // Apply search filter
     if (searchQuery) {
-      filtered = filtered.filter(template => 
-        template.company?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        template.achievement?.props?.toLowerCase().includes(searchQuery.toLowerCase())
+      filtered = filtered.filter(
+        (template) =>
+          template.company?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          template.achievement?.props
+            ?.toLowerCase()
+            .includes(searchQuery.toLowerCase())
       );
     }
 
     // Apply tag filters
-    const activeFilters = Object.keys(filters).filter(key => filters[key]);
+    const activeFilters = Object.keys(filters).filter((key) => filters[key]);
     if (activeFilters.length > 0) {
-      filtered = filtered.filter(template => {
+      filtered = filtered.filter((template) => {
         // Check if template has any of the active filter tags
-        return activeFilters.some(tag => 
-          template.tags?.includes(tag) || 
-          template.category === tag ||
-          template.type === tag
+        return activeFilters.some(
+          (tag) =>
+            template.tags?.includes(tag) ||
+            template.category === tag ||
+            template.type === tag
         );
       });
     }
@@ -115,7 +119,7 @@ export default function AwardsStep({
 
   return (
     <div
-      className="h-full flex flex-col w-full"
+      className="h-full flex flex-col min-w-[266px]"
       style={{
         overflow: "hidden",
         padding: "8px",
@@ -249,15 +253,13 @@ export default function AwardsStep({
         </div>
       </div>
 
-
-
       {/* Coming Soon Notification */}
       {showComingSoon && (
         <div className="fixed top-0 left-0 right-0 z-[9999] flex justify-center">
-          <div 
+          <div
             className="bg-[#00DF71] text-[#212327] px-6 py-3 rounded-b-lg shadow-lg transform transition-transform duration-300 ease-out"
             style={{
-              animation: 'slideDown 0.3s ease-out'
+              animation: "slideDown 0.3s ease-out",
             }}
           >
             <span className="text-sm font-semibold">Coming soon!</span>
