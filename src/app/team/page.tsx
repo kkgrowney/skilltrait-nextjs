@@ -516,6 +516,10 @@ export default function Team() {
   const [isAllSkillsExpanded, setIsAllSkillsExpanded] = useState(false);
   const [showRemoveConfirmation, setShowRemoveConfirmation] = useState(false);
   const [skillsToRemove, setSkillsToRemove] = useState<string[]>([]);
+  const [csvFile, setCsvFile] = useState<File | null>(null);
+  const [csvFileName, setCsvFileName] = useState<string>('');
+  const [editingSkill, setEditingSkill] = useState<string | null>(null);
+  const [editingSkillValue, setEditingSkillValue] = useState<string>('');
 
   // Handle adding a skill to required skills
   const handleAddSkill = (skill: string) => {
@@ -553,6 +557,124 @@ export default function Team() {
     setSkillMotivations(updatedMotivations);
     setSelectedSkillsForAction([]);
     setPendingChanges({}); // Clear pending changes after saving
+  };
+
+  // Handle CSV upload and skills building
+  const handleBuildSkills = async () => {
+    if (!csvFile) return;
+
+    try {
+      const text = await csvFile.text();
+      const lines = text.split('\n').filter(line => line.trim());
+      
+      // Parse CSV (assuming first line might be headers)
+      const skills: string[] = [];
+      
+      lines.forEach((line, index) => {
+        // Skip empty lines and potential headers
+        if (line.trim() && index > 0) {
+          // Split by comma and clean up each skill
+          const skillParts = line.split(',').map(part => part.trim()).filter(part => part);
+          skills.push(...skillParts);
+        }
+      });
+
+      // Add unique skills to required skills
+      const newSkills = skills.filter(skill => 
+        skill && 
+        !requiredSkills.includes(skill) && 
+        skill.length > 0
+      );
+
+      if (newSkills.length > 0) {
+        setRequiredSkills(prev => [...prev, ...newSkills]);
+        setNotification(`Added ${newSkills.length} new skills from CSV!`);
+        setTimeout(() => setNotification(null), 3000);
+        
+        // Clear the CSV file after successful import
+        setCsvFile(null);
+        setCsvFileName('');
+      } else {
+        setNotification('No new skills found in CSV or all skills already exist.');
+        setNotification('No new skills found in CSV or all skills already exist.');
+        setTimeout(() => setNotification(null), 3000);
+      }
+    } catch (error) {
+      console.error('Error parsing CSV:', error);
+      setNotification('Error parsing CSV file. Please check the file format.');
+      setTimeout(() => setNotification(null), 3000);
+    }
+  };
+
+  // Handle skill name editing
+  const handleSkillNameEdit = (skill: string) => {
+    setEditingSkill(skill);
+    setEditingSkillValue(skill);
+  };
+
+  const handleSkillNameSave = () => {
+    if (editingSkill && editingSkillValue.trim()) {
+      const newSkillName = editingSkillValue.trim();
+      
+      // Check if the new name already exists (avoid duplicates)
+      if (newSkillName !== editingSkill && requiredSkills.includes(newSkillName)) {
+        setNotification('A skill with this name already exists.');
+        setTimeout(() => setNotification(null), 3000);
+        return;
+      }
+
+      // Update the skill name
+      setRequiredSkills(prev => 
+        prev.map(s => s === editingSkill ? newSkillName : s)
+      );
+
+      // Update related data structures
+      if (skillProficiencies[editingSkill]) {
+        setSkillProficiencies(prev => {
+          const newProficiencies = { ...prev };
+          newProficiencies[newSkillName] = newProficiencies[editingSkill];
+          delete newProficiencies[editingSkill];
+          return newProficiencies;
+        });
+      }
+
+      if (skillMotivations[editingSkill]) {
+        setSkillMotivations(prev => {
+          const newMotivations = { ...prev };
+          newMotivations[newSkillName] = newMotivations[editingSkill];
+          delete newMotivations[editingSkill];
+          return newMotivations;
+        });
+      }
+
+      if (pendingChanges[editingSkill]) {
+        setPendingChanges(prev => {
+          const newChanges = { ...prev };
+          newChanges[newSkillName] = newChanges[editingSkill];
+          delete newChanges[editingSkill];
+          return newChanges;
+        });
+      }
+
+      // Update selected skills if the edited skill was selected
+      if (selectedSkillsForAction.includes(editingSkill)) {
+        setSelectedSkillsForAction(prev => 
+          prev.map(s => s === editingSkill ? newSkillName : s)
+        );
+      }
+
+      setNotification('Skill name updated successfully!');
+      setTimeout(() => setNotification(null), 3000);
+    }
+    
+    // Exit edit mode
+    setEditingSkill(null);
+    setEditingSkillValue('');
+  };
+
+  const handleSkillNameCancel = () => {
+    setEditingSkill(null);
+    setEditingSkillValue('');
   };
 
   // Handle rank employees action
@@ -1182,15 +1304,52 @@ export default function Team() {
                       Upload project tasks / requirements to build a skill rank employees
                     </p>
                     <div className="flex gap-3">
-                      <input
-                        type="text"
-                        placeholder="Add CSV task list / requirements"
-                        className="flex-1 bg-[#1e2327] border-2 border-dashed border-[#454446] rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:border-[#00DF71] transition-colors"
-                      />
-                      <button className="px-6 py-3 bg-[#00DF71] text-[#212327] font-medium rounded-lg hover:bg-[#0AFB84] transition-colors whitespace-nowrap">
+                      <div className="flex-1">
+                        <input
+                          type="file"
+                          accept=".csv"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file) {
+                              setCsvFile(file);
+                              setCsvFileName(file.name);
+                            }
+                          }}
+                          className="hidden"
+                          id="csv-upload"
+                        />
+                        <label
+                          htmlFor="csv-upload"
+                          className="flex items-center justify-center w-full bg-[#1e2327] border-2 border-dashed border-[#454446] rounded-lg px-4 py-3 text-white hover:border-[#00DF71] transition-colors cursor-pointer"
+                        >
+                          {csvFileName ? (
+                            <span className="text-gray-300">{csvFileName}</span>
+                          ) : (
+                            <span className="text-gray-400">Click to upload CSV file</span>
+                          )}
+                        </label>
+                      </div>
+                      <button 
+                        onClick={handleBuildSkills}
+                        disabled={!csvFile}
+                        className="px-6 py-3 bg-[#00DF71] text-[#212327] font-medium rounded-lg hover:bg-[#0AFB84] transition-colors whitespace-nowrap disabled:bg-gray-600 disabled:cursor-not-allowed disabled:text-gray-400"
+                      >
                         Build Skills
                       </button>
                     </div>
+                    {csvFile && (
+                      <div className="mt-3 flex items-center gap-2">
+                        <button
+                          onClick={() => {
+                            setCsvFile(null);
+                            setCsvFileName('');
+                          }}
+                          className="text-red-400 text-xs hover:text-red-300 transition-colors"
+                        >
+                          Remove file
+                        </button>
+                      </div>
+                    )}
                   </div>
 
                   {/* Separator */}
@@ -1463,7 +1622,56 @@ export default function Team() {
                                   className="w-4 h-4 text-[#00DF71] bg-[#1e2327] border-[#454446] rounded focus:ring-[#00DF71] focus:ring-2"
                                 />
                               </div>
-                              <div className="col-span-5 text-white font-medium">{skill}</div>
+                              <div className="col-span-5 text-white font-medium">
+                                {editingSkill === skill ? (
+                                  <div className="flex items-center gap-2">
+                                    <input
+                                      type="text"
+                                      value={editingSkillValue}
+                                      onChange={(e) => setEditingSkillValue(e.target.value)}
+                                      onKeyDown={(e) => {
+                                        if (e.key === 'Enter') {
+                                          handleSkillNameSave();
+                                        } else if (e.key === 'Escape') {
+                                          handleSkillNameCancel();
+                                        }
+                                      }}
+                                      className="flex-1 bg-[#1e2327] border border-[#00DF71] rounded px-2 py-1 text-white text-sm focus:outline-none focus:border-[#00DF71] focus:ring-1 focus:ring-[#00DF71]"
+                                      autoFocus
+                                    />
+                                    <button
+                                      onClick={handleSkillNameSave}
+                                      className="px-2 py-1 bg-[#00DF71] text-[#212327] text-xs rounded hover:bg-[#0AFB84] transition-colors"
+                                      title="Save"
+                                    >
+                                      ✓
+                                    </button>
+                                    <button
+                                      onClick={handleSkillNameCancel}
+                                      className="px-2 py-1 bg-[#454446] text-white text-xs rounded hover:bg-[#5a5c5e] transition-colors"
+                                      title="Cancel"
+                                    >
+                                      ✕
+                                    </button>
+                                  </div>
+                                ) : (
+                                  <div 
+                                    className="cursor-pointer hover:text-[#00DF71] transition-colors group flex items-center gap-2"
+                                    onClick={() => handleSkillNameEdit(skill)}
+                                    title="Click to edit skill name"
+                                  >
+                                    <span>{skill}</span>
+                                    <svg 
+                                      className="w-4 h-4 text-gray-500 opacity-0 group-hover:opacity-100 transition-opacity" 
+                                      fill="none" 
+                                      stroke="currentColor" 
+                                      viewBox="0 0 24 24"
+                                    >
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                    </svg>
+                                  </div>
+                                )}
+                              </div>
                               <div className="col-span-3">
                                 <select 
                                   value={pendingChanges[skill]?.proficiency || skillProficiencies[skill] || 'Beginner'}
