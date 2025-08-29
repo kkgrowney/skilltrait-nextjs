@@ -1010,8 +1010,8 @@ export default function ProfilePage() {
                                 {(prop.achievement?.fromName ||
                                   prop.achievement?.fromMessage ||
                                   prop.achievement?.fromDate) && (
-                                  <div className="absolute top-24 left-5 z-30">
-                                    <div className="bg-gradient-to-r from-[#ADAFBE] via-[#4F7295] to-[#ADAFBE] bg-opacity-80 text-white text-xs px-3 py-2 rounded">
+                                  <div className="absolute top-10 left-2 z-30">
+                                    <div className="bg-gradient-to-r from-[#ADAFBE] via-[#4F7295] to-[#ADAFBE] bg-opacity-80 text-white text-[0.5rem] px-3 py-2 rounded w-[80%]">
                                       {prop.achievement?.fromName && (
                                         <div className="font-medium">
                                           From: {prop.achievement.fromName}
