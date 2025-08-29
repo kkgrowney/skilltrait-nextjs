@@ -1006,14 +1006,28 @@ export default function ProfilePage() {
                                     </div>
                                   </div>
                                 </div>
-                                {/* Message overlay at bottom */}
+                                {/* Message overlay - positioned like preview (y=92) */}
                                 {(prop.achievement?.fromName ||
-                                  prop.achievement?.fromMessage) && (
-                                  <div className="absolute bottom-2 left-2 z-30">
-                                    <div className="bg-black bg-opacity-70 text-white text-xs px-2 py-1 rounded">
+                                  prop.achievement?.fromMessage ||
+                                  prop.achievement?.fromDate) && (
+                                  <div className="absolute top-24 left-5 z-30">
+                                    <div className="bg-gradient-to-r from-[#ADAFBE] via-[#4F7295] to-[#ADAFBE] bg-opacity-80 text-white text-xs px-3 py-2 rounded">
                                       {prop.achievement?.fromName && (
                                         <div className="font-medium">
                                           From: {prop.achievement.fromName}
+                                        </div>
+                                      )}
+                                      {prop.achievement?.fromDate && (
+                                        <div className="mt-1">
+                                          {(() => {
+                                            const [year, month, day] =
+                                              prop.achievement.fromDate.split(
+                                                "-"
+                                              );
+                                            return `${month}/${day}/${year.slice(
+                                              2
+                                            )}`;
+                                          })()}
                                         </div>
                                       )}
                                       {prop.achievement?.fromMessage && (
