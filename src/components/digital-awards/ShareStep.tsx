@@ -471,9 +471,9 @@ This digital award recognizes excellence and dedication in professional developm
         throw new Error("Could not get canvas context");
       }
 
-      // Set canvas size to match template preview (5:4 aspect ratio)
-      canvas.width = 600;
-      canvas.height = 480;
+      // Set canvas size to match template preview (5:4 aspect ratio) - reduced size to fit container
+      canvas.width = 480;
+      canvas.height = 384;
 
       // Load background image
       const backgroundImg = new Image();
@@ -496,29 +496,101 @@ This digital award recognizes excellence and dedication in professional developm
           logoImg.crossOrigin = "anonymous";
 
           logoImg.onload = () => {
-            // Draw logo in top-left corner (40px height, 250px width area)
-            const logoHeight = 40;
+            // Draw logo in top-left corner (32px height, 200px width area) - scaled down
+            const logoHeight = 32;
             const logoWidth = Math.min(
-              250,
+              200,
               logoImg.width * (logoHeight / logoImg.height)
             );
-            ctx.drawImage(logoImg, 20, 20, logoWidth, logoHeight);
+            ctx.drawImage(logoImg, 16, 16, logoWidth, logoHeight);
 
-            // Add title text in top-right (20px font, right-aligned)
+            // Add title text in top-right (16px font, right-aligned) - scaled down
             ctx.fillStyle = "black";
-            ctx.font = "bold 20px Poppins";
+            ctx.font = "bold 16px Poppins";
             ctx.textAlign = "right";
-            ctx.fillText(propsTitle || "Title", canvas.width - 20, 40);
+            ctx.fillText(propsTitle || "Title", canvas.width - 16, 32);
 
-            // Add message box in top-left (gradient background like template)
-            const messageBoxY = 92;
-            const messageBoxHeight = 60;
+            // Add message box in top-left (gradient background like template) - scaled down
+            const messageBoxY = 74; // Reduced from 92 to fit smaller canvas
 
-            // Create gradient background
+            // Calculate text content and measure dimensions
+            const textLines: string[] = [];
+            let maxTextWidth = 0;
+
+            // Add From name line
+            if (fromName) {
+              const fromText = `From: ${fromName}`;
+              textLines.push(fromText);
+              maxTextWidth = Math.max(
+                maxTextWidth,
+                ctx.measureText(fromText).width
+              );
+            }
+
+            // Add date line
+            if (fromDate) {
+              const [year, month, day] = fromDate.split("-");
+              const formattedDate = `${month}/${day}/${year.slice(2)}`;
+              textLines.push(formattedDate);
+              maxTextWidth = Math.max(
+                maxTextWidth,
+                ctx.measureText(formattedDate).width
+              );
+            }
+
+            // Handle message text with word wrapping
+            if (fromMessage) {
+              const words = fromMessage.split(" ");
+              let currentLine = "";
+              const maxWidth = 320; // Reduced from 400 to fit smaller canvas
+
+              for (let i = 0; i < words.length; i++) {
+                const testLine =
+                  currentLine + (currentLine ? " " : "") + words[i];
+                const testWidth = ctx.measureText(testLine).width;
+
+                if (testWidth <= maxWidth) {
+                  currentLine = testLine;
+                } else {
+                  if (currentLine) {
+                    textLines.push(currentLine);
+                    maxTextWidth = Math.max(
+                      maxTextWidth,
+                      ctx.measureText(currentLine).width
+                    );
+                    currentLine = words[i];
+                  } else {
+                    // Single word is too long, add it anyway
+                    textLines.push(words[i]);
+                    maxTextWidth = Math.max(
+                      maxTextWidth,
+                      ctx.measureText(words[i]).width
+                    );
+                  }
+                }
+              }
+
+              // Add the last line
+              if (currentLine) {
+                textLines.push(currentLine);
+                maxTextWidth = Math.max(
+                  maxTextWidth,
+                  ctx.measureText(currentLine).width
+                );
+              }
+            }
+
+            // Calculate box dimensions based on text content
+            const padding = 16; // Reduced padding from 20 to 16
+            const lineHeight = 16; // Reduced line height from 20 to 16
+            const boxWidth = Math.min(maxTextWidth + padding * 2, 400); // Max width reduced from 500 to 400
+            const boxHeight = textLines.length * lineHeight + padding;
+
+            // Create gradient background - auto-sized based on text
             const gradient = ctx.createLinearGradient(
-              20,
+              16, // Reduced from 20 to 16
               messageBoxY,
-              300,
+              16 + boxWidth,
               messageBoxY
             );
             gradient.addColorStop(0, "#ADAFBE");
@@ -527,26 +599,22 @@ This digital award recognizes excellence and dedication in professional developm
 
             ctx.fillStyle = gradient;
             ctx.globalAlpha = 0.8;
-            ctx.fillRect(20, messageBoxY, 280, messageBoxHeight);
+            ctx.fillRect(16, messageBoxY, boxWidth, boxHeight); // Reduced x position from 20 to 16
             ctx.globalAlpha = 1.0;
 
             // Add text inside message box
             ctx.fillStyle = "white";
-            ctx.font = "14px Poppins";
+            ctx.font = "12px Poppins"; // Reduced font size from 14px to 12px
             ctx.textAlign = "left";
 
-            // From name and date on same line
-            if (fromName) {
-              ctx.fillText(`From: ${fromName}`, 30, messageBoxY + 20);
-            }
-            if (fromDate) {
-              const [year, month, day] = fromDate.split("-");
-              const formattedDate = `${month}/${day}/${year.slice(2)}`;
-              ctx.fillText(formattedDate, 30, messageBoxY + 40);
-            }
-            if (fromMessage) {
-              ctx.fillText(fromMessage, 30, messageBoxY + 60);
-            }
+            // Draw all text lines
+            textLines.forEach((line, index) => {
+              ctx.fillText(
+                line,
+                24, // Reduced from 30 to 24
+                messageBoxY + padding + index * lineHeight
+              );
+            });
 
             // Convert canvas to data URL
             const previewDataUrl = canvas.toDataURL("image/png");
@@ -902,8 +970,8 @@ This digital award recognizes excellence and dedication in professional developm
                     <img
                       src={previewImageUrl}
                       alt="Preview Prop"
-                      className="w-64 h-auto rounded border border-gray-300"
-                      style={{ maxWidth: "256px" }}
+                      className="w-full h-auto rounded border border-gray-300"
+                      style={{ maxWidth: "100%" }}
                       onLoad={() =>
                         console.log("Preview image loaded successfully")
                       }
@@ -958,8 +1026,8 @@ This digital award recognizes excellence and dedication in professional developm
                       <img
                         src={getProxiedImageUrl(generatedImageUrl)}
                         alt="Generated Prop"
-                        className="w-64 h-auto rounded border border-gray-300"
-                        style={{ maxWidth: "256px" }}
+                        className="w-full h-auto rounded border border-gray-300"
+                        style={{ maxWidth: "100%" }}
                         onLoad={() =>
                           console.log(
                             "Image loaded successfully:",
