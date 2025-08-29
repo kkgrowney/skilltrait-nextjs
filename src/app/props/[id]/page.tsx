@@ -138,7 +138,7 @@ export default function PropDetailPage() {
                         borderRadius: "4px",
                         width: "100%",
                         height: "100%",
-                        objectPosition: "bottom",
+                        // objectPosition: "bottom",
                       }}
                     />
                   ) : prop.achievement?.backgroundImage ||
@@ -159,7 +159,7 @@ export default function PropDetailPage() {
                           style={{
                             borderRadius: "4px",
                             objectFit: "cover",
-                            objectPosition: "center",
+                            // objectPosition: "center",
                           }}
                         />
                       </div>
@@ -174,7 +174,7 @@ export default function PropDetailPage() {
                           borderRadius: "4px",
                           width: "100%",
                           height: "100%",
-                          objectPosition: "bottom",
+                          // objectPosition: "bottom",
                         }}
                       />
                       {/* White header with logo/company (scaled proportionally) */}
@@ -206,7 +206,7 @@ export default function PropDetailPage() {
                                 borderRadius: "4px",
                                 height: "17px",
                                 width: "auto",
-                                objectPosition: "left",
+                                // objectPosition: "left",
                               }}
                             />
                           ) : null}
