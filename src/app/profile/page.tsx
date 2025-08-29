@@ -1,17 +1,35 @@
 "use client";
 
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import SideNavigation, { useSideNavMargin } from '@/components/SideNavigation';
-import ProfileViewTitleTab from '@/components/ProfileViewTitleTab';
-import { useAuth } from '@/contexts/AuthContext';
-import { auth } from '@/lib/firebase';
-import { doc, getDoc, getDocs, collection, query, orderBy, onSnapshot, updateDoc, where } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
-import Link from 'next/link';
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import SideNavigation, { useSideNavMargin } from "@/components/SideNavigation";
+import ProfileViewTitleTab from "@/components/ProfileViewTitleTab";
+import { useAuth } from "@/contexts/AuthContext";
+import { auth } from "@/lib/firebase";
+import {
+  doc,
+  getDoc,
+  getDocs,
+  collection,
+  query,
+  orderBy,
+  onSnapshot,
+  updateDoc,
+  where,
+} from "firebase/firestore";
+import { db } from "@/lib/firebase";
+import Link from "next/link";
+
+// Helper function to proxy image requests to avoid CORS issues
+const getProxiedUrlForPreview = (imageUrl: string): string => {
+  if (!imageUrl) return "";
+  // Use the proxy API route to avoid CORS issues with Firebase Storage
+  const proxiedUrl = `/api/proxy-image?url=${encodeURIComponent(imageUrl)}`;
+  return proxiedUrl;
+};
 
 export default function ProfilePage() {
-  const [activeTab, setActiveTab] = useState('summary');
+  const [activeTab, setActiveTab] = useState("summary");
   const { user, logout, isLoggingOut } = useAuth();
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const router = useRouter();
@@ -21,15 +39,18 @@ export default function ProfilePage() {
   const [recentProps, setRecentProps] = useState<any[]>([]);
   const [recentTemplates, setRecentTemplates] = useState<any[]>([]);
   const [isLoadingRecentProps, setIsLoadingRecentProps] = useState(true);
-  const [isLoadingRecentTemplates, setIsLoadingRecentTemplates] = useState(true);
+  const [isLoadingRecentTemplates, setIsLoadingRecentTemplates] =
+    useState(true);
   const [carouselPosition, setCarouselPosition] = useState(0);
   const [templatesCarouselPosition, setTemplatesCarouselPosition] = useState(0);
   const [showSearchDropdown, setShowSearchDropdown] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [overviewText, setOverviewText] = useState('');
-  const [originalOverviewText, setOriginalOverviewText] = useState('');
-  const [selectedProficiencyLevel, setSelectedProficiencyLevel] = useState<string>('');
-  const [selectedMotivationLevel, setSelectedMotivationLevel] = useState<string>('');
+  const [searchQuery, setSearchQuery] = useState("");
+  const [overviewText, setOverviewText] = useState("");
+  const [originalOverviewText, setOriginalOverviewText] = useState("");
+  const [selectedProficiencyLevel, setSelectedProficiencyLevel] =
+    useState<string>("");
+  const [selectedMotivationLevel, setSelectedMotivationLevel] =
+    useState<string>("");
   const [teamProfile, setTeamProfile] = useState<any>(null);
   const [isLoadingTeam, setIsLoadingTeam] = useState(true);
   const [companyInfo, setCompanyInfo] = useState<any>(null);
@@ -38,23 +59,23 @@ export default function ProfilePage() {
   // Fetch user profile data
   const fetchUserProfile = async () => {
     if (!user?.uid) return;
-    
+
     setIsLoadingProfile(true);
     try {
-      const userDocRef = doc(db, 'users', user.uid);
+      const userDocRef = doc(db, "users", user.uid);
       const userDoc = await getDoc(userDocRef);
-      
+
       if (userDoc.exists()) {
         const data = userDoc.data();
         setUserProfile(data);
-        setOverviewText(data.overview || '');
-        setOriginalOverviewText(data.overview || '');
-        setSelectedProficiencyLevel(data.proficiencyLevel || '');
-        setSelectedMotivationLevel(data.motivationLevel || '');
-        console.log('User profile loaded:', data);
+        setOverviewText(data.overview || "");
+        setOriginalOverviewText(data.overview || "");
+        setSelectedProficiencyLevel(data.proficiencyLevel || "");
+        setSelectedMotivationLevel(data.motivationLevel || "");
+        console.log("User profile loaded:", data);
       }
     } catch (error) {
-      console.error('Error fetching user profile:', error);
+      console.error("Error fetching user profile:", error);
     } finally {
       setIsLoadingProfile(false);
     }
@@ -63,7 +84,7 @@ export default function ProfilePage() {
   // Fetch recent props data
   const fetchRecentProps = async () => {
     if (!user?.uid) return;
-    
+
     setIsLoadingRecentProps(true);
     try {
       const propsRef = collection(db, "users", user.uid, "props");
@@ -76,7 +97,7 @@ export default function ProfilePage() {
       });
       return () => unsub();
     } catch (error) {
-      console.error('Error fetching recent props:', error);
+      console.error("Error fetching recent props:", error);
       setRecentProps([]);
       setIsLoadingRecentProps(false);
     }
@@ -85,7 +106,7 @@ export default function ProfilePage() {
   // Fetch recent templates data
   const fetchRecentTemplates = async () => {
     if (!user?.uid) return;
-    
+
     setIsLoadingRecentTemplates(true);
     try {
       const templatesRef = collection(db, "users", user.uid, "template");
@@ -98,7 +119,7 @@ export default function ProfilePage() {
       });
       return () => unsub();
     } catch (error) {
-      console.error('Error fetching recent templates:', error);
+      console.error("Error fetching recent templates:", error);
       setRecentTemplates([]);
       setIsLoadingRecentTemplates(false);
     }
@@ -117,10 +138,10 @@ export default function ProfilePage() {
     try {
       closeLogoutModal();
       await logout();
-      router.push('/signin');
+      router.push("/signin");
     } catch (error) {
-      console.error('Error during logout:', error);
-      alert('An error occurred during logout. Please try again.');
+      console.error("Error during logout:", error);
+      alert("An error occurred during logout. Please try again.");
     }
   };
 
@@ -128,199 +149,293 @@ export default function ProfilePage() {
   const fetchCompanyInfo = async () => {
     if (!user?.uid) return;
 
-    console.log('🚀 fetchCompanyInfo called for user:', user.uid);
+    console.log("🚀 fetchCompanyInfo called for user:", user.uid);
     setIsLoadingCompany(true);
 
     try {
-      console.log('🔍 Starting fetchCompanyInfo for user:', user.uid);
-      
+      console.log("🔍 Starting fetchCompanyInfo for user:", user.uid);
+
       // ✅ EFFICIENT: Query with filters to get only the user's active and verified company connection
       const userConnectionsQuery = query(
-        collection(db, 'connectedCompanies'),
-        where('userRef', '==', doc(db, 'users', user.uid)),
-        where('active', '==', true),
-        where('verified', '==', true)
+        collection(db, "connectedCompanies"),
+        where("userRef", "==", doc(db, "users", user.uid)),
+        where("active", "==", true),
+        where("verified", "==", true)
       );
-      
-      console.log('📁 Querying with filters: userRef, active=true, verified=true');
+
+      console.log(
+        "📁 Querying with filters: userRef, active=true, verified=true"
+      );
       const userConnectionsSnapshot = await getDocs(userConnectionsQuery);
-      console.log('📊 User connections snapshot size:', userConnectionsSnapshot.size);
-      
+      console.log(
+        "📊 User connections snapshot size:",
+        userConnectionsSnapshot.size
+      );
+
       if (!userConnectionsSnapshot.empty) {
-        console.log('✅ Found active and verified company connection for user');
-        
+        console.log("✅ Found active and verified company connection for user");
+
         // Get the first (and should be only) connection
         const userConnection = userConnectionsSnapshot.docs[0];
         const companyData = userConnection.data();
-        
-        console.log('🔗 Company Connection Data:');
-        console.log('  📄 Document ID:', userConnection.id);
-        console.log('  🔍 Key Fields:');
-        console.log('    - active:', companyData.active);
-        console.log('    - verified:', companyData.verified);
-        console.log('    - companyReference:', companyData.companyReference);
-        console.log('    - userRef:', companyData.userRef);
-        console.log('    - isAdmin:', companyData.isAdmin || false);
-        console.log('    - role:', companyData.role || 'Employee');
-        
-        const activeCompanyConnection = { id: userConnection.id, ...(companyData as object) };
-        console.log('🎯 Active company connection found:', JSON.stringify(activeCompanyConnection, null, 2));
-        
-        if (activeCompanyConnection && (activeCompanyConnection as any).companyReference) {
-          console.log('\n🏢 Company reference found, fetching company details...');
-          
+
+        console.log("🔗 Company Connection Data:");
+        console.log("  📄 Document ID:", userConnection.id);
+        console.log("  🔍 Key Fields:");
+        console.log("    - active:", companyData.active);
+        console.log("    - verified:", companyData.verified);
+        console.log("    - companyReference:", companyData.companyReference);
+        console.log("    - userRef:", companyData.userRef);
+        console.log("    - isAdmin:", companyData.isAdmin || false);
+        console.log("    - role:", companyData.role || "Employee");
+
+        const activeCompanyConnection = {
+          id: userConnection.id,
+          ...(companyData as object),
+        };
+        console.log(
+          "🎯 Active company connection found:",
+          JSON.stringify(activeCompanyConnection, null, 2)
+        );
+
+        if (
+          activeCompanyConnection &&
+          (activeCompanyConnection as any).companyReference
+        ) {
+          console.log(
+            "\n🏢 Company reference found, fetching company details..."
+          );
+
           // Fetch the actual company details from the companies collection
           try {
             // Handle both string IDs and Firestore document references
             let companyDocRef: any;
-            if (typeof (activeCompanyConnection as any).companyReference === 'string') {
+            if (
+              typeof (activeCompanyConnection as any).companyReference ===
+              "string"
+            ) {
               // If it's a string ID
-              companyDocRef = doc(db, 'companies', (activeCompanyConnection as any).companyReference);
-              console.log('📁 Using string ID, created doc ref:', `companies/${(activeCompanyConnection as any).companyReference}`);
-            } else if ((activeCompanyConnection as any).companyReference && typeof (activeCompanyConnection as any).companyReference === 'object' && 'path' in (activeCompanyConnection as any).companyReference) {
+              companyDocRef = doc(
+                db,
+                "companies",
+                (activeCompanyConnection as any).companyReference
+              );
+              console.log(
+                "📁 Using string ID, created doc ref:",
+                `companies/${(activeCompanyConnection as any).companyReference}`
+              );
+            } else if (
+              (activeCompanyConnection as any).companyReference &&
+              typeof (activeCompanyConnection as any).companyReference ===
+                "object" &&
+              "path" in (activeCompanyConnection as any).companyReference
+            ) {
               // If it's a Firestore document reference, use it directly
               companyDocRef = (activeCompanyConnection as any).companyReference;
-              console.log('📁 Using Firestore doc reference, path:', (activeCompanyConnection as any).companyReference.path);
+              console.log(
+                "📁 Using Firestore doc reference, path:",
+                (activeCompanyConnection as any).companyReference.path
+              );
             } else {
-              console.log('❌ Invalid companyReference format:', (activeCompanyConnection as any).companyReference);
+              console.log(
+                "❌ Invalid companyReference format:",
+                (activeCompanyConnection as any).companyReference
+              );
               setCompanyInfo(activeCompanyConnection); // Fallback to connection data only
               return;
             }
-            
-            console.log('📖 Fetching company document...');
+
+            console.log("📖 Fetching company document...");
             const companyDoc = await getDoc(companyDocRef);
-            
+
             if (companyDoc.exists()) {
               const companyDetails = companyDoc.data();
-              console.log('✅ Company document found!');
-              console.log('📋 Company details:', JSON.stringify(companyDetails, null, 2));
-              
+              console.log("✅ Company document found!");
+              console.log(
+                "📋 Company details:",
+                JSON.stringify(companyDetails, null, 2)
+              );
+
               // Combine connection data with company details
               const fullCompanyInfo = {
                 ...activeCompanyConnection,
-                ...(companyDetails as object)
+                ...(companyDetails as object),
               };
-              console.log('🔗 Combined full company info:', JSON.stringify(fullCompanyInfo, null, 2));
-              
+              console.log(
+                "🔗 Combined full company info:",
+                JSON.stringify(fullCompanyInfo, null, 2)
+              );
+
               setCompanyInfo(fullCompanyInfo);
-              console.log('✅ Company info state updated successfully');
-              console.log('📊 New companyInfo state:', fullCompanyInfo);
-              console.log('🔍 Company name from fullCompanyInfo:', (fullCompanyInfo as any).companyName);
+              console.log("✅ Company info state updated successfully");
+              console.log("📊 New companyInfo state:", fullCompanyInfo);
+              console.log(
+                "🔍 Company name from fullCompanyInfo:",
+                (fullCompanyInfo as any).companyName
+              );
             } else {
-              console.log('❌ Company document not found for reference:', (activeCompanyConnection as any).companyReference);
+              console.log(
+                "❌ Company document not found for reference:",
+                (activeCompanyConnection as any).companyReference
+              );
               setCompanyInfo(activeCompanyConnection); // Fallback to connection data only
             }
           } catch (companyError) {
-            console.error('❌ Error fetching company details:', companyError);
+            console.error("❌ Error fetching company details:", companyError);
             setCompanyInfo(activeCompanyConnection); // Fallback to connection data only
           }
         } else {
-          console.log('\n❌ No active and verified company connections found, or missing companyReference');
+          console.log(
+            "\n❌ No active and verified company connections found, or missing companyReference"
+          );
           setCompanyInfo(null);
-          console.log('📊 Company info set to null');
+          console.log("📊 Company info set to null");
         }
       } else {
-        console.log('❌ No connected companies found for user');
+        console.log("❌ No connected companies found for user");
         setCompanyInfo(null);
       }
     } catch (error) {
-      console.error('❌ Error fetching connected companies:', error);
+      console.error("❌ Error fetching connected companies:", error);
       setCompanyInfo(null);
     } finally {
       setIsLoadingCompany(false);
-      console.log('🏁 fetchCompanyInfo completed');
+      console.log("🏁 fetchCompanyInfo completed");
     }
   };
 
   // ✅ EFFICIENT: Fetch team profile data from top-level connectedCompanies collection
   const fetchTeamProfile = async () => {
     if (!user?.uid) return;
-    
+
     setIsLoadingTeam(true);
     try {
       // ✅ EFFICIENT: Query with filters to get only the user's active and verified company connection
       const userConnectionsQuery = query(
-        collection(db, 'connectedCompanies'),
-        where('userRef', '==', doc(db, 'users', user.uid)),
-        where('active', '==', true),
-        where('verified', '==', true)
+        collection(db, "connectedCompanies"),
+        where("userRef", "==", doc(db, "users", user.uid)),
+        where("active", "==", true),
+        where("verified", "==", true)
       );
-      
-      console.log('📁 Querying with filters: userRef, active=true, verified=true');
+
+      console.log(
+        "📁 Querying with filters: userRef, active=true, verified=true"
+      );
       const userConnectionsSnapshot = await getDocs(userConnectionsQuery);
-      console.log('📊 User connections snapshot size:', userConnectionsSnapshot.size);
-      
+      console.log(
+        "📊 User connections snapshot size:",
+        userConnectionsSnapshot.size
+      );
+
       if (!userConnectionsSnapshot.empty) {
-        console.log('✅ Found active and verified company connection for user');
-        
+        console.log("✅ Found active and verified company connection for user");
+
         // Get the first (and should be only) connection
         const userConnection = userConnectionsSnapshot.docs[0];
         const companyData = userConnection.data();
-        
-        console.log('🔗 Company Connection Data:');
-        console.log('  📄 Document ID:', userConnection.id);
-        console.log('  🔍 Key Fields:');
-        console.log('    - active:', companyData.active);
-        console.log('    - verified:', companyData.verified);
-        console.log('    - companyReference:', companyData.companyReference);
-        console.log('    - userRef:', companyData.userRef);
-        
-        const activeCompanyConnection = { id: userConnection.id, ...(companyData as object) };
-        console.log('🎯 Active company connection found:', JSON.stringify(activeCompanyConnection, null, 2));
-        
-        if (activeCompanyConnection && (activeCompanyConnection as any).companyReference) {
+
+        console.log("🔗 Company Connection Data:");
+        console.log("  📄 Document ID:", userConnection.id);
+        console.log("  🔍 Key Fields:");
+        console.log("    - active:", companyData.active);
+        console.log("    - verified:", companyData.verified);
+        console.log("    - companyReference:", companyData.companyReference);
+        console.log("    - userRef:", companyData.userRef);
+
+        const activeCompanyConnection = {
+          id: userConnection.id,
+          ...(companyData as object),
+        };
+        console.log(
+          "🎯 Active company connection found:",
+          JSON.stringify(activeCompanyConnection, null, 2)
+        );
+
+        if (
+          activeCompanyConnection &&
+          (activeCompanyConnection as any).companyReference
+        ) {
           // Fetch the actual company details from the companies collection
           try {
-            console.log('Company reference found:', (activeCompanyConnection as any).companyReference);
-            
+            console.log(
+              "Company reference found:",
+              (activeCompanyConnection as any).companyReference
+            );
+
             // Handle both string IDs and Firestore document references
             let companyDocRef: any;
-            if (typeof (activeCompanyConnection as any).companyReference === 'string') {
+            if (
+              typeof (activeCompanyConnection as any).companyReference ===
+              "string"
+            ) {
               // If it's a string ID
-              companyDocRef = doc(db, 'companies', (activeCompanyConnection as any).companyReference);
-            } else if ((activeCompanyConnection as any).companyReference && typeof (activeCompanyConnection as any).companyReference === 'object' && 'path' in (activeCompanyConnection as any).companyReference) {
+              companyDocRef = doc(
+                db,
+                "companies",
+                (activeCompanyConnection as any).companyReference
+              );
+            } else if (
+              (activeCompanyConnection as any).companyReference &&
+              typeof (activeCompanyConnection as any).companyReference ===
+                "object" &&
+              "path" in (activeCompanyConnection as any).companyReference
+            ) {
               // If it's a Firestore document reference, use it directly
               companyDocRef = (activeCompanyConnection as any).companyReference;
             } else {
-              console.log('Invalid companyReference format:', (activeCompanyConnection as any).companyReference);
+              console.log(
+                "Invalid companyReference format:",
+                (activeCompanyConnection as any).companyReference
+              );
               setTeamProfile(activeCompanyConnection); // Fallback to connection data only
               return;
             }
-            
+
             const companyDoc = await getDoc(companyDocRef);
-            
+
             if (companyDoc.exists()) {
               const companyDetails = companyDoc.data();
               // Combine connection data with company details
               const fullCompanyProfile = {
                 ...(activeCompanyConnection as object),
-                ...(companyDetails as object)
+                ...(companyDetails as object),
               };
               setTeamProfile(fullCompanyProfile);
-              console.log('Full company profile loaded:', fullCompanyProfile);
+              console.log("Full company profile loaded:", fullCompanyProfile);
             } else {
-              console.log('Company document not found for reference:', (activeCompanyConnection as any).companyReference);
+              console.log(
+                "Company document not found for reference:",
+                (activeCompanyConnection as any).companyReference
+              );
               setTeamProfile(activeCompanyConnection); // Fallback to connection data only
             }
           } catch (companyError) {
-            console.error('Error fetching company details:', companyError);
+            console.error("Error fetching company details:", companyError);
             setTeamProfile(activeCompanyConnection); // Fallback to connection data only
           }
         } else {
-          console.log('No active and verified company connections found, or missing companyReference');
-          console.log('activeCompanyConnection:', activeCompanyConnection);
+          console.log(
+            "No active and verified company connections found, or missing companyReference"
+          );
+          console.log("activeCompanyConnection:", activeCompanyConnection);
           if (activeCompanyConnection) {
-            console.log('companyReference type:', typeof (activeCompanyConnection as any).companyReference);
-            console.log('companyReference value:', (activeCompanyConnection as any).companyReference);
+            console.log(
+              "companyReference type:",
+              typeof (activeCompanyConnection as any).companyReference
+            );
+            console.log(
+              "companyReference value:",
+              (activeCompanyConnection as any).companyReference
+            );
           }
           setTeamProfile(null);
         }
       } else {
-        console.log('No connected companies found for user');
+        console.log("No connected companies found for user");
         setTeamProfile(null);
       }
     } catch (error) {
-      console.error('Error fetching connected companies:', error);
+      console.error("Error fetching connected companies:", error);
       setTeamProfile(null);
     } finally {
       setIsLoadingTeam(false);
@@ -330,8 +445,11 @@ export default function ProfilePage() {
   // Carousel scroll handlers
   const handleCarouselScroll = (direction: "left" | "right") => {
     const itemsPerView = 3; // Assuming 3 items per view
-    const maxPosition = Math.max(0, Math.ceil(recentProps.length / itemsPerView) - 1);
-    
+    const maxPosition = Math.max(
+      0,
+      Math.ceil(recentProps.length / itemsPerView) - 1
+    );
+
     if (direction === "left" && carouselPosition > 0) {
       setCarouselPosition(carouselPosition - 1);
     } else if (direction === "right" && carouselPosition < maxPosition) {
@@ -341,11 +459,17 @@ export default function ProfilePage() {
 
   const handleTemplatesCarouselScroll = (direction: "left" | "right") => {
     const itemsPerView = 3; // Assuming 3 items per view
-    const maxPosition = Math.max(0, Math.ceil(recentTemplates.length / itemsPerView) - 1);
-    
+    const maxPosition = Math.max(
+      0,
+      Math.ceil(recentTemplates.length / itemsPerView) - 1
+    );
+
     if (direction === "left" && templatesCarouselPosition > 0) {
       setTemplatesCarouselPosition(templatesCarouselPosition - 1);
-    } else if (direction === "right" && templatesCarouselPosition < maxPosition) {
+    } else if (
+      direction === "right" &&
+      templatesCarouselPosition < maxPosition
+    ) {
       setTemplatesCarouselPosition(templatesCarouselPosition + 1);
     }
   };
@@ -353,12 +477,12 @@ export default function ProfilePage() {
   const handleSaveOverview = async () => {
     if (!user?.uid) return;
     try {
-      const userDocRef = doc(db, 'users', user.uid);
+      const userDocRef = doc(db, "users", user.uid);
       await updateDoc(userDocRef, { overview: overviewText });
       setOriginalOverviewText(overviewText);
     } catch (error) {
-      console.error('Error saving overview:', error);
-      alert('Failed to save overview.');
+      console.error("Error saving overview:", error);
+      alert("Failed to save overview.");
     }
   };
 
@@ -368,45 +492,45 @@ export default function ProfilePage() {
 
   const handleProficiencyLevelSelect = async (level: string) => {
     if (!user?.uid) return;
-    
-    let newLevel = '';
+
+    let newLevel = "";
     if (selectedProficiencyLevel === level) {
       // If clicking the same level, deselect it
-      newLevel = '';
+      newLevel = "";
     } else {
       // Select the new level (automatically deselects the previous one)
       newLevel = level;
     }
-    
+
     try {
-      const userDocRef = doc(db, 'users', user.uid);
+      const userDocRef = doc(db, "users", user.uid);
       await updateDoc(userDocRef, { proficiencyLevel: newLevel });
       setSelectedProficiencyLevel(newLevel);
     } catch (error) {
-      console.error('Error saving proficiency level:', error);
-      alert('Failed to save proficiency level.');
+      console.error("Error saving proficiency level:", error);
+      alert("Failed to save proficiency level.");
     }
   };
 
   const handleMotivationLevelSelect = async (motivation: string) => {
     if (!user?.uid) return;
-    
-    let newMotivation = '';
+
+    let newMotivation = "";
     if (selectedMotivationLevel === motivation) {
       // If clicking the same motivation, deselect it
-      newMotivation = '';
+      newMotivation = "";
     } else {
       // Select the new motivation (automatically deselects the previous one)
       newMotivation = motivation;
     }
-    
+
     try {
-      const userDocRef = doc(db, 'users', user.uid);
+      const userDocRef = doc(db, "users", user.uid);
       await updateDoc(userDocRef, { motivationLevel: newMotivation });
       setSelectedMotivationLevel(newMotivation);
     } catch (error) {
-      console.error('Error saving motivation level:', error);
-      alert('Failed to save motivation level.');
+      console.error("Error saving motivation level:", error);
+      alert("Failed to save motivation level.");
     }
   };
 
@@ -429,25 +553,45 @@ export default function ProfilePage() {
   // Fetch company information from Firebase
   useEffect(() => {
     if (user?.uid) {
-      console.log('🔄 useEffect triggered for company info, user:', user.uid);
+      console.log("🔄 useEffect triggered for company info, user:", user.uid);
       fetchCompanyInfo();
     }
   }, [user?.uid]);
 
+  console.log(
+    "Profile Recent Props Data:",
+    recentProps.map((prop) => ({
+      id: prop.id,
+      propsTitle: prop.propsTitle,
+      hasPreviewImage: !!prop.previewImageBase64,
+      achievement: prop.achievement,
+      createdAt: prop.createdAt,
+    }))
+  );
+
   return (
     <div className="min-h-screen" style={{ backgroundColor: "#1B1D21" }}>
       <SideNavigation />
-      
+
       <div className={`${sideNavMargin} h-full flex flex-col`}>
         {/* Fixed Header Container */}
         <div className="flex-shrink-0 z-20">
           {/* ViewTitle Container */}
-          <div className="w-full bg-[#1e2327] flex items-center justify-between h-16" style={{ height: "64px !important", minHeight: "64px", maxHeight: "64px", paddingLeft: "32px", paddingRight: "32px" }}>
+          <div
+            className="w-full bg-[#1e2327] flex items-center justify-between h-16"
+            style={{
+              height: "64px !important",
+              minHeight: "64px",
+              maxHeight: "64px",
+              paddingLeft: "32px",
+              paddingRight: "32px",
+            }}
+          >
             {/* Title text */}
             <div className="font-semibold text-[#ffffff] text-[18px] whitespace-nowrap md:ml-0 ml-9 flex items-center">
               Profile
             </div>
-            
+
             {/* Logout Button */}
             <button
               onClick={openLogoutModal}
@@ -457,14 +601,20 @@ export default function ProfilePage() {
               {isLoggingOut ? "Signing out..." : "Logout"}
             </button>
           </div>
-          
+
           {/* ProfileViewTitleTab Component */}
-          <ProfileViewTitleTab activeTab={activeTab} onTabChange={setActiveTab} />
+          <ProfileViewTitleTab
+            activeTab={activeTab}
+            onTabChange={setActiveTab}
+          />
         </div>
-        
+
         {/* Scrollable Content Area */}
-        <div className="flex-1 overflow-y-auto p-4 md:p-8" style={{ height: 'calc(100vh - 64px - 48px - 48px)' }}>
-          {activeTab === 'summary' ? (
+        <div
+          className="flex-1 overflow-y-auto p-4 md:p-8"
+          style={{ height: "calc(100vh - 64px - 48px - 48px)" }}
+        >
+          {activeTab === "summary" ? (
             // Summary tab content with profile card, recent props, and recent templates
             <div className="max-w-4xl">
               {/* Profile Card Container */}
@@ -501,7 +651,9 @@ export default function ProfilePage() {
                             // Fallback to initial if image fails to load
                             const target = e.target as HTMLImageElement;
                             target.style.display = "none";
-                            target.nextElementSibling?.classList.remove("hidden");
+                            target.nextElementSibling?.classList.remove(
+                              "hidden"
+                            );
                           }}
                         />
                         <div className="w-16 h-16 md:w-20 md:h-20 rounded-full bg-[#454446] flex items-center justify-center hidden border-2 border-[#454446]">
@@ -599,7 +751,9 @@ export default function ProfilePage() {
                     Company
                   </h3>
                   {isLoadingCompany ? (
-                    <div className="text-gray-400 text-sm">Loading company information...</div>
+                    <div className="text-gray-400 text-sm">
+                      Loading company information...
+                    </div>
                   ) : companyInfo ? (
                     <div className="flex items-center gap-3">
                       {companyInfo.logoUrl && (
@@ -613,7 +767,11 @@ export default function ProfilePage() {
                       )}
                       <div>
                         <p className="text-[#00DF71] font-medium">
-                          {companyInfo.companyName || companyInfo.name || companyInfo.company || companyInfo.title || "Company Member"}
+                          {companyInfo.companyName ||
+                            companyInfo.name ||
+                            companyInfo.company ||
+                            companyInfo.title ||
+                            "Company Member"}
                         </p>
                         <p className="text-gray-400 text-xs">
                           {companyInfo.website ? (
@@ -630,8 +788,18 @@ export default function ProfilePage() {
                           )}
                         </p>
                         <p className="text-gray-400 text-xs mt-1">
-                          Active: <span className="text-[#00DF71]">{companyInfo.active ? "Yes" : "No"}</span> • 
-                          Verified: <span className={companyInfo.verified ? "text-[#00DF71]" : "text-yellow-400"}>
+                          Active:{" "}
+                          <span className="text-[#00DF71]">
+                            {companyInfo.active ? "Yes" : "No"}
+                          </span>{" "}
+                          • Verified:{" "}
+                          <span
+                            className={
+                              companyInfo.verified
+                                ? "text-[#00DF71]"
+                                : "text-yellow-400"
+                            }
+                          >
                             {companyInfo.verified ? "Yes" : "No"}
                           </span>
                         </p>
@@ -649,7 +817,10 @@ export default function ProfilePage() {
               <div className="bg-[#212327] rounded-lg shadow-sm border border-[#454446] p-6 mb-6">
                 <div className="flex items-center justify-between mb-4">
                   <h2 className="text-xl font-bold text-white">Recent Props</h2>
-                  <Link href="/props" className="px-3 py-1 text-xs bg-[#00DF71] text-[#212327] rounded-full hover:bg-[#0AFB84] transition-colors">
+                  <Link
+                    href="/props"
+                    className="px-3 py-1 text-xs bg-[#00DF71] text-[#212327] rounded-full hover:bg-[#0AFB84] transition-colors"
+                  >
                     View All
                   </Link>
                 </div>
@@ -683,9 +854,13 @@ export default function ProfilePage() {
                   {/* Right Arrow */}
                   <button
                     onClick={() => handleCarouselScroll("right")}
-                    disabled={carouselPosition >= Math.max(0, Math.ceil(recentProps.length / 3) - 1)}
+                    disabled={
+                      carouselPosition >=
+                      Math.max(0, Math.ceil(recentProps.length / 3) - 1)
+                    }
                     className={`absolute right-0 top-1/2 transform -translate-y-1/2 z-10 bg-[#1e2327] border border-[#454446] rounded-full p-2 transition-colors ${
-                      carouselPosition >= Math.max(0, Math.ceil(recentProps.length / 3) - 1)
+                      carouselPosition >=
+                      Math.max(0, Math.ceil(recentProps.length / 3) - 1)
                         ? "opacity-50 cursor-not-allowed"
                         : "hover:border-[#00DF71] cursor-pointer"
                     }`}
@@ -706,29 +881,164 @@ export default function ProfilePage() {
                   </button>
 
                   {/* Carousel Container */}
-                  <div className="flex gap-4 overflow-hidden px-8 carousel-container" style={{ paddingLeft: "44px" }}>
-                    <div 
+                  <div
+                    className="flex gap-4 overflow-hidden px-8 carousel-container"
+                    style={{ paddingLeft: "44px" }}
+                  >
+                    <div
                       className="flex gap-4 transition-transform duration-300 ease-in-out"
-                      style={{ transform: `translateX(-${carouselPosition * 100}%)` }}
+                      style={{
+                        transform: `translateX(-${carouselPosition * 100}%)`,
+                      }}
                     >
                       {isLoadingRecentProps && (
                         <div className="text-gray-400 text-sm">Loading...</div>
                       )}
                       {!isLoadingRecentProps && recentProps.length === 0 && (
-                        <div className="text-gray-400 text-sm">No props yet</div>
+                        <div className="text-gray-400 text-sm">
+                          No props yet
+                        </div>
                       )}
                       {recentProps.map((prop) => (
-                        <Link key={prop.id} href={`/props/${prop.id}`} className="rounded overflow-hidden border border-[#454446] hover:border-[#00DF71] transition-colors flex-shrink-0 w-full md:w-[calc(33.333%-8px)]" style={{ borderRadius: "4px" }}>
-                            <div className="relative" style={{ aspectRatio: "5 / 4" }}>
+                        <Link
+                          key={prop.id}
+                          href={`/props/${prop.id}`}
+                          className="rounded overflow-hidden border border-[#454446] hover:border-[#00DF71] transition-colors flex-shrink-0 w-full md:w-[calc(33.333%-8px)]"
+                          style={{ borderRadius: "4px" }}
+                        >
+                          <div
+                            className="relative"
+                            style={{ aspectRatio: "5 / 4" }}
+                          >
+                            {/* White background fill */}
+                            <div
+                              className="absolute inset-0 z-5 bg-white"
+                              style={{ borderRadius: "4px" }}
+                            />
+
+                            {/* Use the saved preview image if available, otherwise reconstruct from template data */}
+                            {prop.previewImageBase64 ? (
                               <img
-                                src={prop.fullPropImage || "/liquid_death_props.png"}
+                                src={prop.previewImageBase64}
                                 alt={prop.propsTitle || "Recent Prop"}
                                 className="object-contain relative z-20 w-full h-full"
-                                style={{ borderRadius: "4px", width: "100%", height: "100%", objectPosition: "bottom" }}
+                                style={{
+                                  borderRadius: "4px",
+                                  width: "100%",
+                                  height: "100%",
+                                  objectPosition: "bottom",
+                                }}
                               />
-                            </div>
-                          </Link>
-                        ))}
+                            ) : prop.achievement?.backgroundImage ||
+                              prop.achievement?.props ? (
+                              /* Fallback: Reconstruct from template data like in preview */
+                              <>
+                                {/* Background layer (props background 600x400) */}
+                                <div
+                                  className="absolute inset-0 z-10 overflow-hidden"
+                                  style={{ borderRadius: "4px" }}
+                                >
+                                  <img
+                                    src={getProxiedUrlForPreview(
+                                      prop.achievement?.backgroundImage || ""
+                                    )}
+                                    alt={prop.propsTitle || ""}
+                                    className="w-full h-full object-cover"
+                                    style={{
+                                      borderRadius: "4px",
+                                      objectFit: "cover",
+                                      objectPosition: "center",
+                                    }}
+                                  />
+                                </div>
+                                {/* Foreground props image */}
+                                <img
+                                  src={getProxiedUrlForPreview(
+                                    prop.achievement?.props || ""
+                                  )}
+                                  alt={prop.propsTitle || ""}
+                                  className="object-contain relative z-20 w-full h-full"
+                                  style={{
+                                    borderRadius: "4px",
+                                    width: "100%",
+                                    height: "100%",
+                                    objectPosition: "bottom",
+                                  }}
+                                />
+                                {/* White header with logo/company (scaled proportionally) */}
+                                <div
+                                  className="absolute top-0 left-0 right-0 bg-white border-b-2 border-gray-200 z-30"
+                                  style={{
+                                    height: "33px",
+                                    borderRadius: "4px 4px 0 0",
+                                  }}
+                                >
+                                  <div
+                                    className="absolute flex items-center gap-1 px-2 justify-between"
+                                    style={{
+                                      height: "60%",
+                                      width: "100%",
+                                      left: 0,
+                                      top: "50%",
+                                      transform: "translateY(-50%)",
+                                    }}
+                                  >
+                                    {prop.achievement?.logoImage ? (
+                                      <img
+                                        src={getProxiedUrlForPreview(
+                                          prop.achievement.logoImage
+                                        )}
+                                        alt="Logo"
+                                        className="object-contain relative z-20"
+                                        style={{
+                                          borderRadius: "4px",
+                                          height: "17px",
+                                          width: "auto",
+                                          objectPosition: "left",
+                                        }}
+                                      />
+                                    ) : null}
+                                    <div
+                                      className="text-black font-medium truncate text-xs"
+                                      style={{ maxWidth: "70%" }}
+                                    >
+                                      {prop.propsTitle || ""}
+                                    </div>
+                                  </div>
+                                </div>
+                                {/* Message overlay at bottom */}
+                                {(prop.achievement?.fromName ||
+                                  prop.achievement?.fromMessage) && (
+                                  <div className="absolute bottom-2 left-2 z-30">
+                                    <div className="bg-black bg-opacity-70 text-white text-xs px-2 py-1 rounded">
+                                      {prop.achievement?.fromName && (
+                                        <div className="font-medium">
+                                          From: {prop.achievement.fromName}
+                                        </div>
+                                      )}
+                                      {prop.achievement?.fromMessage && (
+                                        <div className="mt-1">
+                                          {prop.achievement.fromMessage}
+                                        </div>
+                                      )}
+                                    </div>
+                                  </div>
+                                )}
+                              </>
+                            ) : (
+                              /* Fallback: Show placeholder when no images available */
+                              <div className="w-full h-full flex items-center justify-center bg-gray-200">
+                                <div className="text-gray-500 text-sm text-center">
+                                  <div>No Preview Available</div>
+                                  <div className="text-xs mt-1">
+                                    {prop.propsTitle || "Recent Prop"}
+                                  </div>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        </Link>
+                      ))}
                     </div>
                   </div>
                 </div>
@@ -740,7 +1050,10 @@ export default function ProfilePage() {
                   <h2 className="text-xl font-bold text-white">
                     Recent Templates
                   </h2>
-                  <Link href="/templates" className="px-3 py-1 text-xs bg-[#00DF71] text-[#212327] rounded-full hover:bg-[#0AFB84] transition-colors">
+                  <Link
+                    href="/templates"
+                    className="px-3 py-1 text-xs bg-[#00DF71] text-[#212327] rounded-full hover:bg-[#0AFB84] transition-colors"
+                  >
                     View All
                   </Link>
                 </div>
@@ -774,9 +1087,13 @@ export default function ProfilePage() {
                   {/* Right Arrow */}
                   <button
                     onClick={() => handleTemplatesCarouselScroll("right")}
-                    disabled={templatesCarouselPosition >= Math.max(0, Math.ceil(recentTemplates.length / 3) - 1)}
+                    disabled={
+                      templatesCarouselPosition >=
+                      Math.max(0, Math.ceil(recentTemplates.length / 3) - 1)
+                    }
                     className={`absolute right-0 top-1/2 transform -translate-y-1/2 z-10 bg-[#1e2327] border border-[#454446] rounded-full p-2 transition-colors ${
-                      templatesCarouselPosition >= Math.max(0, Math.ceil(recentTemplates.length / 3) - 1)
+                      templatesCarouselPosition >=
+                      Math.max(0, Math.ceil(recentTemplates.length / 3) - 1)
                         ? "opacity-50 cursor-not-allowed"
                         : "hover:border-[#00DF71] cursor-pointer"
                     }`}
@@ -797,17 +1114,27 @@ export default function ProfilePage() {
                   </button>
 
                   {/* Carousel Container */}
-                  <div className="flex gap-4 overflow-hidden px-8 templates-carousel-container" style={{ paddingLeft: "44px" }}>
-                    <div 
+                  <div
+                    className="flex gap-4 overflow-hidden px-8 templates-carousel-container"
+                    style={{ paddingLeft: "44px" }}
+                  >
+                    <div
                       className="flex gap-4 transition-transform duration-300 ease-in-out"
-                      style={{ transform: `translateX(-${templatesCarouselPosition * 100}%)` }}
+                      style={{
+                        transform: `translateX(-${
+                          templatesCarouselPosition * 100
+                        }%)`,
+                      }}
                     >
                       {isLoadingRecentTemplates && (
                         <div className="text-gray-400 text-sm">Loading...</div>
                       )}
-                      {!isLoadingRecentTemplates && recentTemplates.length === 0 && (
-                        <div className="text-gray-400 text-sm">No templates yet</div>
-                      )}
+                      {!isLoadingRecentTemplates &&
+                        recentTemplates.length === 0 && (
+                          <div className="text-gray-400 text-sm">
+                            No templates yet
+                          </div>
+                        )}
                       {recentTemplates.map((t) => (
                         <Link
                           key={t.id}
@@ -815,12 +1142,19 @@ export default function ProfilePage() {
                           className="rounded overflow-hidden border border-[#454446] hover:border-[#00DF71] transition-colors flex-shrink-0 w-full md:w-[calc(33.333%-8px)]"
                           style={{ borderRadius: "4px" }}
                         >
-                          <div className="relative" style={{ aspectRatio: "5 / 4" }}>
+                          <div
+                            className="relative"
+                            style={{ aspectRatio: "5 / 4" }}
+                          >
                             <img
                               src={t.backgroundUrl || "/liquid_death_props.png"}
                               alt={t.company || "Recent Template"}
                               className="object-cover w-full h-full"
-                              style={{ borderRadius: "4px", width: "100%", height: "100%" }}
+                              style={{
+                                borderRadius: "4px",
+                                width: "100%",
+                                height: "100%",
+                              }}
                             />
                           </div>
                         </Link>
@@ -830,13 +1164,16 @@ export default function ProfilePage() {
                 </div>
               </div>
             </div>
-          ) : activeTab === 'settings' ? (
+          ) : activeTab === "settings" ? (
             // Settings tab content
             <div className="max-w-4xl">
               <div className="bg-[#212327] rounded-lg shadow-sm border border-[#454446] p-6 mb-6">
-                <h2 className="text-xl font-bold text-white mb-4">Profile Settings</h2>
+                <h2 className="text-xl font-bold text-white mb-4">
+                  Profile Settings
+                </h2>
                 <p className="text-gray-300">
-                  Profile settings and configuration options will be displayed here.
+                  Profile settings and configuration options will be displayed
+                  here.
                 </p>
               </div>
             </div>
@@ -844,10 +1181,10 @@ export default function ProfilePage() {
             // Default content
             <div className="max-w-4xl">
               <div className="bg-[#212327] rounded-lg shadow-sm border border-[#454446] p-6 mb-6">
-                <h2 className="text-xl font-bold text-white mb-4">Profile Tab</h2>
-                <p className="text-gray-300">
-                  This tab is under development.
-                </p>
+                <h2 className="text-xl font-bold text-white mb-4">
+                  Profile Tab
+                </h2>
+                <p className="text-gray-300">This tab is under development.</p>
               </div>
             </div>
           )}
@@ -859,8 +1196,12 @@ export default function ProfilePage() {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-[#212327] rounded-lg p-6 max-w-md w-full mx-4 border border-[#454446]">
             <div className="text-center">
-              <h3 className="text-lg font-semibold text-white mb-4">Confirm Logout</h3>
-              <p className="text-gray-300 mb-6">Are you sure you want to log out?</p>
+              <h3 className="text-lg font-semibold text-white mb-4">
+                Confirm Logout
+              </h3>
+              <p className="text-gray-300 mb-6">
+                Are you sure you want to log out?
+              </p>
               <div className="flex gap-3 justify-center">
                 <button
                   onClick={closeLogoutModal}

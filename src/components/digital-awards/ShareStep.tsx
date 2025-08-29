@@ -52,6 +52,7 @@ export default function ShareStep({
   const [generatedImageUrl, setGeneratedImageUrl] = useState<string | null>(
     null
   );
+  const [previewImageUrl, setPreviewImageUrl] = useState<string | null>(null);
   const [saveAsTemplate, setSaveAsTemplate] = useState<boolean>(true);
   // Toggle to show/hide the raw image URL in the UI (kept in code for debugging)
   const showImageUrlDebug = false;
@@ -71,31 +72,76 @@ export default function ShareStep({
         throw new Error("User not authenticated");
       }
 
+      console.log({ selectedTemplate });
+
       // Step 1: Upload assets and create template
       setProcessStep("Uploading assets and creating template...");
       const uploadedAssets = await uploadAssetsAndCreateTemplate(user.uid);
 
-      // Step 2: Create prop in user subcollection
-      setProcessStep("Creating prop in user subcollection...");
-      const propId = await createPropInUserSubcollection(
-        user.uid,
-        uploadedAssets
-      );
+      // Step 2: Generate preview image locally first
+      setProcessStep("Generating preview image...");
+      await generatePreviewImage(uploadedAssets);
 
-      // Step 3: Generate image and saving to prop document
-      setProcessStep("Generating image and saving to prop document...");
+      // Step 3: Save the preview image to database
+      setProcessStep("Saving preview image to database...");
 
-      // Add a small delay to ensure the prop document is fully written to Firestore
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      // Log the uploaded assets for debugging
+      console.log("Uploaded assets for preview:", uploadedAssets);
+      console.log("Selected template:", selectedTemplate);
+      console.log("Template achievement structure:", {
+        props: selectedTemplate?.achievement?.props,
+        logoImage: selectedTemplate?.achievement?.logoImage,
+        backgroundImage: selectedTemplate?.achievement?.backgroundImage,
+        propsTitle,
+        fromName,
+        fromDate,
+        fromMessage,
+      });
 
-      const imageUrl = await generateAndSaveImage(
-        user.uid,
-        propId,
-        uploadedAssets
-      );
+      // Save the preview image to the user's props collection
+      try {
+        const propData = {
+          fromMessage: fromMessage || "",
+          propsTitle: propsTitle || "",
+          propsRecipients: propsRecipients || [],
+          fromDate: fromDate || "",
+          fromName: fromName || "",
+          templateId: selectedTemplate?.id || "",
+          isPrivateTemplate: false,
+          status: "preview_generated",
+          achievement: {
+            props: selectedTemplate?.achievement?.props || "",
+            logoImage:
+              uploadedAssets.logoUrl ||
+              selectedTemplate?.achievement?.logoImage ||
+              "",
+            backgroundImage:
+              uploadedAssets.backgroundUrl ||
+              selectedTemplate?.achievement?.backgroundImage ||
+              "",
+            propsTitle: propsTitle || "",
+            fromName: fromName || "",
+            fromDate: fromDate || "",
+            fromMessage: fromMessage || "",
+            tags: selectedTemplate?.achievement?.tags || [],
+            company:
+              companyNameText || selectedTemplate?.achievement?.company || "",
+          },
+          logoUrl: uploadedAssets.logoUrl || null,
+          backgroundUrl: uploadedAssets.backgroundUrl || null,
+          previewImageBase64: previewImageUrl, // Save the base64 preview image
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        };
 
-      setSavedPropId(propId);
-      setGeneratedImageUrl(imageUrl);
+        const propId = await saveUserProp(user.uid, propData);
+        setSavedPropId(propId);
+        console.log("Preview image saved to database with prop ID:", propId);
+        setProcessStep("Preview image saved successfully!");
+      } catch (error) {
+        console.error("Error saving preview image to database:", error);
+        setProcessStep("Error saving preview image");
+      }
 
       // Simulate award generation
       setTimeout(() => {
@@ -122,7 +168,7 @@ Date: ${
               })()
             : new Date().toLocaleDateString()
         }
-Certificate ID: ${propId}
+Certificate ID: PREVIEW-${Date.now()}
 
 This digital award recognizes excellence and dedication in professional development.
         `;
@@ -144,7 +190,6 @@ This digital award recognizes excellence and dedication in professional developm
     const uploadedAssets: any = {
       logoUrl: null,
       backgroundUrl: null,
-      templateId: null,
     };
 
     try {
@@ -170,48 +215,22 @@ This digital award recognizes excellence and dedication in professional developm
       // Always ensure we have the base template data, even if no custom assets are uploaded
       if (selectedTemplate?.achievement) {
         uploadedAssets.baseTemplateData = {
-          // props should contain the background image, not the props text
-          props:
+          // props should contain the props image URL (the main template image)
+          props: selectedTemplate.achievement.props || "",
+          logoImage: selectedTemplate.achievement.logoImage || "",
+          // backgroundImage should contain the background image URL
+          backgroundImage:
             uploadedAssets.backgroundUrl ||
             selectedTemplate.achievement.backgroundImage ||
             "",
-          logoImage: selectedTemplate.achievement.logoImage || "",
-          // backgroundImage should contain the props title text
-          backgroundImage: propsTitle || "",
+          // Add the text content as separate fields
+          propsTitle: propsTitle || "",
+          fromName: fromName || "",
+          fromDate: fromDate || "",
+          fromMessage: fromMessage || "",
           tags: selectedTemplate.achievement.tags || [],
           company: selectedTemplate.achievement.company || "",
         };
-      }
-
-      // Only create template if assets were uploaded
-      if (uploadedLogoFile || uploadedBackgroundFile) {
-        const templateData = {
-          achievement: {
-            // props should contain the background image, not the props text
-            props:
-              uploadedAssets.backgroundUrl ||
-              selectedTemplate?.achievement?.backgroundImage ||
-              "",
-            logoImage:
-              uploadedAssets.logoUrl ||
-              selectedTemplate?.achievement?.logoImage ||
-              "",
-            // backgroundImage should contain the props title text
-            backgroundImage: propsTitle || "",
-            tags: selectedTemplate?.achievement?.tags || [],
-            company:
-              companyNameText || selectedTemplate?.achievement?.company || "",
-          },
-          isPrivate: true,
-          userRef: userId,
-          templateType: "props",
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        };
-
-        uploadedAssets.templateId = await createTemplateWithAssets(
-          templateData
-        );
       }
 
       return uploadedAssets;
@@ -227,23 +246,31 @@ This digital award recognizes excellence and dedication in professional developm
     uploadedAssets: any
   ) => {
     try {
-      let templateId = uploadedAssets.templateId || selectedTemplate?.id || "";
+      let templateId = selectedTemplate?.id || "";
       let isPrivateTemplate = false;
+      let userTemplateId = null;
 
       // If user wants to save as template, create a template in their subcollection
       if (saveAsTemplate) {
         try {
           const templateData = {
             achievement: {
-              props:
-                uploadedAssets.backgroundUrl ||
-                selectedTemplate?.achievement?.backgroundImage ||
-                "",
+              // props should contain the props image URL (the main template image)
+              props: selectedTemplate?.achievement?.props || "",
               logoImage:
                 uploadedAssets.logoUrl ||
                 selectedTemplate?.achievement?.logoImage ||
                 "",
-              backgroundImage: propsTitle || "",
+              // backgroundImage should contain the background image URL
+              backgroundImage:
+                uploadedAssets.backgroundUrl ||
+                selectedTemplate?.achievement?.backgroundImage ||
+                "",
+              // Add the text content as separate fields
+              propsTitle: propsTitle || "",
+              fromName: fromName || "",
+              fromDate: fromDate || "",
+              fromMessage: fromMessage || "",
               tags: selectedTemplate?.achievement?.tags || [],
               company:
                 companyNameText || selectedTemplate?.achievement?.company || "",
@@ -256,20 +283,20 @@ This digital award recognizes excellence and dedication in professional developm
           };
 
           // Save template to user's subcollection
-          const userTemplateId = await saveUserTemplateAssets(userId, {
+          userTemplateId = await saveUserTemplateAssets(userId, {
             logoUrl: uploadedAssets.logoUrl || null,
             backgroundUrl: uploadedAssets.backgroundUrl || null,
             company:
               companyNameText || selectedTemplate?.achievement?.company || "",
-            templateId: templateId,
+            templateId: templateId, // Keep original template ID as reference
             basePropsUrl: selectedTemplate?.achievement?.props || null,
             achievement: templateData.achievement,
             isPrivate: true,
             templateType: "props",
           });
 
-          // Update templateId to the newly created user template
-          templateId = userTemplateId;
+          console.log("Saved user template with ID:", userTemplateId);
+          console.log("Template data:", templateData);
           isPrivateTemplate = true;
         } catch (error) {
           console.error("Error saving user template:", error);
@@ -283,31 +310,42 @@ This digital award recognizes excellence and dedication in professional developm
         propsRecipients: propsRecipients || [],
         fromDate: fromDate || "",
         fromName: fromName || "",
-        templateId: templateId,
+        templateId: templateId, // Keep original template ID
+        userTemplateId: userTemplateId, // Add reference to user's saved template
         isPrivateTemplate: isPrivateTemplate,
         status: "pending_image_generation",
-        // Include the achievement data that the cloud function needs - EXACTLY like props
+        // Include the achievement data that the cloud function needs
         achievement: {
-          // props should contain the background image, not the props text
-          props:
-            uploadedAssets.backgroundUrl ||
-            selectedTemplate?.achievement?.backgroundImage ||
-            "",
+          // props should contain the props image URL (the main template image)
+          props: selectedTemplate?.achievement?.props || "",
           logoImage:
             uploadedAssets.logoUrl ||
             selectedTemplate?.achievement?.logoImage ||
             "",
-          // backgroundImage should contain the props title text
-          backgroundImage: propsTitle || "",
+          // backgroundImage should contain the background image URL
+          backgroundImage:
+            uploadedAssets.backgroundUrl ||
+            selectedTemplate?.achievement?.backgroundImage ||
+            "",
+          // Add the text content as separate fields
+          propsTitle: propsTitle || "",
+          fromName: fromName || "",
+          fromDate: fromDate || "",
+          fromMessage: fromMessage || "",
           tags: selectedTemplate?.achievement?.tags || [],
           company:
             companyNameText || selectedTemplate?.achievement?.company || "",
         },
+        // Store the actual asset URLs for this specific prop
+        logoUrl: uploadedAssets.logoUrl || null,
+        backgroundUrl: uploadedAssets.backgroundUrl || null,
         createdAt: new Date(),
         updatedAt: new Date(),
       };
 
       const propId = await saveUserProp(userId, propData);
+      console.log("Created prop with ID:", propId);
+      console.log("Prop data:", propData);
       return propId;
     } catch (error) {
       console.error("Error creating prop in user subcollection:", error);
@@ -322,14 +360,18 @@ This digital award recognizes excellence and dedication in professional developm
     uploadedAssets: {
       logoUrl?: string | null;
       backgroundUrl?: string | null;
-      templateId?: string | null;
     } = {}
   ) => {
     try {
+      // First, get the prop data to ensure we have the latest information
+      console.log("Generating image for prop:", propId);
+      console.log("Uploaded assets:", uploadedAssets);
+
       // Call our proxy API route instead of the cloud function directly
       const imageUrl = `/api/generate-image?user=${userId}&prop=${propId}`;
 
       console.log("Attempting to fetch image from:", imageUrl);
+      console.log("Prop ID being sent:", propId);
 
       // Fetch the image from our proxy API route
       const response = await fetch(imageUrl, {
@@ -377,6 +419,7 @@ This digital award recognizes excellence and dedication in professional developm
       // Update the prop document with the uploaded image URL
       await updatePropWithImage(userId, propId, uploadedImageUrl);
 
+      console.log("Successfully generated and saved image:", uploadedImageUrl);
       return uploadedImageUrl;
     } catch (error) {
       console.warn("Error generating and saving image:", error);
@@ -397,6 +440,15 @@ This digital award recognizes excellence and dedication in professional developm
     return imageUrl; // already relative (e.g., from our API)
   };
 
+  // Function to get proxied URL for preview generation
+  const getProxiedUrlForPreview = (imageUrl: string): string => {
+    if (!imageUrl) return imageUrl;
+    if (imageUrl.startsWith("http://") || imageUrl.startsWith("https://")) {
+      return `/api/proxy-image?url=${encodeURIComponent(imageUrl)}`;
+    }
+    return imageUrl;
+  };
+
   // Helper function to convert File to base64
   const fileToBase64 = (file: File): Promise<string> => {
     return new Promise((resolve, reject) => {
@@ -405,6 +457,169 @@ This digital award recognizes excellence and dedication in professional developm
       reader.onload = () => resolve(reader.result as string);
       reader.onerror = (error) => reject(error);
     });
+  };
+
+  // Function to generate preview image locally
+  const generatePreviewImage = async (uploadedAssets: any) => {
+    try {
+      console.log("Generating preview image with assets:", uploadedAssets);
+
+      // Create a canvas to composite the images
+      const canvas = document.createElement("canvas");
+      const ctx = canvas.getContext("2d");
+      if (!ctx) {
+        throw new Error("Could not get canvas context");
+      }
+
+      // Set canvas size to match template preview (5:4 aspect ratio)
+      canvas.width = 600;
+      canvas.height = 480;
+
+      // Load background image
+      const backgroundImg = new Image();
+      backgroundImg.crossOrigin = "anonymous";
+
+      backgroundImg.onload = () => {
+        // Draw background
+        ctx.drawImage(backgroundImg, 0, 0, canvas.width, canvas.height);
+
+        // Load props image (main illustration)
+        const propsImg = new Image();
+        propsImg.crossOrigin = "anonymous";
+
+        propsImg.onload = () => {
+          // Draw props image on top of background, positioned at bottom
+          ctx.drawImage(propsImg, 0, 0, canvas.width, canvas.height);
+
+          // Load logo image
+          const logoImg = new Image();
+          logoImg.crossOrigin = "anonymous";
+
+          logoImg.onload = () => {
+            // Draw logo in top-left corner (40px height, 250px width area)
+            const logoHeight = 40;
+            const logoWidth = Math.min(
+              250,
+              logoImg.width * (logoHeight / logoImg.height)
+            );
+            ctx.drawImage(logoImg, 20, 20, logoWidth, logoHeight);
+
+            // Add title text in top-right (20px font, right-aligned)
+            ctx.fillStyle = "black";
+            ctx.font = "bold 20px Poppins";
+            ctx.textAlign = "right";
+            ctx.fillText(propsTitle || "Title", canvas.width - 20, 40);
+
+            // Add message box in top-left (gradient background like template)
+            const messageBoxY = 92;
+            const messageBoxHeight = 60;
+
+            // Create gradient background
+            const gradient = ctx.createLinearGradient(
+              20,
+              messageBoxY,
+              300,
+              messageBoxY
+            );
+            gradient.addColorStop(0, "#ADAFBE");
+            gradient.addColorStop(0.5, "#4F7295");
+            gradient.addColorStop(1, "#ADAFBE");
+
+            ctx.fillStyle = gradient;
+            ctx.globalAlpha = 0.8;
+            ctx.fillRect(20, messageBoxY, 280, messageBoxHeight);
+            ctx.globalAlpha = 1.0;
+
+            // Add text inside message box
+            ctx.fillStyle = "white";
+            ctx.font = "14px Poppins";
+            ctx.textAlign = "left";
+
+            // From name and date on same line
+            if (fromName) {
+              ctx.fillText(`From: ${fromName}`, 30, messageBoxY + 20);
+            }
+            if (fromDate) {
+              const [year, month, day] = fromDate.split("-");
+              const formattedDate = `${month}/${day}/${year.slice(2)}`;
+              ctx.fillText(formattedDate, 30, messageBoxY + 40);
+            }
+            if (fromMessage) {
+              ctx.fillText(fromMessage, 30, messageBoxY + 60);
+            }
+
+            // Convert canvas to data URL
+            const previewDataUrl = canvas.toDataURL("image/png");
+            setPreviewImageUrl(previewDataUrl);
+            console.log("Preview image generated:", previewDataUrl);
+          };
+
+          logoImg.onerror = () => {
+            console.warn("Could not load logo image, continuing without it");
+            // Continue without logo
+            const previewDataUrl = canvas.toDataURL("image/png");
+            setPreviewImageUrl(previewDataUrl);
+          };
+
+          // Set logo source
+          const logoUrl =
+            uploadedAssets.logoUrl || selectedTemplate?.achievement?.logoImage;
+          if (logoUrl) {
+            logoImg.src = getProxiedUrlForPreview(logoUrl);
+          } else {
+            // No logo, continue without it
+            const previewDataUrl = canvas.toDataURL("image/png");
+            setPreviewImageUrl(previewDataUrl);
+          }
+        };
+
+        propsImg.onerror = () => {
+          console.warn("Could not load props image, continuing without it");
+          // Continue without props image
+          const previewDataUrl = canvas.toDataURL("image/png");
+          setPreviewImageUrl(previewDataUrl);
+        };
+
+        // Set props image source
+        const propsUrl = selectedTemplate?.achievement?.props;
+        if (propsUrl) {
+          propsImg.src = getProxiedUrlForPreview(propsUrl);
+        } else {
+          // No props image, continue without it
+          const previewDataUrl = canvas.toDataURL("image/png");
+          setPreviewImageUrl(previewDataUrl);
+        }
+      };
+
+      backgroundImg.onerror = () => {
+        console.warn("Could not load background image, using fallback");
+        // Use fallback background
+        ctx.fillStyle = "#FF69B4"; // Pink background as fallback
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        // Continue with other elements
+        const previewDataUrl = canvas.toDataURL("image/png");
+        setPreviewImageUrl(previewDataUrl);
+      };
+
+      // Set background image source
+      const backgroundUrl =
+        uploadedAssets.backgroundUrl ||
+        selectedTemplate?.achievement?.backgroundImage;
+      if (backgroundUrl) {
+        backgroundImg.src = getProxiedUrlForPreview(backgroundUrl);
+      } else {
+        // No background image, use fallback
+        ctx.fillStyle = "#FF69B4"; // Pink background as fallback
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        const previewDataUrl = canvas.toDataURL("image/png");
+        setPreviewImageUrl(previewDataUrl);
+      }
+    } catch (error) {
+      console.error("Error generating preview image:", error);
+      setPreviewImageUrl(null);
+    }
   };
 
   const handleDownload = () => {
@@ -677,10 +892,39 @@ This digital award recognizes excellence and dedication in professional developm
                   ✓ Award saved successfully! ID: {savedPropId}
                 </div>
               )}
+              {/* Preview Image (Generated Locally) */}
+              {previewImageUrl && (
+                <div className="mb-4">
+                  <h4 className="text-md font-medium text-white mb-2">
+                    Preview Image (Generated Locally):
+                  </h4>
+                  <div className="bg-white rounded-lg p-2 inline-block">
+                    <img
+                      src={previewImageUrl}
+                      alt="Preview Prop"
+                      className="w-64 h-auto rounded border border-gray-300"
+                      style={{ maxWidth: "256px" }}
+                      onLoad={() =>
+                        console.log("Preview image loaded successfully")
+                      }
+                      onError={(e) =>
+                        console.error("Preview image failed to load:", e)
+                      }
+                    />
+                  </div>
+                  {savedPropId && (
+                    <div className="mt-2 text-green-400 text-sm">
+                      ✓ Preview image saved to database (ID: {savedPropId})
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Final Generated Image (From Cloud Function) */}
               {generatedImageUrl && (
                 <div className="mb-4">
                   <h4 className="text-md font-medium text-white mb-2">
-                    Generated Prop Image:
+                    Final Generated Prop Image:
                   </h4>
                   {savedPropId ? (
                     <Link
