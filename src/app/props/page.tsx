@@ -142,12 +142,13 @@ export default function PropsListPage() {
                         <img
                           src={prop.previewImageBase64}
                           alt={prop.propsTitle || "Prop"}
-                          className="object-contain relative z-20 w-full h-full"
+                          className="relative z-20 w-full h-full"
                           style={{
                             borderRadius: "4px",
                             width: "100%",
                             height: "100%",
-                            // objectPosition: "bottom",
+                            objectFit: "cover",
+                            // objectPosition: "center",
                           }}
                         />
                       ) : prop.achievement?.backgroundImage ||
@@ -178,12 +179,13 @@ export default function PropsListPage() {
                               prop.achievement?.props || ""
                             )}
                             alt={prop.propsTitle || ""}
-                            className="object-contain relative z-20 w-full h-full"
+                            className="relative z-20 w-full h-full"
                             style={{
                               borderRadius: "4px",
                               width: "100%",
                               height: "100%",
-                              // objectPosition: "bottom",
+                              objectFit: "cover",
+                              // objectPosition: "center",
                             }}
                           />
                           {/* White header with logo/company (scaled proportionally) */}
@@ -210,7 +212,7 @@ export default function PropsListPage() {
                                     prop.achievement.logoImage
                                   )}
                                   alt="Logo"
-                                  className="object-contain relative z-20"
+                                  className="object-cover relative z-20"
                                   style={{
                                     borderRadius: "4px",
                                     height: "17px",
