@@ -138,6 +138,49 @@ export default function ShareStep({
         setSavedPropId(propId);
         console.log("Preview image saved to database with prop ID:", propId);
         setProcessStep("Preview image saved successfully!");
+
+        // Step 4: If user selected "Save as reusable template", create template in user's collection
+        if (saveAsTemplate) {
+          setProcessStep("Creating reusable template...");
+          try {
+            const userTemplateId = await createPropInUserSubcollection(
+              user.uid,
+              uploadedAssets
+            );
+            console.log(
+              "Successfully created reusable template with ID:",
+              userTemplateId
+            );
+            setProcessStep("Reusable template created successfully!");
+          } catch (error) {
+            console.error("Error creating reusable template:", error);
+            setProcessStep("Template creation failed, but prop was saved");
+          }
+        }
+
+        // Clear all localStorage persistence for digital awards generator
+        if (typeof window !== "undefined") {
+          localStorage.removeItem("digital-awards-current-step");
+          localStorage.removeItem("digital-awards-active-tab");
+          localStorage.removeItem("digital-awards-selected-template");
+          localStorage.removeItem("digital-awards-show-template-detail");
+          localStorage.removeItem("digital-awards-logo-visible");
+          localStorage.removeItem("digital-awards-company-name");
+          localStorage.removeItem("digital-awards-background-visible");
+          localStorage.removeItem("digital-awards-background-name");
+          localStorage.removeItem("digital-awards-props-title");
+          localStorage.removeItem("digital-awards-props-recipients");
+          localStorage.removeItem("digital-awards-from-name");
+          localStorage.removeItem("digital-awards-from-date");
+          localStorage.removeItem("digital-awards-from-message");
+          localStorage.removeItem("digital-awards-filters");
+          localStorage.removeItem("digital-awards-search-query");
+          console.log("Cleared all digital awards localStorage persistence");
+        }
+
+        // Keep user on Share step to see generated award
+        // Only clear localStorage so next visit will be fresh
+        console.log("Award generated successfully! User stays on Share step.");
       } catch (error) {
         console.error("Error saving preview image to database:", error);
         setProcessStep("Error saving preview image");
@@ -509,6 +552,24 @@ This digital award recognizes excellence and dedication in professional developm
             ctx.font = "bold 16px Poppins";
             ctx.textAlign = "right";
             ctx.fillText(propsTitle || "Title", canvas.width - 16, 32);
+
+            // Draw white header background with border
+            ctx.fillStyle = "white";
+            ctx.fillRect(0, 0, canvas.width, 48); // Increased height from 40 to 48
+            ctx.strokeStyle = "#E5E7EB"; // Light gray border
+            ctx.lineWidth = 1;
+            ctx.strokeRect(0, 47, canvas.width, 1); // Bottom border at 47
+
+            // Redraw logo on top of white background
+            if (logoUrl) {
+              ctx.drawImage(logoImg, 16, 12, logoWidth, logoHeight); // Adjusted Y position from 8 to 12
+            }
+
+            // Redraw title text on top of white background
+            ctx.fillStyle = "black";
+            ctx.font = "16px Poppins"; // Removed bold styling
+            ctx.textAlign = "right";
+            ctx.fillText(propsTitle || "Title", canvas.width - 16, 36); // Adjusted Y position from 32 to 36
 
             // Add message box in top-left (gradient background like template) - scaled down
             const messageBoxY = 74; // Reduced from 92 to fit smaller canvas
