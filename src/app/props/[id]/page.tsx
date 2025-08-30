@@ -224,12 +224,14 @@ export default function PropDetailPage() {
                         prop.achievement?.fromMessage ||
                         prop.achievement?.fromDate) && (
                         <div className="absolute top-20 left-4 z-30 font-semibold">
-                          <div className="bg-[#B9C4D1]/80 text-white text-lg px-4 py-3 rounded-lg shadow-lg max-w-xs">
-                            Props:
-                            <br />
-                            {prop.achievement.tags &&
-                              prop.achievement.tags.join(", ")}
-                          </div>
+                          {prop.propsRecipients.length > 0 && (
+                            <div className="bg-[#B9C4D1]/80 text-white text-lg px-4 py-3 rounded-lg shadow-lg max-w-xs">
+                              Props:
+                              <br />
+                              {prop.propsRecipients &&
+                                prop.propsRecipients.join(", ")}
+                            </div>
+                          )}
                           <div className="bg-[#B9C4D1]/80 mt-2.5 text-white text-lg px-4 py-3 rounded-lg shadow-lg max-w-xs">
                             {/* From name and date on same line with flex justify-between */}
                             {(prop.achievement?.fromName ||
