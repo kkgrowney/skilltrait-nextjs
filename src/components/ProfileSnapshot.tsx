@@ -1,6 +1,8 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import { collection, getDocs, query, where, doc } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
 
 interface Employee {
   id: string;
@@ -22,11 +24,51 @@ interface ProfileSnapshotProps {
 }
 
 export default function ProfileSnapshot({ employee }: ProfileSnapshotProps) {
+  const [userSkills, setUserSkills] = useState<any[]>([]);
+  const [skillsLoading, setSkillsLoading] = useState(false);
+
   // Debug logging for employee data
   console.log('ProfileSnapshot received employee:', employee);
   if (employee) {
     console.log('Employee skills:', employee.skills);
   }
+
+  // Fetch skills from top-level skills collection
+  const fetchUserSkills = async (userId: string) => {
+    if (!userId) return;
+    
+    setSkillsLoading(true);
+    try {
+      // Query skills collection where userRef matches the user ID
+      const skillsQuery = query(
+        collection(db, 'skills'),
+        where('userRef', '==', doc(db, 'users', userId))
+      );
+      
+      const skillsSnapshot = await getDocs(skillsQuery);
+      const skills = skillsSnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+      
+      console.log('Fetched user skills:', skills);
+      setUserSkills(skills);
+    } catch (error) {
+      console.error('Error fetching user skills:', error);
+      setUserSkills([]);
+    } finally {
+      setSkillsLoading(false);
+    }
+  };
+
+  // Fetch skills when employee changes
+  useEffect(() => {
+    if (employee && employee.id) {
+      fetchUserSkills(employee.id);
+    } else {
+      setUserSkills([]);
+    }
+  }, [employee]);
 
   // Helper function to format birthday without year
   const formatBirthday = (birthday: string): string => {
@@ -204,13 +246,15 @@ export default function ProfileSnapshot({ employee }: ProfileSnapshotProps) {
 
           {/* Skills list */}
           <div className="box-border content-stretch flex flex-row flex-wrap gap-2 items-start justify-start overflow-clip px-0 py-[18px] relative shrink-0 w-full">
-            {employee.skills && employee.skills.length > 0 ? (
-              employee.skills.map((skill, index) => (
+            {skillsLoading ? (
+              <span className="text-[#aeaeae] text-xs">Loading skills...</span>
+            ) : userSkills && userSkills.length > 0 ? (
+              userSkills.map((skill, index) => (
                 <span 
-                  key={index}
+                  key={skill.id || index}
                   className="px-3 py-1 bg-[#00DF71] text-[#212327] text-xs font-medium rounded-full"
                 >
-                  {skill}
+                  {skill.name || skill.skill || 'Unknown Skill'}
                 </span>
               ))
             ) : (

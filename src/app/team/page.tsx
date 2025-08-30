@@ -24,7 +24,7 @@ interface SkillRankSectionProps {
   rankedEmployees: any[];
 }
 
-function SkillRankSection({ skillData, employeesRanked, onChevronClick }: SkillRankSectionProps) {
+function SkillRankSection({ skillData, employeesRanked, onChevronClick, rankedEmployees }: SkillRankSectionProps) {
   const { user } = useAuth();
   const [isExpanded, setIsExpanded] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
@@ -34,10 +34,19 @@ function SkillRankSection({ skillData, employeesRanked, onChevronClick }: SkillR
   const [selectedEmployees, setSelectedEmployees] = useState<Set<string>>(new Set());
 
   // Get ranked employees from parent component
-  const rankedEmployees = useMemo(() => {
-    // This will be populated when ranking is complete
-    return [];
-  }, []);
+  const skillRankedEmployees = useMemo(() => {
+    // Find the employees for this specific skill
+    const skillResult = rankedEmployees.find(result => result.skill === skillData.skill);
+    return skillResult ? skillResult.employees : [];
+  }, [rankedEmployees, skillData.skill]);
+
+  // Auto-expand when employee data is successfully loaded for this specific skill
+  useEffect(() => {
+    if (skillRankedEmployees.length > 0 && !isExpanded) {
+      console.log(`🔍 Auto-expanding chevron for skill: ${skillData.skill}, employees: ${skillRankedEmployees.length}`);
+      setIsExpanded(true);
+    }
+  }, [skillRankedEmployees.length, isExpanded, skillData.skill]);
 
   const getProficiencyColor = (proficiency: string) => {
     switch (proficiency) {
@@ -100,8 +109,8 @@ function SkillRankSection({ skillData, employeesRanked, onChevronClick }: SkillR
 
   // Handle select all employees
   const handleSelectAll = (checked: boolean) => {
-    if (checked && rankedEmployees.length > 0) {
-      const allIds = rankedEmployees.slice(0, 10).map(emp => emp.id);
+    if (checked && skillRankedEmployees.length > 0) {
+      const allIds = skillRankedEmployees.slice(0, 10).map((emp: any) => emp.id);
       setSelectedEmployees(new Set(allIds));
       } else {
       setSelectedEmployees(new Set());
@@ -199,13 +208,21 @@ function SkillRankSection({ skillData, employeesRanked, onChevronClick }: SkillR
               {/* Expand/Collapse Arrow */}
             <button 
               onClick={() => {
-                // Only allow expansion when ranking is actually completed and table exists
-                if (employeesRanked && isExpanded) {
+                // Allow expansion when we have employee data for this skill
+                if (skillRankedEmployees.length > 0) {
                   setIsExpanded(!isExpanded);
                 }
               }}
-              className="p-2 transition-colors text-gray-600 cursor-not-allowed"
-              title="Ranking not completed yet"
+              className={`p-2 transition-colors ${
+                skillRankedEmployees.length > 0 
+                  ? 'text-gray-300 hover:text-white cursor-pointer' 
+                  : 'text-gray-600 cursor-not-allowed'
+              }`}
+              title={
+                skillRankedEmployees.length > 0 
+                  ? "Click to expand/collapse employee list" 
+                  : "Ranking not completed yet"
+              }
             >
               <svg 
                 className={`w-5 h-5 transition-transform ${isExpanded ? 'rotate-180' : ''}`} 
@@ -258,28 +275,28 @@ function SkillRankSection({ skillData, employeesRanked, onChevronClick }: SkillR
                 {/* Table Header */}
                 <div className="bg-[#1B1D21] border-b border-[#3D3C3E] p-0">
                   <div className="flex">
-                    <div className="w-[54px] py-3 flex justify-center">
+                    <div className="w-[40px] py-3 flex justify-center">
                       <input
                         type="checkbox"
-                        checked={selectedEmployees.size === rankedEmployees.slice(0, 10).length && selectedEmployees.size > 0}
+                        checked={selectedEmployees.size === skillRankedEmployees.slice(0, 10).length && selectedEmployees.size > 0}
                         onChange={(e) => handleSelectAll(e.target.checked)}
                         className="h-4 w-4 text-[#00DF71] focus:ring-[#00DF71] border-gray-600 rounded bg-[#1B1D21]"
                         style={{ accentColor: '#00DF71' }}
                       />
                     </div>
-                    <div className="py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider flex-1">EMPLOYEE ID</div>
+
                     <div className="pl-3 pr-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider flex-1">NAME</div>
                     <div className="pl-3 pr-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider flex-1">TITLE</div>
-                    <div className="pl-3 pr-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider flex-1">START DATE</div>
-                    <div className="pl-3 pr-20 py-3 text-right text-xs font-medium text-gray-300 uppercase tracking-wider flex-1">RANKING</div>
+                    <div className="pl-3 pr-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider flex-1">LOCATION</div>
+                    <div className="pl-3 pr-20 py-3 text-center text-xs font-medium text-gray-300 uppercase tracking-wider flex-1">CONFIDENCE (1-100)</div>
                   </div>
                 </div>
 
                 {/* Table Body */}
                 <div className="divide-y divide-[#3D3C3E]">
-                  {rankedEmployees
+                  {skillRankedEmployees
                     .slice(0, 10) // Show top 10 employees
-                    .map((employee, index) => (
+                    .map((employee: any, index: number) => (
                       <div 
                         key={employee.id} 
                         className={`flex cursor-pointer transition-all duration-200 ${
@@ -292,7 +309,7 @@ function SkillRankSection({ skillData, employeesRanked, onChevronClick }: SkillR
                             setShowProfileModal(true);
                           }}
                       >
-                        <div className="w-[54px] py-4 flex justify-center">
+                        <div className="w-[40px] py-4 flex justify-center">
                           <input
                             type="checkbox"
                             checked={selectedEmployees.has(employee.id)}
@@ -302,18 +319,16 @@ function SkillRankSection({ skillData, employeesRanked, onChevronClick }: SkillR
                             onClick={(e) => e.stopPropagation()}
                           />
                         </div>
-                        <div className="py-4 whitespace-nowrap text-sm text-gray-300 flex-1">
-                          {employee.id.length > 14 ? `${employee.id.substring(0, 14)}...` : employee.id}
-                        </div>
+
                         <div 
                           className="pl-3 pr-6 py-4 whitespace-nowrap text-sm text-white font-medium flex-1 underline hover:text-gray-300 transition-colors"
                         >
                           {employee.name}
                         </div>
                         <div className="pl-3 pr-6 py-4 whitespace-nowrap text-sm text-gray-300 flex-1">{employee.title}</div>
-                        <div className="pl-3 pr-6 py-4 whitespace-nowrap text-sm text-gray-300 flex-1">{employee.startDate}</div>
-                        <div className="pl-3 pr-20 py-4 whitespace-nowrap text-sm text-gray-300 flex-1 text-right">
-                          {(99.9 - (index * 6.66)).toFixed(1)}%
+                        <div className="pl-3 pr-6 py-4 whitespace-nowrap text-sm text-gray-300 flex-1">{employee.location}</div>
+                        <div className="pl-3 pr-20 py-4 whitespace-nowrap text-sm text-gray-300 flex-1 text-center">
+                          {employee.similarity || '0'}
                         </div>
                       </div>
                     ))}
@@ -325,10 +340,10 @@ function SkillRankSection({ skillData, employeesRanked, onChevronClick }: SkillR
           {/* Results Info */}
           <div className="mt-4 text-center">
             <p className="text-sm text-gray-400">
-              Showing top 10 employees ranked by {skillData.skill} proficiency
+              Showing top {Math.min(skillRankedEmployees.length, 10)} employees ranked by {skillData.skill} confidence
             </p>
             <p className="text-xs text-gray-500 mt-1">
-              Employee source and ranking algorithm will be defined later
+              Rankings based on confidence scores (highest to lowest)
             </p>
           </div>
         </div>
@@ -501,12 +516,44 @@ export default function Team() {
 
   // Handle proficiency change for a skill
   const handleProficiencyChange = (skill: string, proficiency: string) => {
-    setSkillProficiencies(prev => ({ ...prev, [skill]: proficiency }));
+    setPendingChanges(prev => ({
+      ...prev,
+      [skill]: {
+        ...prev[skill],
+        proficiency: proficiency
+      }
+    }));
   };
 
   // Handle motivation change for a skill
   const handleMotivationChange = (skill: string, motivation: string) => {
-    setSkillMotivations(prev => ({ ...prev, [skill]: motivation }));
+    setPendingChanges(prev => ({
+      ...prev,
+      [skill]: {
+        ...prev[skill],
+        motivation: motivation
+      }
+    }));
+  };
+
+  // Handle saving individual skill changes
+  const handleSaveSkillChanges = (skill: string) => {
+    const pendingSkillChanges = pendingChanges[skill];
+    if (pendingSkillChanges) {
+      if (pendingSkillChanges.proficiency) {
+        setSkillProficiencies(prev => ({ ...prev, [skill]: pendingSkillChanges.proficiency! }));
+      }
+      if (pendingSkillChanges.motivation) {
+        setSkillMotivations(prev => ({ ...prev, [skill]: pendingSkillChanges.motivation! }));
+      }
+      
+      // Remove this skill from pending changes
+      setPendingChanges(prev => {
+        const newChanges = { ...prev };
+        delete newChanges[skill];
+        return newChanges;
+      });
+    }
   };
 
   // Handle bulk update of selected skills
@@ -662,8 +709,7 @@ export default function Team() {
     setSelectedSkillsForAction([]);
     setPendingChanges({});
     
-    // Start the ranking process
-    startEmployeeRanking(skillsToRank);
+    // Don't start the ranking process automatically - let user click individual skill buttons
   };
 
   // Start employee ranking process
@@ -861,7 +907,83 @@ export default function Team() {
     const result = await response.json();
     console.log('Vector search result for', skillData.skill, ':', result);
     
-    return result;
+    // Extract the results array from the response
+    const results = result.results || [];
+    console.log('Extracted results for', skillData.skill, ':', results);
+    
+    // Process the results to get user information
+    const processedEmployees = await Promise.all(
+      results.map(async (item: any) => {
+        try {
+          // Extract user ID from userRef (now a string)
+          const userId = item.userRef;
+          
+          if (!userId) {
+            console.warn('No user ID found in userRef:', item.userRef);
+            return null;
+          }
+          
+          // Fetch user data from Firestore
+          const userDoc = await getDoc(doc(db, 'users', userId));
+          
+          if (!userDoc.exists()) {
+            console.warn('User document not found for ID:', userId);
+            return null;
+          }
+          
+          const userData = userDoc.data();
+          
+          // Map motivation and proficiency from numbers to strings
+          const motivationMap: { [key: number]: string } = {
+            1: 'Very Low',
+            2: 'Low', 
+            3: 'Moderate',
+            4: 'High',
+            5: 'Very High'
+          };
+          
+          const proficiencyMap: { [key: number]: string } = {
+            1: 'Beginner',
+            2: 'Intermediate',
+            3: 'Advanced',
+            4: 'Expert',
+            5: 'Master'
+          };
+          
+          // Calculate confidence percentage (confidence is already 0-100)
+          const confidence = item.confidence || 0;
+          const confidencePercentage = confidence.toFixed(2);
+          
+          return {
+            id: userId,
+            name: userData.display_name || userData.displayName || userData.name || 'Unknown User',
+            title: userData.currentRole || userData.title || userData.jobTitle || 'Unknown Title',
+            location: userData.location || 'Unknown Location',
+            skills: userData.skills || [],
+            experience: userData.experience || 0,
+            motivation: motivationMap[item.motivation] || 'Moderate',
+            proficiency: proficiencyMap[item.motivation] || 'Intermediate', // Using motivation as proficiency for now
+            skillName: item.name,
+            skillDescription: item.description,
+            similarity: parseFloat(confidencePercentage),
+            similarityPercentage: `${confidencePercentage}%`
+          };
+        } catch (error) {
+          console.error('Error processing user data:', error);
+          return null;
+        }
+      })
+    );
+    
+    // Filter out null results and sort by confidence (highest to lowest)
+    const validEmployees = processedEmployees.filter(emp => emp !== null);
+    const sortedEmployees = validEmployees.sort((a, b) => b.similarity - a.similarity);
+    
+    // Take top 10 employees
+    const topEmployees = sortedEmployees.slice(0, 10);
+    
+    console.log('Processed employees for', skillData.skill, ':', topEmployees);
+    return topEmployees;
   };
 
 
@@ -1008,13 +1130,7 @@ export default function Team() {
       console.log('🔍 Debug: skillToRank type:', typeof skillToRank);
       console.log('🔍 Debug: skillToRank length:', skillToRank?.length);
       
-      // Set the skills for ranking
-      setRankEmployeesSkills(skillToRank);
-      
-      // Switch to rank-employees tab
-      setRightContainerTab('rank-employees');
-      
-      // Start the ranking process for this single skill
+      // Start the ranking process for this single skill immediately
       startEmployeeRanking(skillToRank);
     };
 
@@ -1814,8 +1930,8 @@ export default function Team() {
                               className="w-4 h-4 text-[#00DF71] bg-[#1e2327] border-[#454446] rounded focus:ring-[#00DF71] focus:ring-2"
                             />
                           </div>
-                          <div className="col-span-5 text-sm font-medium text-gray-300">Skill Name</div>
-                          <div className="col-span-3 text-sm font-medium text-gray-300 flex items-center gap-2">
+                          <div className="col-span-4 text-sm font-medium text-gray-300">Skill Name</div>
+                          <div className="col-span-2 text-sm font-medium text-gray-300 flex items-center gap-2">
                             Proficiency
                             <div className="relative dropdown-container">
                               <button
@@ -1852,7 +1968,7 @@ export default function Team() {
                               )}
                             </div>
                           </div>
-                          <div className="col-span-3 text-sm font-medium text-gray-300 flex items-center gap-2">
+                          <div className="col-span-2 text-sm font-medium text-gray-300 flex items-center gap-2">
                             Motivation
                             <div className="relative dropdown-container">
                               <button
@@ -1889,6 +2005,9 @@ export default function Team() {
                               )}
                             </div>
                           </div>
+                          <div className="col-span-2 text-sm font-medium text-gray-300 text-right">
+                            Action
+                          </div>
                         </div>
                         
                         {/* Table Body */}
@@ -1909,7 +2028,7 @@ export default function Team() {
                                   className="w-4 h-4 text-[#00DF71] bg-[#1e2327] border-[#454446] rounded focus:ring-[#00DF71] focus:ring-2"
                                 />
                               </div>
-                              <div className="col-span-5 text-white font-medium">
+                              <div className="col-span-4 text-white font-medium">
                                 {editingSkill === skill ? (
                                   <div className="flex items-center gap-2">
                                     <input
@@ -1959,7 +2078,7 @@ export default function Team() {
                                   </div>
                                 )}
                               </div>
-                              <div className="col-span-3">
+                              <div className="col-span-2">
                                 <select 
                                   value={pendingChanges[skill]?.proficiency || skillProficiencies[skill] || 'Beginner'}
                                   onChange={(e) => handleProficiencyChange(skill, e.target.value)}
@@ -1972,7 +2091,7 @@ export default function Team() {
                                       <option value="Master">Master</option>
                                 </select>
                               </div>
-                              <div className="col-span-3">
+                              <div className="col-span-2">
                                 <select 
                                   value={pendingChanges[skill]?.motivation || skillMotivations[skill] || 'Low'}
                                   onChange={(e) => handleMotivationChange(skill, e.target.value)}
@@ -1984,6 +2103,19 @@ export default function Team() {
                                       <option value="High">High</option>
                                       <option value="Very High">Very High</option>
                                     </select>
+                                  </div>
+                                  <div className="col-span-2 flex justify-end">
+                                    <button
+                                      onClick={() => handleSaveSkillChanges(skill)}
+                                      disabled={!pendingChanges[skill]}
+                                      className={`px-3 py-1 text-xs rounded-full transition-colors ${
+                                        pendingChanges[skill]
+                                          ? 'bg-[#00DF71] hover:bg-[#0AFB84] text-[#212327] font-medium cursor-pointer'
+                                          : 'bg-gray-500 text-gray-300 cursor-not-allowed'
+                                      }`}
+                                    >
+                                      Update
+                                    </button>
                                   </div>
                                 </div>
                               ))}
@@ -2028,24 +2160,25 @@ export default function Team() {
                                     </button>
                                     <button
                         onClick={() => {
-                          // Convert selected skill names to full skill objects with proficiency and motivation
-                          console.log('🔍 Debug: selectedSkillsForAction:', selectedSkillsForAction);
-                          console.log('🔍 Debug: pendingChanges:', pendingChanges);
-                          
-                          const skillsToRank = selectedSkillsForAction.map(skillName => {
-                            const pendingSkillData = pendingChanges[skillName];
-                            const skillObject = {
-                              skill: skillName,
-                              proficiency: pendingSkillData?.proficiency || 'Intermediate', // Use pending changes or default
-                              motivation: pendingSkillData?.motivation || 'Moderate' // Use pending changes or default
+                          // Use the same logic as handleRankEmployees function
+                          const skillsToRank = selectedSkillsForAction.map(skill => {
+                            // Get the most current value: pending changes first, then saved values, then defaults
+                            const currentProficiency = pendingChanges[skill]?.proficiency || skillProficiencies[skill] || 'Beginner';
+                            const currentMotivation = pendingChanges[skill]?.motivation || skillMotivations[skill] || 'Low';
+                            
+                            return {
+                              skill,
+                              proficiency: currentProficiency,
+                              motivation: currentMotivation
                             };
-                            console.log('🔍 Debug: Created skill object for', skillName, ':', skillObject);
-                            return skillObject;
                           });
                           
-                          console.log('🔍 Debug: Final skillsToRank array:', skillsToRank);
                           setRankEmployeesSkills(skillsToRank);
                           setRightContainerTab('rank-employees');
+                          setSelectedSkillsForAction([]);
+                          setPendingChanges({});
+                          
+                          // Don't start the ranking process automatically - let user click individual skill buttons
                         }}
                                       disabled={selectedSkillsForAction.length === 0 || Object.keys(pendingChanges).length > 0}
                                       className={`px-3 py-1 text-xs rounded-full transition-colors ${
