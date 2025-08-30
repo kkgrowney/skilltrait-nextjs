@@ -4,9 +4,12 @@ export async function GET(request: NextRequest) {
   // Add a test endpoint
   const { searchParams } = new URL(request.url);
   const test = searchParams.get("test");
-  
+
   if (test === "ping") {
-    return NextResponse.json({ message: "Proxy is working!", timestamp: new Date().toISOString() });
+    return NextResponse.json({
+      message: "Proxy is working!",
+      timestamp: new Date().toISOString(),
+    });
   }
   try {
     const { searchParams } = new URL(request.url);
@@ -48,16 +51,6 @@ export async function GET(request: NextRequest) {
     // Get the image as blob
     const imageBlob = await response.blob();
 
-    // Log response details for debugging
-    console.log("Response details:", {
-      status: response.status,
-      statusText: response.statusText,
-      contentType: response.headers.get("content-type"),
-      contentLength: response.headers.get("content-length"),
-      blobSize: imageBlob.size,
-      url: imageUrl
-    });
-
     // Verify the blob is not empty
     if (imageBlob.size === 0) {
       console.error("Empty image blob received from:", imageUrl);
@@ -66,8 +59,6 @@ export async function GET(request: NextRequest) {
         { status: 400 }
       );
     }
-
-    console.log("Successfully proxied image, size:", imageBlob.size, "from:", imageUrl);
 
     // Return the image with proper headers
     return new NextResponse(imageBlob, {
