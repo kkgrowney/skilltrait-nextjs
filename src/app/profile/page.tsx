@@ -916,18 +916,17 @@ export default function ProfilePage() {
                               style={{ borderRadius: "4px" }}
                             />
 
-                            {/* Use the saved preview image if available, otherwise reconstruct from template data */}
+                            {/* Use the saved base64 preview image - this should match exactly what was generated in ShareStep */}
                             {prop.previewImageBase64 ? (
                               <img
                                 src={prop.previewImageBase64}
                                 alt={prop.propsTitle || "Recent Prop"}
-                                className="relative z-20 w-full h-full"
+                                className="relative z-20 w-full"
                                 style={{
                                   borderRadius: "4px",
                                   width: "100%",
-                                  height: "100%",
-                                  objectFit: "cover",
-                                  // objectPosition: "center",
+                                  height: "auto",
+                                  objectFit: "contain",
                                 }}
                               />
                             ) : prop.achievement?.backgroundImage ||

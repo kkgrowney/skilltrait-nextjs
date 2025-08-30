@@ -751,7 +751,7 @@ export default function DigitalAwardsPage() {
 
                 {propsRecipients && propsRecipients.length > 0 && (
                   <div
-                    className="absolute z-30 bg-gradient-to-r from-[#ADAFBE] via-[#4F7295] to-[#ADAFBE] opacity-80 rounded-lg p-2"
+                    className="absolute mb-7 z-30 bg-gradient-to-r from-[#ADAFBE] via-[#4F7295] to-[#ADAFBE] opacity-80 rounded-lg p-2"
                     style={{
                       left: "20px",
                       top: "92px",
