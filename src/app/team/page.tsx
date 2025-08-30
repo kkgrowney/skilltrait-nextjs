@@ -966,7 +966,9 @@ export default function Team() {
             skillName: item.name,
             skillDescription: item.description,
             similarity: parseFloat(confidencePercentage),
-            similarityPercentage: `${confidencePercentage}%`
+            similarityPercentage: `${confidencePercentage}%`,
+            reason: item.reason || 'No reason provided',
+            photo: userData.photo_url || userData.photoURL || userData.photo || userData.profilePicture
           };
         } catch (error) {
           console.error('Error processing user data:', error);

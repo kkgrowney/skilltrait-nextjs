@@ -17,6 +17,7 @@ interface Employee {
   photo?: string;
   role?: string;
   skills?: string[];
+  reason?: string;
 }
 
 interface ProfileSnapshotProps {
@@ -157,6 +158,18 @@ export default function ProfileSnapshot({ employee }: ProfileSnapshotProps) {
           </div>
         </div>
 
+        {/* Rank Summary */}
+        {employee.reason && (
+          <div className="box-border content-stretch flex flex-col gap-2 items-start justify-start overflow-hidden px-3 py-[18px] relative shrink-0 w-full max-w-full">
+            <div className="font-['Poppins:Medium',_sans-serif] text-[#ffffff] text-[12px] text-left tracking-[0.24px]">
+              <p className="block leading-[1.2]">Rank Summary</p>
+            </div>
+            <div className="font-['Poppins:Regular',_sans-serif] text-[#aeaeae] text-[11px] text-left leading-[1.3] w-full break-words">
+              <p className="block">{employee.reason}</p>
+            </div>
+          </div>
+        )}
+
         {/* Divider line */}
         <div className="box-border content-stretch flex flex-row gap-3 h-2.5 items-center justify-center overflow-clip px-3 py-[18px] relative shrink-0 w-full">
           <div className="h-0 relative shrink-0 w-[341px]">
@@ -245,14 +258,14 @@ export default function ProfileSnapshot({ employee }: ProfileSnapshotProps) {
           </div>
 
           {/* Skills list */}
-          <div className="box-border content-stretch flex flex-row flex-wrap gap-2 items-start justify-start overflow-clip px-0 py-[18px] relative shrink-0 w-full">
+          <div className="box-border content-stretch flex flex-row flex-wrap gap-2 items-start justify-start overflow-hidden px-0 py-[18px] relative shrink-0 w-full max-w-full">
             {skillsLoading ? (
               <span className="text-[#aeaeae] text-xs">Loading skills...</span>
             ) : userSkills && userSkills.length > 0 ? (
               userSkills.map((skill, index) => (
                 <span 
                   key={skill.id || index}
-                  className="px-3 py-1 bg-[#00DF71] text-[#212327] text-xs font-medium rounded-full"
+                  className="px-3 py-1 bg-[#00DF71] text-[#212327] text-xs font-medium rounded-full whitespace-nowrap flex-shrink-0"
                 >
                   {skill.name || skill.skill || 'Unknown Skill'}
                 </span>
