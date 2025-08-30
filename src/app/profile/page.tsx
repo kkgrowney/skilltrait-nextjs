@@ -903,8 +903,12 @@ export default function ProfilePage() {
                         <Link
                           key={prop.id}
                           href={`/props/${prop.id}`}
-                          className="rounded overflow-hidden border border-[#454446] hover:border-[#00DF71] transition-colors flex-shrink-0 w-full md:w-[calc(33.333%-8px)]"
-                          style={{ borderRadius: "4px" }}
+                          className="rounded overflow-hidden border border-[#454446] hover:border-[#00DF71] transition-colors flex-shrink-0"
+                          style={{
+                            borderRadius: "4px",
+                            width: "200px",
+                            flexShrink: 0,
+                          }}
                         >
                           <div
                             className="relative"
@@ -921,12 +925,13 @@ export default function ProfilePage() {
                               <img
                                 src={prop.previewImageBase64}
                                 alt={prop.propsTitle || "Recent Prop"}
-                                className="relative z-20 w-full"
+                                className="relative z-20 w-full h-full"
                                 style={{
                                   borderRadius: "4px",
                                   width: "100%",
-                                  height: "auto",
-                                  objectFit: "contain",
+                                  height: "100%",
+                                  objectFit: "cover",
+                                  objectPosition: "center",
                                 }}
                               />
                             ) : prop.achievement?.backgroundImage ||
@@ -1160,8 +1165,12 @@ export default function ProfilePage() {
                         <Link
                           key={template.id}
                           href={`/templates/${template.id}`}
-                          className="rounded overflow-hidden border border-[#454446] hover:border-[#00DF71] transition-colors flex-shrink-0 w-full md:w-[calc(33.333%-8px)]"
-                          style={{ borderRadius: "4px" }}
+                          className="rounded overflow-hidden border border-[#454446] hover:border-[#00DF71] transition-colors flex-shrink-0"
+                          style={{
+                            borderRadius: "4px",
+                            width: "200px",
+                            flexShrink: 0,
+                          }}
                         >
                           <div
                             className="relative"

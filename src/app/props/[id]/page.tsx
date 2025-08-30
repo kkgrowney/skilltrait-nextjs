@@ -133,12 +133,13 @@ export default function PropDetailPage() {
                     <img
                       src={prop.previewImageBase64}
                       alt={prop.propsTitle || "Prop"}
-                      className="relative z-20 w-full"
+                      className="relative z-20 w-full h-full"
                       style={{
                         borderRadius: "4px",
                         width: "100%",
-                        height: "auto",
-                        objectFit: "contain",
+                        height: "100%",
+                        objectFit: "cover",
+                        objectPosition: "center",
                       }}
                     />
                   ) : prop.achievement?.backgroundImage ||

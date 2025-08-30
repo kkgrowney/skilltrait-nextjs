@@ -495,16 +495,56 @@ This digital award recognizes excellence and dedication in professional developm
       backgroundImg.crossOrigin = "anonymous";
 
       backgroundImg.onload = () => {
-        // Draw background
-        ctx.drawImage(backgroundImg, 0, 0, canvas.width, canvas.height);
+        // Draw background with object-fit: cover behavior to prevent distortion
+        const canvasAspectRatio = canvas.width / canvas.height;
+        const imageAspectRatio = backgroundImg.width / backgroundImg.height;
+
+        let drawWidth, drawHeight, drawX, drawY;
+
+        if (imageAspectRatio > canvasAspectRatio) {
+          // Image is wider than canvas - fit to height, crop width
+          drawHeight = canvas.height;
+          drawWidth =
+            backgroundImg.width * (canvas.height / backgroundImg.height);
+          drawX = (canvas.width - drawWidth) / 2;
+          drawY = 0;
+        } else {
+          // Image is taller than canvas - fit to width, crop height
+          drawWidth = canvas.width;
+          drawHeight =
+            backgroundImg.height * (canvas.width / backgroundImg.width);
+          drawX = 0;
+          drawY = (canvas.height - drawHeight) / 2;
+        }
+
+        ctx.drawImage(backgroundImg, drawX, drawY, drawWidth, drawHeight);
 
         // Load props image (main illustration)
         const propsImg = new Image();
         propsImg.crossOrigin = "anonymous";
 
         propsImg.onload = () => {
-          // Draw props image on top of background, positioned at bottom
-          ctx.drawImage(propsImg, 0, 0, canvas.width, canvas.height);
+          // Draw props image on top of background with object-fit: cover behavior
+          const canvasAspectRatio = canvas.width / canvas.height;
+          const imageAspectRatio = propsImg.width / propsImg.height;
+
+          let drawWidth, drawHeight, drawX, drawY;
+
+          if (imageAspectRatio > canvasAspectRatio) {
+            // Image is wider than canvas - fit to height, crop width
+            drawHeight = canvas.height;
+            drawWidth = propsImg.width * (canvas.height / propsImg.height);
+            drawX = (canvas.width - drawWidth) / 2;
+            drawY = 0;
+          } else {
+            // Image is taller than canvas - fit to width, crop height
+            drawWidth = canvas.width;
+            drawHeight = propsImg.height * (canvas.width / propsImg.width);
+            drawX = 0;
+            drawY = (canvas.height - drawHeight) / 2;
+          }
+
+          ctx.drawImage(propsImg, drawX, drawY, drawWidth, drawHeight);
 
           // Load logo image
           const logoImg = new Image();
@@ -1147,8 +1187,13 @@ This digital award recognizes excellence and dedication in professional developm
                     <img
                       src={previewImageUrl}
                       alt="Preview Prop"
-                      className="w-full h-auto rounded border border-gray-300"
-                      style={{ maxWidth: "100%" }}
+                      className="rounded border border-gray-300"
+                      style={{
+                        width: "247px",
+                        height: "197px",
+                        objectFit: "cover",
+                        objectPosition: "center",
+                      }}
                       onLoad={() =>
                         console.log("Preview image loaded successfully")
                       }
@@ -1180,8 +1225,13 @@ This digital award recognizes excellence and dedication in professional developm
                       <img
                         src={getProxiedImageUrl(generatedImageUrl)}
                         alt="Generated Prop"
-                        className="w-64 h-auto rounded border border-gray-300"
-                        style={{ maxWidth: "256px" }}
+                        className="rounded border border-gray-300"
+                        style={{
+                          width: "247px",
+                          height: "197px",
+                          objectFit: "cover",
+                          objectPosition: "center",
+                        }}
                         onLoad={() =>
                           console.log(
                             "Image loaded successfully:",
@@ -1203,8 +1253,13 @@ This digital award recognizes excellence and dedication in professional developm
                       <img
                         src={getProxiedImageUrl(generatedImageUrl)}
                         alt="Generated Prop"
-                        className="w-full h-auto rounded border border-gray-300"
-                        style={{ maxWidth: "100%" }}
+                        className="rounded border border-gray-300"
+                        style={{
+                          width: "247px",
+                          height: "197px",
+                          objectFit: "cover",
+                          objectPosition: "center",
+                        }}
                         onLoad={() =>
                           console.log(
                             "Image loaded successfully:",
