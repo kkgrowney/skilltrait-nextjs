@@ -142,12 +142,13 @@ export default function PropsListPage() {
                         <img
                           src={prop.previewImageBase64}
                           alt={prop.propsTitle || "Prop"}
-                          className="object-contain relative z-20 w-full h-full"
+                          className="relative z-20 w-full h-full"
                           style={{
                             borderRadius: "4px",
                             width: "100%",
                             height: "100%",
-                            // objectPosition: "bottom",
+                            objectFit: "cover",
+                            // objectPosition: "center",
                           }}
                         />
                       ) : prop.achievement?.backgroundImage ||
@@ -178,19 +179,20 @@ export default function PropsListPage() {
                               prop.achievement?.props || ""
                             )}
                             alt={prop.propsTitle || ""}
-                            className="object-contain relative z-20 w-full h-full"
+                            className="relative z-20 w-full h-full"
                             style={{
                               borderRadius: "4px",
                               width: "100%",
                               height: "100%",
-                              // objectPosition: "bottom",
+                              objectFit: "cover",
+                              // objectPosition: "center",
                             }}
                           />
                           {/* White header with logo/company (scaled proportionally) */}
                           <div
                             className="absolute top-0 left-0 right-0 bg-white border-b-2 border-gray-200 z-30"
                             style={{
-                              height: "33px",
+                              height: "35px",
                               borderRadius: "4px 4px 0 0",
                             }}
                           >
@@ -210,7 +212,7 @@ export default function PropsListPage() {
                                     prop.achievement.logoImage
                                   )}
                                   alt="Logo"
-                                  className="object-contain relative z-20"
+                                  className="object-cover relative z-20"
                                   style={{
                                     borderRadius: "4px",
                                     height: "17px",
@@ -233,18 +235,28 @@ export default function PropsListPage() {
                             prop.achievement?.fromDate) && (
                             <div className="absolute top-10 left-2 z-30">
                               <div className="bg-gradient-to-r from-[#ADAFBE] via-[#4F7295] to-[#ADAFBE] bg-opacity-80 text-white text-xs px-3 py-2 rounded w-[75%]">
-                                {prop.achievement?.fromName && (
-                                  <div className="font-medium">
-                                    From: {prop.achievement.fromName}
-                                  </div>
-                                )}
-                                {prop.achievement?.fromDate && (
-                                  <div className="mt-1">
-                                    {(() => {
-                                      const [year, month, day] =
-                                        prop.achievement.fromDate.split("-");
-                                      return `${month}/${day}/${year.slice(2)}`;
-                                    })()}
+                                {/* From name and date on same line with flex justify-between */}
+                                {(prop.achievement?.fromName ||
+                                  prop.achievement?.fromDate) && (
+                                  <div className="flex justify-between items-center mb-1">
+                                    {prop.achievement?.fromName && (
+                                      <div className="font-medium">
+                                        From: {prop.achievement.fromName}
+                                      </div>
+                                    )}
+                                    {prop.achievement?.fromDate && (
+                                      <div>
+                                        {(() => {
+                                          const [year, month, day] =
+                                            prop.achievement.fromDate.split(
+                                              "-"
+                                            );
+                                          return `${month}/${day}/${year.slice(
+                                            2
+                                          )}`;
+                                        })()}
+                                      </div>
+                                    )}
                                   </div>
                                 )}
                                 {prop.achievement?.fromMessage && (

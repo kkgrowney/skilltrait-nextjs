@@ -502,7 +502,6 @@ This digital award recognizes excellence and dedication in professional developm
     });
   };
 
-  // Function to generate preview image locally
   const generatePreviewImage = async (uploadedAssets: any) => {
     try {
       console.log("Generating preview image with assets:", uploadedAssets);
@@ -574,28 +573,28 @@ This digital award recognizes excellence and dedication in professional developm
             // Add message box in top-left (gradient background like template) - scaled down
             const messageBoxY = 74; // Reduced from 92 to fit smaller canvas
 
+            // Calculate box dimensions first to determine text wrapping width
+            const padding = 16; // Reduced padding from 20 to 16
+            const lineHeight = 16; // Reduced line height from 20 to 16
+            const maxBoxWidth = Math.min(canvas.width * 0.6, 350); // Increased from 0.5 to 0.6 for better fit
+            const availableTextWidth = maxBoxWidth - padding * 2; // Width available for text
+
             // Calculate text content and measure dimensions
             const textLines: string[] = [];
             let maxTextWidth = 0;
 
-            // Add From name line
-            if (fromName) {
-              const fromText = `From: ${fromName}`;
-              textLines.push(fromText);
-              maxTextWidth = Math.max(
-                maxTextWidth,
-                ctx.measureText(fromText).width
-              );
-            }
+            // Set font for measuring
+            ctx.font = "12px Poppins";
 
-            // Add date line
-            if (fromDate) {
-              const [year, month, day] = fromDate.split("-");
-              const formattedDate = `${month}/${day}/${year.slice(2)}`;
-              textLines.push(formattedDate);
+            // Add From name (without date on same line)
+            let hasFromLine = false;
+            if (fromName) {
+              const headerLine = `From: ${fromName}`;
+              textLines.push(headerLine);
+              hasFromLine = true;
               maxTextWidth = Math.max(
                 maxTextWidth,
-                ctx.measureText(formattedDate).width
+                ctx.measureText(headerLine).width
               );
             }
 
@@ -603,7 +602,7 @@ This digital award recognizes excellence and dedication in professional developm
             if (fromMessage) {
               const words = fromMessage.split(" ");
               let currentLine = "";
-              const maxWidth = 320; // Reduced from 400 to fit smaller canvas
+              const maxWidth = availableTextWidth; // Use the actual available width
 
               for (let i = 0; i < words.length; i++) {
                 const testLine =
@@ -641,15 +640,45 @@ This digital award recognizes excellence and dedication in professional developm
               }
             }
 
-            // Calculate box dimensions based on text content
-            const padding = 16; // Reduced padding from 20 to 16
-            const lineHeight = 16; // Reduced line height from 20 to 16
-            const boxWidth = Math.min(maxTextWidth + padding * 2, 400); // Max width reduced from 500 to 400
-            const boxHeight = textLines.length * lineHeight + padding;
+            // Calculate final box dimensions based on actual text content (no extra whitespace)
+            const boxWidth = maxTextWidth + padding * 2; // Size exactly to content
+            const spacingBetweenSections = hasFromLine && fromMessage ? 8 : 0; // Extra spacing between From and message
+            const boxHeight =
+              textLines.length * lineHeight +
+              padding * 2 +
+              spacingBetweenSections; // Added padding to bottom + spacing
 
-            // Create gradient background - auto-sized based on text
+            // Helper function to draw rounded rectangle with proper border radius
+            const drawRoundedRect = (
+              x: number,
+              y: number,
+              width: number,
+              height: number,
+              radius: number
+            ) => {
+              ctx.beginPath();
+              ctx.moveTo(x + radius, y);
+              ctx.lineTo(x + width - radius, y);
+              ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
+              ctx.lineTo(x + width, y + height - radius);
+              ctx.quadraticCurveTo(
+                x + width,
+                y + height,
+                x + width - radius,
+                y + height
+              );
+              ctx.lineTo(x + radius, y + height);
+              ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
+              ctx.lineTo(x, y + radius);
+              ctx.quadraticCurveTo(x, y, x + radius, y);
+              ctx.closePath();
+            };
+
+            const borderRadius = 12; // Tailwind rounded-lg equivalent (12px for better visibility)
+
+            // Create gradient background with rounded corners
             const gradient = ctx.createLinearGradient(
-              16, // Reduced from 20 to 16
+              16,
               messageBoxY,
               16 + boxWidth,
               messageBoxY
@@ -660,22 +689,45 @@ This digital award recognizes excellence and dedication in professional developm
 
             ctx.fillStyle = gradient;
             ctx.globalAlpha = 0.8;
-            ctx.fillRect(16, messageBoxY, boxWidth, boxHeight); // Reduced x position from 20 to 16
+
+            // Draw rounded rectangle with 12px border radius (Tailwind rounded-lg)
+            drawRoundedRect(16, messageBoxY, boxWidth, boxHeight, borderRadius);
+            ctx.fill();
             ctx.globalAlpha = 1.0;
 
             // Add text inside message box
             ctx.fillStyle = "white";
-            ctx.font = "12px Poppins"; // Reduced font size from 14px to 12px
+            ctx.font = "12px Poppins";
             ctx.textAlign = "left";
 
-            // Draw all text lines
+            // Draw all text lines with proper spacing
+            let currentY = messageBoxY + padding + 4; // Starting Y position
             textLines.forEach((line, index) => {
+              // Add extra spacing after the "From:" line
+              if (index === 1 && hasFromLine) {
+                currentY += spacingBetweenSections;
+              }
+
               ctx.fillText(
                 line,
-                24, // Reduced from 30 to 24
-                messageBoxY + padding + index * lineHeight
+                24, // Left padding
+                currentY
               );
+              currentY += lineHeight;
             });
+
+            // Draw date at the rightmost position inside the gray box
+            if (fromDate) {
+              const [year, month, day] = fromDate.split("-");
+              const formattedDate = `${month}/${day}/${year.slice(2)}`;
+              ctx.textAlign = "right";
+              ctx.fillText(
+                formattedDate,
+                16 + boxWidth - padding, // Right edge minus padding
+                messageBoxY + padding + 4 // Same Y as first line with offset
+              );
+              ctx.textAlign = "left"; // Reset to left alignment
+            }
 
             // Convert canvas to data URL
             const previewDataUrl = canvas.toDataURL("image/png");
@@ -750,7 +802,6 @@ This digital award recognizes excellence and dedication in professional developm
       setPreviewImageUrl(null);
     }
   };
-
   const handleDownload = () => {
     const element = document.createElement("a");
     const file = new Blob([generatedAward], { type: "text/plain" });

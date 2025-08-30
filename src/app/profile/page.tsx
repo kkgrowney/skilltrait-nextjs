@@ -921,12 +921,13 @@ export default function ProfilePage() {
                               <img
                                 src={prop.previewImageBase64}
                                 alt={prop.propsTitle || "Recent Prop"}
-                                className="object-contain relative z-20 w-full h-full"
+                                className="relative z-20 w-full h-full"
                                 style={{
                                   borderRadius: "4px",
                                   width: "100%",
                                   height: "100%",
-                                  objectPosition: "bottom",
+                                  objectFit: "cover",
+                                  // objectPosition: "center",
                                 }}
                               />
                             ) : prop.achievement?.backgroundImage ||
@@ -947,7 +948,7 @@ export default function ProfilePage() {
                                     style={{
                                       borderRadius: "4px",
                                       objectFit: "cover",
-                                      objectPosition: "center",
+                                      // objectPosition: "center",
                                     }}
                                   />
                                 </div>
@@ -957,19 +958,20 @@ export default function ProfilePage() {
                                     prop.achievement?.props || ""
                                   )}
                                   alt={prop.propsTitle || ""}
-                                  className="object-contain relative z-20 w-full h-full"
+                                  className="relative z-20 w-full h-full"
                                   style={{
                                     borderRadius: "4px",
                                     width: "100%",
                                     height: "100%",
-                                    objectPosition: "bottom",
+                                    objectFit: "cover",
+                                    // objectPosition: "center",
                                   }}
                                 />
                                 {/* White header with logo/company (scaled proportionally) */}
                                 <div
                                   className="absolute top-0 left-0 right-0 bg-white border-b-2 border-gray-200 z-30"
                                   style={{
-                                    height: "33px",
+                                    height: "35px",
                                     borderRadius: "4px 4px 0 0",
                                   }}
                                 >
@@ -994,7 +996,7 @@ export default function ProfilePage() {
                                           borderRadius: "4px",
                                           height: "17px",
                                           width: "auto",
-                                          objectPosition: "left",
+                                          // objectPosition: "left",
                                         }}
                                       />
                                     ) : null}
@@ -1012,22 +1014,28 @@ export default function ProfilePage() {
                                   prop.achievement?.fromDate) && (
                                   <div className="absolute top-10 left-2 z-30">
                                     <div className="bg-gradient-to-r from-[#ADAFBE] via-[#4F7295] to-[#ADAFBE] bg-opacity-80 text-white text-[0.5rem] px-3 py-2 rounded w-[80%]">
-                                      {prop.achievement?.fromName && (
-                                        <div className="font-medium">
-                                          From: {prop.achievement.fromName}
-                                        </div>
-                                      )}
-                                      {prop.achievement?.fromDate && (
-                                        <div className="mt-1">
-                                          {(() => {
-                                            const [year, month, day] =
-                                              prop.achievement.fromDate.split(
-                                                "-"
-                                              );
-                                            return `${month}/${day}/${year.slice(
-                                              2
-                                            )}`;
-                                          })()}
+                                      {/* From name and date on same line with flex justify-between */}
+                                      {(prop.achievement?.fromName ||
+                                        prop.achievement?.fromDate) && (
+                                        <div className="flex justify-between items-center mb-1">
+                                          {prop.achievement?.fromName && (
+                                            <div className="font-medium">
+                                              From: {prop.achievement.fromName}
+                                            </div>
+                                          )}
+                                          {prop.achievement?.fromDate && (
+                                            <div>
+                                              {(() => {
+                                                const [year, month, day] =
+                                                  prop.achievement.fromDate.split(
+                                                    "-"
+                                                  );
+                                                return `${month}/${day}/${year.slice(
+                                                  2
+                                                )}`;
+                                              })()}
+                                            </div>
+                                          )}
                                         </div>
                                       )}
                                       {prop.achievement?.fromMessage && (
@@ -1149,10 +1157,10 @@ export default function ProfilePage() {
                             No templates yet
                           </div>
                         )}
-                      {recentTemplates.map((t) => (
+                      {recentTemplates.map((template) => (
                         <Link
-                          key={t.id}
-                          href={`/templates/${t.id}`}
+                          key={template.id}
+                          href={`/templates/${template.id}`}
                           className="rounded overflow-hidden border border-[#454446] hover:border-[#00DF71] transition-colors flex-shrink-0 w-full md:w-[calc(33.333%-8px)]"
                           style={{ borderRadius: "4px" }}
                         >
@@ -1160,16 +1168,121 @@ export default function ProfilePage() {
                             className="relative"
                             style={{ aspectRatio: "5 / 4" }}
                           >
-                            <img
-                              src={t.backgroundUrl || "/liquid_death_props.png"}
-                              alt={t.company || "Recent Template"}
-                              className="object-cover w-full h-full"
-                              style={{
-                                borderRadius: "4px",
-                                width: "100%",
-                                height: "100%",
-                              }}
+                            {/* White background fill */}
+                            <div
+                              className="absolute inset-0 z-5 bg-white"
+                              style={{ borderRadius: "4px" }}
                             />
+
+                            {/* Use the saved preview image if available, otherwise reconstruct from template data */}
+                            {template.previewImageBase64 ? (
+                              <img
+                                src={template.previewImageBase64}
+                                alt={
+                                  template.achievement?.company ||
+                                  "Recent Template"
+                                }
+                                className="relative z-20 w-full h-full"
+                                style={{
+                                  borderRadius: "4px",
+                                  width: "100%",
+                                  height: "100%",
+                                  objectFit: "cover",
+                                  // objectPosition: "center",
+                                }}
+                              />
+                            ) : template.achievement?.backgroundImage ||
+                              template.achievement?.props ? (
+                              /* Fallback: Reconstruct from template data like in preview */
+                              <>
+                                {/* Background layer */}
+                                <div
+                                  className="absolute inset-0 z-10 overflow-hidden"
+                                  style={{ borderRadius: "4px" }}
+                                >
+                                  <img
+                                    src={getProxiedUrlForPreview(
+                                      template.achievement?.backgroundImage ||
+                                        ""
+                                    )}
+                                    alt={template.achievement?.company || ""}
+                                    className="w-full h-full object-cover"
+                                    style={{
+                                      borderRadius: "4px",
+                                      objectFit: "cover",
+                                      // objectPosition: "center",
+                                    }}
+                                  />
+                                </div>
+                                {/* Foreground props image */}
+                                <img
+                                  src={getProxiedUrlForPreview(
+                                    template.achievement?.props || ""
+                                  )}
+                                  alt={template.achievement?.company || ""}
+                                  className="relative z-20 w-full h-full"
+                                  style={{
+                                    borderRadius: "4px",
+                                    width: "100%",
+                                    height: "100%",
+                                    objectFit: "cover",
+                                    // objectPosition: "center",
+                                  }}
+                                />
+                                {/* White header with logo/company (scaled proportionally) */}
+                                <div
+                                  className="absolute top-0 left-0 right-0 bg-white border-b-2 border-gray-200 z-30"
+                                  style={{
+                                    height: "35px",
+                                    borderRadius: "4px 4px 0 0",
+                                  }}
+                                >
+                                  <div
+                                    className="absolute flex items-center gap-1 px-2 justify-between"
+                                    style={{
+                                      height: "60%",
+                                      width: "100%",
+                                      left: 0,
+                                      top: "50%",
+                                      transform: "translateY(-50%)",
+                                    }}
+                                  >
+                                    {template.achievement?.logoImage ? (
+                                      <img
+                                        src={getProxiedUrlForPreview(
+                                          template.achievement.logoImage
+                                        )}
+                                        alt="Logo"
+                                        className="object-contain relative z-20"
+                                        style={{
+                                          borderRadius: "4px",
+                                          height: "17px",
+                                          width: "auto",
+                                          // objectPosition: "left",
+                                        }}
+                                      />
+                                    ) : null}
+                                    <div
+                                      className="text-black font-medium truncate text-xs"
+                                      style={{ maxWidth: "70%" }}
+                                    >
+                                      {template.achievement?.company || ""}
+                                    </div>
+                                  </div>
+                                </div>
+                              </>
+                            ) : (
+                              /* Fallback: Show placeholder when no images available */
+                              <div className="w-full h-full flex items-center justify-center bg-gray-200">
+                                <div className="text-gray-500 text-sm text-center">
+                                  <div>No Preview Available</div>
+                                  <div className="text-xs mt-1">
+                                    {template.achievement?.company ||
+                                      "Recent Template"}
+                                  </div>
+                                </div>
+                              </div>
+                            )}
                           </div>
                         </Link>
                       ))}
