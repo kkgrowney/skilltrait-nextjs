@@ -85,9 +85,22 @@ export default function ShareStep({
       // Step 3: Save the preview image to database
       setProcessStep("Saving preview image to database...");
 
+      // Wait a moment to ensure the preview image is generated
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+
+      // Get the base64 image from localStorage
+      const savedPreviewImage = localStorage.getItem(
+        "temp-preview-image-base64"
+      );
+      console.log(
+        "Retrieved preview image from localStorage:",
+        savedPreviewImage
+      );
+
       // Log the uploaded assets for debugging
       console.log("Uploaded assets for preview:", uploadedAssets);
       console.log("Selected template:", selectedTemplate);
+      console.log("Preview image URL:", previewImageUrl);
       console.log("Template achievement structure:", {
         props: selectedTemplate?.achievement?.props,
         logoImage: selectedTemplate?.achievement?.logoImage,
@@ -129,7 +142,7 @@ export default function ShareStep({
           },
           logoUrl: uploadedAssets.logoUrl || null,
           backgroundUrl: uploadedAssets.backgroundUrl || null,
-          previewImageBase64: previewImageUrl, // Save the base64 preview image
+          previewImageBase64: savedPreviewImage || "", // Use the base64 from localStorage
           createdAt: new Date(),
           updatedAt: new Date(),
         };
@@ -175,6 +188,7 @@ export default function ShareStep({
           localStorage.removeItem("digital-awards-from-message");
           localStorage.removeItem("digital-awards-filters");
           localStorage.removeItem("digital-awards-search-query");
+          localStorage.removeItem("temp-preview-image-base64"); // Clean up temporary preview image
           console.log("Cleared all digital awards localStorage persistence");
         }
 
@@ -283,7 +297,7 @@ This digital award recognizes excellence and dedication in professional developm
     }
   };
 
-  // Step 2: Create prop in user subcollection
+  // Step 2: Create template in user subcollection (no prop saving)
   const createPropInUserSubcollection = async (
     userId: string,
     uploadedAssets: any
@@ -347,49 +361,8 @@ This digital award recognizes excellence and dedication in professional developm
         }
       }
 
-      const propData = {
-        fromMessage: fromMessage || "",
-        propsTitle: propsTitle || "",
-        propsRecipients: propsRecipients || [],
-        fromDate: fromDate || "",
-        fromName: fromName || "",
-        templateId: templateId, // Keep original template ID
-        userTemplateId: userTemplateId, // Add reference to user's saved template
-        isPrivateTemplate: isPrivateTemplate,
-        status: "pending_image_generation",
-        // Include the achievement data that the cloud function needs
-        achievement: {
-          // props should contain the props image URL (the main template image)
-          props: selectedTemplate?.achievement?.props || "",
-          logoImage:
-            uploadedAssets.logoUrl ||
-            selectedTemplate?.achievement?.logoImage ||
-            "",
-          // backgroundImage should contain the background image URL
-          backgroundImage:
-            uploadedAssets.backgroundUrl ||
-            selectedTemplate?.achievement?.backgroundImage ||
-            "",
-          // Add the text content as separate fields
-          propsTitle: propsTitle || "",
-          fromName: fromName || "",
-          fromDate: fromDate || "",
-          fromMessage: fromMessage || "",
-          tags: selectedTemplate?.achievement?.tags || [],
-          company:
-            companyNameText || selectedTemplate?.achievement?.company || "",
-        },
-        // Store the actual asset URLs for this specific prop
-        logoUrl: uploadedAssets.logoUrl || null,
-        backgroundUrl: uploadedAssets.backgroundUrl || null,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      };
-
-      const propId = await saveUserProp(userId, propData);
-      console.log("Created prop with ID:", propId);
-      console.log("Prop data:", propData);
-      return propId;
+      // Return the user template ID (no prop saving here - that's done in the main function)
+      return userTemplateId;
     } catch (error) {
       console.error("Error creating prop in user subcollection:", error);
       throw error;
@@ -513,25 +486,65 @@ This digital award recognizes excellence and dedication in professional developm
         throw new Error("Could not get canvas context");
       }
 
-      // Set canvas size to match template preview (5:4 aspect ratio) - reduced size to fit container
-      canvas.width = 480;
-      canvas.height = 384;
+      // Set canvas size to match prop detail page (full image without aspect ratio constraint)
+      canvas.width = 600;
+      canvas.height = 480;
 
       // Load background image
       const backgroundImg = new Image();
       backgroundImg.crossOrigin = "anonymous";
 
       backgroundImg.onload = () => {
-        // Draw background
-        ctx.drawImage(backgroundImg, 0, 0, canvas.width, canvas.height);
+        // Draw background with object-fit: cover behavior to prevent distortion
+        const canvasAspectRatio = canvas.width / canvas.height;
+        const imageAspectRatio = backgroundImg.width / backgroundImg.height;
+
+        let drawWidth, drawHeight, drawX, drawY;
+
+        if (imageAspectRatio > canvasAspectRatio) {
+          // Image is wider than canvas - fit to height, crop width
+          drawHeight = canvas.height;
+          drawWidth =
+            backgroundImg.width * (canvas.height / backgroundImg.height);
+          drawX = (canvas.width - drawWidth) / 2;
+          drawY = 0;
+        } else {
+          // Image is taller than canvas - fit to width, crop height
+          drawWidth = canvas.width;
+          drawHeight =
+            backgroundImg.height * (canvas.width / backgroundImg.width);
+          drawX = 0;
+          drawY = (canvas.height - drawHeight) / 2;
+        }
+
+        ctx.drawImage(backgroundImg, drawX, drawY, drawWidth, drawHeight);
 
         // Load props image (main illustration)
         const propsImg = new Image();
         propsImg.crossOrigin = "anonymous";
 
         propsImg.onload = () => {
-          // Draw props image on top of background, positioned at bottom
-          ctx.drawImage(propsImg, 0, 0, canvas.width, canvas.height);
+          // Draw props image on top of background with object-fit: cover behavior
+          const canvasAspectRatio = canvas.width / canvas.height;
+          const imageAspectRatio = propsImg.width / propsImg.height;
+
+          let drawWidth, drawHeight, drawX, drawY;
+
+          if (imageAspectRatio > canvasAspectRatio) {
+            // Image is wider than canvas - fit to height, crop width
+            drawHeight = canvas.height;
+            drawWidth = propsImg.width * (canvas.height / propsImg.height);
+            drawX = (canvas.width - drawWidth) / 2;
+            drawY = 0;
+          } else {
+            // Image is taller than canvas - fit to width, crop height
+            drawWidth = canvas.width;
+            drawHeight = propsImg.height * (canvas.width / propsImg.width);
+            drawX = 0;
+            drawY = (canvas.height - drawHeight) / 2;
+          }
+
+          ctx.drawImage(propsImg, drawX, drawY, drawWidth, drawHeight);
 
           // Load logo image
           const logoImg = new Image();
@@ -552,32 +565,138 @@ This digital award recognizes excellence and dedication in professional developm
             ctx.textAlign = "right";
             ctx.fillText(propsTitle || "Title", canvas.width - 16, 32);
 
-            // Draw white header background with border
+            // Draw white header background with border - matching prop detail page exactly
             ctx.fillStyle = "white";
-            ctx.fillRect(0, 0, canvas.width, 48); // Increased height from 40 to 48
-            ctx.strokeStyle = "#E5E7EB"; // Light gray border
+            ctx.fillRect(0, 0, canvas.width, 60); // 60px height like prop detail page
+            ctx.strokeStyle = "#E4E4E4"; // Same border color as prop detail page
             ctx.lineWidth = 1;
-            ctx.strokeRect(0, 47, canvas.width, 1); // Bottom border at 47
+            ctx.strokeRect(0, 59, canvas.width, 1); // Bottom border at 59
 
-            // Redraw logo on top of white background
+            // Redraw logo on top of white background - matching prop detail page
             if (logoUrl) {
-              ctx.drawImage(logoImg, 16, 12, logoWidth, logoHeight); // Adjusted Y position from 8 to 12
+              const logoHeight = 40; // 40px height like prop detail page
+              const logoWidth = Math.min(
+                250, // 250px max width like prop detail page
+                logoImg.width * (logoHeight / logoImg.height)
+              );
+              ctx.drawImage(logoImg, 16, 10, logoWidth, logoHeight); // Positioned like prop detail page
             }
 
-            // Redraw title text on top of white background
+            // Redraw title text on top of white background - matching prop detail page
             ctx.fillStyle = "black";
-            ctx.font = "16px Poppins"; // Removed bold styling
+            ctx.font = "20px Poppins"; // Reduced from 25px to 20px for smaller canvas
             ctx.textAlign = "right";
-            ctx.fillText(propsTitle || "Title", canvas.width - 16, 36); // Adjusted Y position from 32 to 36
+            ctx.fillText(propsTitle || "Title", canvas.width - 16, 42); // Positioned like prop detail page
 
-            // Add message box in top-left (gradient background like template) - scaled down
-            const messageBoxY = 74; // Reduced from 92 to fit smaller canvas
+            // Helper function to draw rounded rectangle with proper border radius
+            const drawRoundedRect = (
+              x: number,
+              y: number,
+              width: number,
+              height: number,
+              radius: number
+            ) => {
+              ctx.beginPath();
+              ctx.moveTo(x + radius, y);
+              ctx.lineTo(x + width - radius, y);
+              ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
+              ctx.lineTo(x + width, y + height - radius);
+              ctx.quadraticCurveTo(
+                x + width,
+                y + height,
+                x + width - radius,
+                y + height
+              );
+              ctx.lineTo(x + radius, y + height);
+              ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
+              ctx.lineTo(x, y + radius);
+              ctx.quadraticCurveTo(x, y, x + radius, y);
+              ctx.closePath();
+            };
 
-            // Calculate box dimensions first to determine text wrapping width
-            const padding = 16; // Reduced padding from 20 to 16
-            const lineHeight = 16; // Reduced line height from 20 to 16
-            const maxBoxWidth = Math.min(canvas.width * 0.6, 350); // Increased from 0.5 to 0.6 for better fit
+            const borderRadius = 12; // Tailwind rounded-lg equivalent (12px for better visibility)
+
+            // Add props recipients box first (if any) - matching prop detail page exactly
+            let currentY = 70; // Reduced from 80 to 70 to reduce top space
+            const padding = 12; // Reduced from 16 to 12 for smaller canvas
+            const lineHeight = 14; // Reduced from 16 to 14 for smaller canvas
+            const maxBoxWidth = 296; // Max width like prop detail page
             const availableTextWidth = maxBoxWidth - padding * 2; // Width available for text
+
+            // Draw props recipients box if there are any
+            if (propsRecipients && propsRecipients.length > 0) {
+              // Format recipients: "Props recipients:" on first line, recipients on second line
+              const recipientsLines = [
+                "Props recipients:",
+                propsRecipients.join(", "),
+              ];
+
+              // Calculate text width for recipients box - auto width with max constraint
+              let maxRecipientsTextWidth = 0;
+              ctx.font = "12px Poppins";
+              recipientsLines.forEach((line: string) => {
+                const textWidth = ctx.measureText(line).width;
+                maxRecipientsTextWidth = Math.max(
+                  maxRecipientsTextWidth,
+                  textWidth
+                );
+              });
+
+              // Calculate recipients box width - auto width with max of 296px
+              const recipientsBoxWidth = Math.min(
+                maxRecipientsTextWidth + padding * 2,
+                maxBoxWidth
+              );
+
+              // Calculate box height for recipients - auto height based on content
+              const recipientsBoxHeight = Math.max(
+                recipientsLines.length * lineHeight + padding * 2,
+                lineHeight + padding * 2 // Minimum height for single line
+              );
+
+              // Create linear gradient background for recipients box - matching prop-inside-box class exactly
+              const recipientsGradient = ctx.createLinearGradient(
+                16,
+                currentY,
+                16 + recipientsBoxWidth,
+                currentY
+              );
+              recipientsGradient.addColorStop(0, "rgba(173, 175, 190, 0.8)");
+              recipientsGradient.addColorStop(0.5, "rgba(79, 114, 149, 0.8)"); // Increased opacity to match CSS
+              recipientsGradient.addColorStop(1, "rgba(173, 175, 190, 0.8)");
+
+              ctx.fillStyle = recipientsGradient;
+              ctx.globalAlpha = 1.0; // Full opacity to match CSS
+
+              // Draw rounded rectangle for recipients box
+              drawRoundedRect(
+                16,
+                currentY,
+                recipientsBoxWidth,
+                recipientsBoxHeight,
+                borderRadius
+              );
+              ctx.fill();
+              ctx.globalAlpha = 1.0;
+
+              // Add recipients text
+              ctx.fillStyle = "white";
+              ctx.font = "12px Poppins"; // Reduced from 16px to 12px for smaller canvas
+              ctx.textAlign = "left";
+
+              recipientsLines.forEach((line: string, index: number) => {
+                // Add extra spacing between "Props recipients:" and the names
+                const extraSpacing = index === 1 ? 6 : 0; // Add 6px extra space after the heading
+                ctx.fillText(
+                  line,
+                  24,
+                  currentY + padding + index * lineHeight + 8 + extraSpacing // Reduced margin top to match second box (8 instead of 16)
+                );
+              });
+
+              // Move to next position for message box
+              currentY += recipientsBoxHeight + 10; // Add spacing between boxes
+            }
 
             // Calculate text content and measure dimensions
             const textLines: string[] = [];
@@ -648,72 +767,44 @@ This digital award recognizes excellence and dedication in professional developm
               padding * 2 +
               spacingBetweenSections; // Added padding to bottom + spacing
 
-            // Helper function to draw rounded rectangle with proper border radius
-            const drawRoundedRect = (
-              x: number,
-              y: number,
-              width: number,
-              height: number,
-              radius: number
-            ) => {
-              ctx.beginPath();
-              ctx.moveTo(x + radius, y);
-              ctx.lineTo(x + width - radius, y);
-              ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
-              ctx.lineTo(x + width, y + height - radius);
-              ctx.quadraticCurveTo(
-                x + width,
-                y + height,
-                x + width - radius,
-                y + height
-              );
-              ctx.lineTo(x + radius, y + height);
-              ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
-              ctx.lineTo(x, y + radius);
-              ctx.quadraticCurveTo(x, y, x + radius, y);
-              ctx.closePath();
-            };
-
-            const borderRadius = 12; // Tailwind rounded-lg equivalent (12px for better visibility)
-
-            // Create gradient background with rounded corners
-            const gradient = ctx.createLinearGradient(
+            // Create linear gradient background for message box - matching prop-inside-box class exactly
+            const messageGradient = ctx.createLinearGradient(
               16,
-              messageBoxY,
-              16 + boxWidth,
-              messageBoxY
+              currentY,
+              16 + maxBoxWidth,
+              currentY
             );
-            gradient.addColorStop(0, "#ADAFBE");
-            gradient.addColorStop(0.5, "#4F7295");
-            gradient.addColorStop(1, "#ADAFBE");
+            messageGradient.addColorStop(0, "rgba(173, 175, 190, 0.8)");
+            messageGradient.addColorStop(0.5, "rgba(79, 114, 149, 0.8)"); // Increased opacity to match CSS
+            messageGradient.addColorStop(1, "rgba(173, 175, 190, 0.8)");
 
-            ctx.fillStyle = gradient;
-            ctx.globalAlpha = 0.8;
+            ctx.fillStyle = messageGradient;
+            ctx.globalAlpha = 1.0; // Full opacity to match CSS
 
-            // Draw rounded rectangle with 12px border radius (Tailwind rounded-lg)
-            drawRoundedRect(16, messageBoxY, boxWidth, boxHeight, borderRadius);
+            // Draw rounded rectangle for message box
+            drawRoundedRect(16, currentY, boxWidth, boxHeight, borderRadius);
             ctx.fill();
             ctx.globalAlpha = 1.0;
 
-            // Add text inside message box
+            // Add text inside message box - matching prop detail page exactly
             ctx.fillStyle = "white";
-            ctx.font = "12px Poppins";
+            ctx.font = "12px Poppins"; // Reduced from 16px to 12px for smaller canvas
             ctx.textAlign = "left";
 
             // Draw all text lines with proper spacing
-            let currentY = messageBoxY + padding + 4; // Starting Y position
+            let textY = currentY + padding + 4; // Starting Y position
             textLines.forEach((line, index) => {
               // Add extra spacing after the "From:" line
               if (index === 1 && hasFromLine) {
-                currentY += spacingBetweenSections;
+                textY += spacingBetweenSections;
               }
 
               ctx.fillText(
                 line,
                 24, // Left padding
-                currentY
+                textY
               );
-              currentY += lineHeight;
+              textY += lineHeight;
             });
 
             // Draw date at the rightmost position inside the gray box
@@ -724,7 +815,7 @@ This digital award recognizes excellence and dedication in professional developm
               ctx.fillText(
                 formattedDate,
                 16 + boxWidth - padding, // Right edge minus padding
-                messageBoxY + padding + 4 // Same Y as first line with offset
+                currentY + padding + 4 // Same Y as first line with offset
               );
               ctx.textAlign = "left"; // Reset to left alignment
             }
@@ -732,7 +823,12 @@ This digital award recognizes excellence and dedication in professional developm
             // Convert canvas to data URL
             const previewDataUrl = canvas.toDataURL("image/png");
             setPreviewImageUrl(previewDataUrl);
-            console.log("Preview image generated:", previewDataUrl);
+            // Save to localStorage for immediate access
+            localStorage.setItem("temp-preview-image-base64", previewDataUrl);
+            console.log(
+              "Preview image generated and saved to localStorage:",
+              previewDataUrl
+            );
           };
 
           logoImg.onerror = () => {
@@ -740,6 +836,7 @@ This digital award recognizes excellence and dedication in professional developm
             // Continue without logo
             const previewDataUrl = canvas.toDataURL("image/png");
             setPreviewImageUrl(previewDataUrl);
+            localStorage.setItem("temp-preview-image-base64", previewDataUrl);
           };
 
           // Set logo source
@@ -751,6 +848,7 @@ This digital award recognizes excellence and dedication in professional developm
             // No logo, continue without it
             const previewDataUrl = canvas.toDataURL("image/png");
             setPreviewImageUrl(previewDataUrl);
+            localStorage.setItem("temp-preview-image-base64", previewDataUrl);
           }
         };
 
@@ -759,6 +857,7 @@ This digital award recognizes excellence and dedication in professional developm
           // Continue without props image
           const previewDataUrl = canvas.toDataURL("image/png");
           setPreviewImageUrl(previewDataUrl);
+          localStorage.setItem("temp-preview-image-base64", previewDataUrl);
         };
 
         // Set props image source
@@ -769,6 +868,7 @@ This digital award recognizes excellence and dedication in professional developm
           // No props image, continue without it
           const previewDataUrl = canvas.toDataURL("image/png");
           setPreviewImageUrl(previewDataUrl);
+          localStorage.setItem("temp-preview-image-base64", previewDataUrl);
         }
       };
 
@@ -780,7 +880,9 @@ This digital award recognizes excellence and dedication in professional developm
 
         // Continue with other elements
         const previewDataUrl = canvas.toDataURL("image/png");
+
         setPreviewImageUrl(previewDataUrl);
+        localStorage.setItem("temp-preview-image-base64", previewDataUrl);
       };
 
       // Set background image source
@@ -796,6 +898,9 @@ This digital award recognizes excellence and dedication in professional developm
 
         const previewDataUrl = canvas.toDataURL("image/png");
         setPreviewImageUrl(previewDataUrl);
+        localStorage.setItem("temp-preview-image-base64", previewDataUrl);
+
+        return previewDataUrl;
       }
     } catch (error) {
       console.error("Error generating preview image:", error);
@@ -1082,8 +1187,13 @@ This digital award recognizes excellence and dedication in professional developm
                     <img
                       src={previewImageUrl}
                       alt="Preview Prop"
-                      className="w-full h-auto rounded border border-gray-300"
-                      style={{ maxWidth: "100%" }}
+                      className="rounded border border-gray-300"
+                      style={{
+                        width: "247px",
+                        height: "197px",
+                        objectFit: "cover",
+                        objectPosition: "center",
+                      }}
                       onLoad={() =>
                         console.log("Preview image loaded successfully")
                       }
@@ -1115,8 +1225,13 @@ This digital award recognizes excellence and dedication in professional developm
                       <img
                         src={getProxiedImageUrl(generatedImageUrl)}
                         alt="Generated Prop"
-                        className="w-64 h-auto rounded border border-gray-300"
-                        style={{ maxWidth: "256px" }}
+                        className="rounded border border-gray-300"
+                        style={{
+                          width: "247px",
+                          height: "197px",
+                          objectFit: "cover",
+                          objectPosition: "center",
+                        }}
                         onLoad={() =>
                           console.log(
                             "Image loaded successfully:",
@@ -1138,8 +1253,13 @@ This digital award recognizes excellence and dedication in professional developm
                       <img
                         src={getProxiedImageUrl(generatedImageUrl)}
                         alt="Generated Prop"
-                        className="w-full h-auto rounded border border-gray-300"
-                        style={{ maxWidth: "100%" }}
+                        className="rounded border border-gray-300"
+                        style={{
+                          width: "247px",
+                          height: "197px",
+                          objectFit: "cover",
+                          objectPosition: "center",
+                        }}
                         onLoad={() =>
                           console.log(
                             "Image loaded successfully:",

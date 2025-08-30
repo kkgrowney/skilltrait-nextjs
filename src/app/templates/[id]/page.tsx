@@ -339,43 +339,74 @@ export default function TemplateDetailPage() {
                     type="button"
                     className="px-3 py-1 text-xs bg-gray-600 text-white rounded hover:bg-gray-500"
                     onClick={async () => {
-                      // Navigate user to digital awards generator with template data pre-filled
-                      const params = new URLSearchParams();
+                      // Pre-fill localStorage with template data before navigation
+                      if (typeof window !== "undefined") {
+                        // Create a template object that matches the expected structure
+                        const templateData = {
+                          id: template.id,
+                          achievement: {
+                            props: template.achievement?.props || "",
+                            logoImage: template.achievement?.logoImage || "",
+                            backgroundImage:
+                              template.achievement?.backgroundImage || "",
+                            company: template.achievement?.company || "",
+                            tags: template.achievement?.tags || [],
+                          },
+                        };
 
-                      if (template.achievement?.logoImage) {
-                        params.set(
-                          "logo",
-                          encodeURIComponent(template.achievement.logoImage)
+                        // Pre-fill only visual elements (background, logo, props) - not text fields
+                        localStorage.setItem(
+                          "digital-awards-current-step",
+                          "props-details"
                         );
-                      }
-                      if (template.achievement?.backgroundImage) {
-                        params.set(
-                          "bg",
-                          encodeURIComponent(
-                            template.achievement.backgroundImage
-                          )
+                        localStorage.setItem(
+                          "digital-awards-active-tab",
+                          "props"
                         );
-                      }
-                      if (template.achievement?.company) {
-                        params.set(
-                          "company",
-                          encodeURIComponent(template.achievement.company)
+                        localStorage.setItem(
+                          "digital-awards-selected-template",
+                          JSON.stringify(templateData)
                         );
-                      }
-                      if (template.achievement?.props) {
-                        params.set(
-                          "base",
-                          encodeURIComponent(template.achievement.props)
+                        localStorage.setItem(
+                          "digital-awards-show-template-detail",
+                          "true"
                         );
+                        localStorage.setItem(
+                          "digital-awards-logo-visible",
+                          "true"
+                        );
+                        localStorage.setItem(
+                          "digital-awards-company-name",
+                          template.achievement?.company || ""
+                        );
+                        localStorage.setItem(
+                          "digital-awards-background-visible",
+                          "true"
+                        );
+                        localStorage.setItem(
+                          "digital-awards-background-name",
+                          template.achievement?.backgroundImage
+                            ? "Custom Background"
+                            : ""
+                        );
+                        // Clear text fields so user can fill them fresh
+                        localStorage.setItem("digital-awards-props-title", "");
+                        localStorage.setItem(
+                          "digital-awards-props-recipients",
+                          JSON.stringify([])
+                        );
+                        localStorage.setItem("digital-awards-from-name", "");
+                        localStorage.setItem("digital-awards-from-date", "");
+                        localStorage.setItem("digital-awards-from-message", "");
+                        localStorage.setItem(
+                          "digital-awards-filters",
+                          JSON.stringify({})
+                        );
+                        localStorage.setItem("digital-awards-search-query", "");
                       }
 
-                      // Set step to props-details since user is coming from a template
-                      params.set("step", "props-details");
-
-                      // Navigate with template data
-                      router.push(
-                        `/digital-awards-generator?${params.toString()}`
-                      );
+                      // Navigate to digital awards generator
+                      router.push("/digital-awards-generator");
                     }}
                   >
                     Use Template

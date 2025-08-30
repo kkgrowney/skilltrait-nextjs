@@ -128,7 +128,7 @@ export default function PropDetailPage() {
                     aspectRatio: "5 / 4",
                   }}
                 >
-                  {/* Use the saved preview image if available, otherwise reconstruct from template data */}
+                  {/* Use the saved base64 preview image - this should match exactly what was generated in ShareStep */}
                   {prop.previewImageBase64 ? (
                     <img
                       src={prop.previewImageBase64}
@@ -139,7 +139,7 @@ export default function PropDetailPage() {
                         width: "100%",
                         height: "100%",
                         objectFit: "cover",
-                        // objectPosition: "center",
+                        objectPosition: "center",
                       }}
                     />
                   ) : prop.achievement?.backgroundImage ||
@@ -266,13 +266,6 @@ export default function PropDetailPage() {
                           </div>
                         </div>
                       )}
-
-                      {/* SkillTrait tag - bottom right corner */}
-                      <div className="absolute bottom-0 right-0 z-30">
-                        <div className="text-white text-xs font-semibold bg-black/50 p-2 rounded-tl">
-                          @SkillTrait
-                        </div>
-                      </div>
                     </>
                   ) : (
                     /* Fallback: Show placeholder when no images available */
