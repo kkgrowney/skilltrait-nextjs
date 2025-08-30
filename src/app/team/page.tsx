@@ -458,8 +458,8 @@ export default function Team() {
   const [skillProficiencies, setSkillProficiencies] = useState<{ [key: string]: string }>({});
   const [skillMotivations, setSkillMotivations] = useState<{ [key: string]: string }>({});
   const [selectedSkillsForAction, setSelectedSkillsForAction] = useState<string[]>([]);
-  const [bulkProficiency, setBulkProficiency] = useState<string>('Beginner');
-  const [bulkMotivation, setBulkMotivation] = useState<string>('Low');
+  const [bulkProficiency, setBulkProficiency] = useState<string>('Advanced');
+  const [bulkMotivation, setBulkMotivation] = useState<string>('Moderate');
   const [showProficiencyDropdown, setShowProficiencyDropdown] = useState(false);
   const [showMotivationDropdown, setShowMotivationDropdown] = useState(false);
   const [pendingChanges, setPendingChanges] = useState<{ [key: string]: { proficiency?: string; motivation?: string } }>({});
@@ -536,39 +536,35 @@ export default function Team() {
     }));
   };
 
-  // Handle saving individual skill changes
-  const handleSaveSkillChanges = (skill: string) => {
-    const pendingSkillChanges = pendingChanges[skill];
-    if (pendingSkillChanges) {
-      if (pendingSkillChanges.proficiency) {
-        setSkillProficiencies(prev => ({ ...prev, [skill]: pendingSkillChanges.proficiency! }));
-      }
-      if (pendingSkillChanges.motivation) {
-        setSkillMotivations(prev => ({ ...prev, [skill]: pendingSkillChanges.motivation! }));
-      }
-      
-      // Remove this skill from pending changes
-      setPendingChanges(prev => {
-        const newChanges = { ...prev };
-        delete newChanges[skill];
-        return newChanges;
-      });
-    }
-  };
+
 
   // Handle bulk update of selected skills
   const handleBulkUpdate = () => {
     const updatedProficiencies = { ...skillProficiencies };
     const updatedMotivations = { ...skillMotivations };
     
+    // Apply bulk changes to selected skills
     selectedSkillsForAction.forEach(skill => {
       updatedProficiencies[skill] = bulkProficiency;
       updatedMotivations[skill] = bulkMotivation;
     });
     
+    // Apply pending changes from individual skill modifications
+    Object.keys(pendingChanges).forEach(skill => {
+      const pendingSkillChanges = pendingChanges[skill];
+      if (pendingSkillChanges.proficiency) {
+        updatedProficiencies[skill] = pendingSkillChanges.proficiency;
+      }
+      if (pendingSkillChanges.motivation) {
+        updatedMotivations[skill] = pendingSkillChanges.motivation;
+      }
+    });
+    
     setSkillProficiencies(updatedProficiencies);
     setSkillMotivations(updatedMotivations);
     setSelectedSkillsForAction([]);
+    setBulkProficiency('Advanced');
+    setBulkMotivation('Moderate');
     setPendingChanges({}); // Clear pending changes after saving
   };
 
@@ -694,8 +690,8 @@ export default function Team() {
   const handleRankEmployees = () => {
     const skillsToRank = selectedSkillsForAction.map(skill => {
       // Get the most current value: pending changes first, then saved values, then defaults
-      const currentProficiency = pendingChanges[skill]?.proficiency || skillProficiencies[skill] || 'Beginner';
-      const currentMotivation = pendingChanges[skill]?.motivation || skillMotivations[skill] || 'Low';
+      const currentProficiency = pendingChanges[skill]?.proficiency || skillProficiencies[skill] || 'Advanced';
+      const currentMotivation = pendingChanges[skill]?.motivation || skillMotivations[skill] || 'Moderate';
       
       return {
         skill,
@@ -854,7 +850,7 @@ export default function Team() {
     }
     
     // Use default values if proficiency/motivation are missing
-    const proficiency = skillData.proficiency || 'Intermediate';
+    const proficiency = skillData.proficiency || 'Advanced';
     const motivation = skillData.motivation || 'Moderate';
     
     console.log('  - Using proficiency:', proficiency);
@@ -962,7 +958,7 @@ export default function Team() {
             skills: userData.skills || [],
             experience: userData.experience || 0,
             motivation: motivationMap[item.motivation] || 'Moderate',
-            proficiency: proficiencyMap[item.motivation] || 'Intermediate', // Using motivation as proficiency for now
+            proficiency: proficiencyMap[item.motivation] || 'Advanced', // Using motivation as proficiency for now
             skillName: item.name,
             skillDescription: item.description,
             similarity: parseFloat(confidencePercentage),
@@ -1927,13 +1923,15 @@ export default function Team() {
                                   setSelectedSkillsForAction([...requiredSkills]);
                                 } else {
                                   setSelectedSkillsForAction([]);
+                                  // Clear all pending changes when deselecting all skills
+                                  setPendingChanges({});
                                 }
                               }}
                               className="w-4 h-4 text-[#00DF71] bg-[#1e2327] border-[#454446] rounded focus:ring-[#00DF71] focus:ring-2"
                             />
                           </div>
-                          <div className="col-span-4 text-sm font-medium text-gray-300">Skill Name</div>
-                          <div className="col-span-2 text-sm font-medium text-gray-300 flex items-center gap-2">
+                          <div className="col-span-5 text-sm font-medium text-gray-300">Skill Name</div>
+                          <div className="col-span-3 text-sm font-medium text-gray-300 flex items-center gap-2">
                             Proficiency
                             <div className="relative dropdown-container">
                               <button
@@ -1970,7 +1968,7 @@ export default function Team() {
                               )}
                             </div>
                           </div>
-                          <div className="col-span-2 text-sm font-medium text-gray-300 flex items-center gap-2">
+                          <div className="col-span-3 text-sm font-medium text-gray-300 flex items-center gap-2">
                             Motivation
                             <div className="relative dropdown-container">
                               <button
@@ -2007,9 +2005,7 @@ export default function Team() {
                               )}
                             </div>
                           </div>
-                          <div className="col-span-2 text-sm font-medium text-gray-300 text-right">
-                            Action
-                          </div>
+
                         </div>
                         
                         {/* Table Body */}
@@ -2025,12 +2021,18 @@ export default function Team() {
                                       setSelectedSkillsForAction([...selectedSkillsForAction, skill]);
                                     } else {
                                       setSelectedSkillsForAction(selectedSkillsForAction.filter(s => s !== skill));
+                                      // Clear pending changes for deselected skill
+                                      setPendingChanges(prev => {
+                                        const newChanges = { ...prev };
+                                        delete newChanges[skill];
+                                        return newChanges;
+                                      });
                                     }
                                   }}
                                   className="w-4 h-4 text-[#00DF71] bg-[#1e2327] border-[#454446] rounded focus:ring-[#00DF71] focus:ring-2"
                                 />
                               </div>
-                              <div className="col-span-4 text-white font-medium">
+                              <div className="col-span-5 text-white font-medium">
                                 {editingSkill === skill ? (
                                   <div className="flex items-center gap-2">
                                     <input
@@ -2080,9 +2082,9 @@ export default function Team() {
                                   </div>
                                 )}
                               </div>
-                              <div className="col-span-2">
+                              <div className="col-span-3">
                                 <select 
-                                  value={pendingChanges[skill]?.proficiency || skillProficiencies[skill] || 'Beginner'}
+                                  value={pendingChanges[skill]?.proficiency || skillProficiencies[skill] || 'Advanced'}
                                   onChange={(e) => handleProficiencyChange(skill, e.target.value)}
                                   className="w-full bg-[#1e2327] border border-[#454446] rounded px-2 py-1 text-white text-sm focus:outline-none focus:border-[#00DF71]"
                                 >
@@ -2093,9 +2095,9 @@ export default function Team() {
                                       <option value="Master">Master</option>
                                 </select>
                               </div>
-                              <div className="col-span-2">
+                              <div className="col-span-3">
                                 <select 
-                                  value={pendingChanges[skill]?.motivation || skillMotivations[skill] || 'Low'}
+                                  value={pendingChanges[skill]?.motivation || skillMotivations[skill] || 'Moderate'}
                                   onChange={(e) => handleMotivationChange(skill, e.target.value)}
                                   className="w-full bg-[#1e2327] border border-[#454446] rounded px-2 py-1 text-white text-sm focus:outline-none focus:border-[#00DF71]"
                                 >
@@ -2106,19 +2108,7 @@ export default function Team() {
                                       <option value="Very High">Very High</option>
                                     </select>
                                   </div>
-                                  <div className="col-span-2 flex justify-end">
-                                    <button
-                                      onClick={() => handleSaveSkillChanges(skill)}
-                                      disabled={!pendingChanges[skill]}
-                                      className={`px-3 py-1 text-xs rounded-full transition-colors ${
-                                        pendingChanges[skill]
-                                          ? 'bg-[#00DF71] hover:bg-[#0AFB84] text-[#212327] font-medium cursor-pointer'
-                                          : 'bg-gray-500 text-gray-300 cursor-not-allowed'
-                                      }`}
-                                    >
-                                      Update
-                                    </button>
-                                  </div>
+
                                 </div>
                               ))}
                             </div>
@@ -2151,10 +2141,10 @@ export default function Team() {
                                   </button>
                                                                       <button
                                       onClick={handleBulkUpdate}
-                                      disabled={selectedSkillsForAction.length === 0}
+                                      disabled={Object.keys(pendingChanges).length === 0}
                                       className={`px-3 py-1 text-xs rounded-full transition-colors ${
-                                        selectedSkillsForAction.length > 0
-                                          ? 'bg-gray-600 hover:bg-gray-700 text-white font-medium cursor-pointer border border-gray-500'
+                                        Object.keys(pendingChanges).length > 0
+                                          ? 'bg-[#00DF71] hover:bg-[#0AFB84] text-[#212327] font-medium cursor-pointer'
                                           : 'bg-gray-500 text-gray-300 cursor-not-allowed'
                                       }`}
                                     >
@@ -2165,8 +2155,8 @@ export default function Team() {
                           // Use the same logic as handleRankEmployees function
                           const skillsToRank = selectedSkillsForAction.map(skill => {
                             // Get the most current value: pending changes first, then saved values, then defaults
-                            const currentProficiency = pendingChanges[skill]?.proficiency || skillProficiencies[skill] || 'Beginner';
-                            const currentMotivation = pendingChanges[skill]?.motivation || skillMotivations[skill] || 'Low';
+                            const currentProficiency = pendingChanges[skill]?.proficiency || skillProficiencies[skill] || 'Advanced';
+                            const currentMotivation = pendingChanges[skill]?.motivation || skillMotivations[skill] || 'Moderate';
                             
                             return {
                               skill,
