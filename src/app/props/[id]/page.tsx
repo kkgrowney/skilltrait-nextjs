@@ -266,13 +266,6 @@ export default function PropDetailPage() {
                           </div>
                         </div>
                       )}
-
-                      {/* SkillTrait tag - bottom right corner */}
-                      <div className="absolute bottom-0 right-0 z-30">
-                        <div className="text-white text-xs font-semibold bg-black/50 p-2 rounded-tl">
-                          @SkillTrait
-                        </div>
-                      </div>
                     </>
                   ) : (
                     /* Fallback: Show placeholder when no images available */
