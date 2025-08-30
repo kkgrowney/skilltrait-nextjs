@@ -147,3 +147,11 @@
     display: none !important;
   }
 }
+.prop-inside-box {
+  background: linear-gradient(
+    90deg,
+    rgba(173, 175, 190, 0.8) 0%,
+    rgba(79, 114, 149, 0.4) 50%,
+    rgba(173, 175, 190, 0.8) 100%
+  );
+}

@@ -179,22 +179,21 @@ export default function PropDetailPage() {
                           // objectPosition: "center",
                         }}
                       />
-                      {/* White header with logo/company (scaled proportionally) */}
+                      {/* White header with logo/company - matching Dollar Shave Club design */}
                       <div
-                        className="absolute top-0 left-0 right-0 bg-white border-b-2 border-gray-200 z-30"
+                        className="absolute top-0 left-0 right-0 bg-white border-b border-[#E4E4E4] z-30"
                         style={{
-                          height: "48px",
+                          height: "60px",
                           borderRadius: "4px 4px 0 0",
                         }}
                       >
                         <div
-                          className="absolute flex items-center gap-1 px-2 justify-between"
+                          className="absolute flex items-center gap-3 px-4 justify-between"
                           style={{
-                            height: "60%",
+                            height: "100%",
                             width: "100%",
                             left: 0,
-                            top: "50%",
-                            transform: "translateY(-50%)",
+                            top: 0,
                           }}
                         >
                           {prop.achievement?.logoImage ? (
@@ -205,38 +204,51 @@ export default function PropDetailPage() {
                               alt="Logo"
                               className="object-contain relative z-20"
                               style={{
-                                borderRadius: "4px",
-                                height: "17px",
+                                height: "40px",
+                                maxWidth: "250px",
                                 width: "auto",
-                                // objectPosition: "left",
+                                objectPosition: "left",
+                                objectFit: "contain",
                               }}
                             />
                           ) : null}
                           <div
-                            className="text-black font-medium truncate text-xs"
+                            className="text-black font-medium text-[25px]"
                             style={{ maxWidth: "70%" }}
                           >
                             {prop.propsTitle || ""}
                           </div>
                         </div>
                       </div>
-                      {/* Message overlay - positioned like preview (y=92) */}
+                      {/* Message overlay - matching Dollar Shave Club design */}
                       {(prop.achievement?.fromName ||
                         prop.achievement?.fromMessage ||
                         prop.achievement?.fromDate) && (
-                        <div className="absolute top-14 left-2 z-30">
-                          <div className="bg-gradient-to-r from-[#ADAFBE] via-[#4F7295] to-[#ADAFBE] bg-opacity-80 text-white text-xs px-3 py-2 rounded w-[75%]">
+                        <div className="absolute top-20 left-4 z-30 font-semibold">
+                          {prop.propsRecipients.length > 0 && (
+                            <div className="prop-inside-box text-white text-[16px] px-4 py-3 rounded-lg shadow-lg max-w-[296px]">
+                              Props:
+                              <br />
+                              {prop.propsRecipients &&
+                                prop.propsRecipients.join(", ")}
+                            </div>
+                          )}
+                          <div
+                            className={`prop-inside-box ${
+                              prop.propsRecipients.length > 0 ? "mt-2.5" : ""
+                            } text-white text-[16px] px-4 py-3 rounded-lg shadow-lg max-w-[296px]`}
+                          >
                             {/* From name and date on same line with flex justify-between */}
                             {(prop.achievement?.fromName ||
                               prop.achievement?.fromDate) && (
-                              <div className="flex justify-between items-center mb-1">
+                              <div className="flex justify-between items-center mb-2">
                                 {prop.achievement?.fromName && (
-                                  <div className="font-medium">
-                                    From: {prop.achievement.fromName}
+                                  <div className="font-semibold text-[14px]">
+                                    {prop.achievement.fromName}
                                   </div>
                                 )}
                                 {prop.achievement?.fromDate && (
-                                  <div>
+                                  <div className="text-white text-[14px]">
                                     {(() => {
                                       const [year, month, day] =
                                         prop.achievement.fromDate.split("-");
@@ -247,20 +259,27 @@ export default function PropDetailPage() {
                               </div>
                             )}
                             {prop.achievement?.fromMessage && (
-                              <div className="mt-1">
+                              <div className="text-sm leading-relaxed">
                                 {prop.achievement.fromMessage}
                               </div>
                             )}
                           </div>
                         </div>
                       )}
+
+                      {/* SkillTrait tag - bottom right corner */}
+                      <div className="absolute bottom-0 right-0 z-30">
+                        <div className="text-white text-xs font-semibold bg-black/50 p-2 rounded-tl">
+                          @SkillTrait
+                        </div>
+                      </div>
                     </>
                   ) : (
                     /* Fallback: Show placeholder when no images available */
                     <div className="w-full h-full flex items-center justify-center bg-gray-200">
                       <div className="text-gray-500 text-sm text-center">
                         <div>No Preview Available</div>
-                        <div className="text-xs mt-1">
+                        <div className="text-[25px] font-medium mt-1">
                           {prop.propsTitle || "Prop"}
                         </div>
                       </div>
