@@ -179,22 +179,21 @@ export default function PropDetailPage() {
                           // objectPosition: "center",
                         }}
                       />
-                      {/* White header with logo/company (scaled proportionally) */}
+                      {/* White header with logo/company - matching Dollar Shave Club design */}
                       <div
-                        className="absolute top-0 left-0 right-0 bg-white border-b-2 border-gray-200 z-30"
+                        className="absolute top-0 left-0 right-0 bg-white border-b border-gray-200 z-30"
                         style={{
-                          height: "48px",
+                          height: "60px",
                           borderRadius: "4px 4px 0 0",
                         }}
                       >
                         <div
-                          className="absolute flex items-center gap-1 px-2 justify-between"
+                          className="absolute flex items-center gap-3 px-4 justify-between"
                           style={{
-                            height: "60%",
+                            height: "100%",
                             width: "100%",
                             left: 0,
-                            top: "50%",
-                            transform: "translateY(-50%)",
+                            top: 0,
                           }}
                         >
                           {prop.achievement?.logoImage ? (
@@ -206,37 +205,43 @@ export default function PropDetailPage() {
                               className="object-contain relative z-20"
                               style={{
                                 borderRadius: "4px",
-                                height: "17px",
+                                height: "32px",
                                 width: "auto",
-                                // objectPosition: "left",
+                                objectPosition: "left",
                               }}
                             />
                           ) : null}
                           <div
-                            className="text-black font-medium truncate text-xs"
+                            className="text-black font-bold text-2xl"
                             style={{ maxWidth: "70%" }}
                           >
                             {prop.propsTitle || ""}
                           </div>
                         </div>
                       </div>
-                      {/* Message overlay - positioned like preview (y=92) */}
+                      {/* Message overlay - matching Dollar Shave Club design */}
                       {(prop.achievement?.fromName ||
                         prop.achievement?.fromMessage ||
                         prop.achievement?.fromDate) && (
-                        <div className="absolute top-14 left-2 z-30">
-                          <div className="bg-gradient-to-r from-[#ADAFBE] via-[#4F7295] to-[#ADAFBE] bg-opacity-80 text-white text-xs px-3 py-2 rounded w-[75%]">
+                        <div className="absolute top-20 left-4 z-30 font-semibold">
+                          <div className="bg-[#B9C4D1]/80 text-white text-lg px-4 py-3 rounded-lg shadow-lg max-w-xs">
+                            Props:
+                            <br />
+                            {prop.achievement.tags &&
+                              prop.achievement.tags.join(", ")}
+                          </div>
+                          <div className="bg-[#B9C4D1]/80 mt-2.5 text-white text-lg px-4 py-3 rounded-lg shadow-lg max-w-xs">
                             {/* From name and date on same line with flex justify-between */}
                             {(prop.achievement?.fromName ||
                               prop.achievement?.fromDate) && (
-                              <div className="flex justify-between items-center mb-1">
+                              <div className="flex justify-between items-center mb-2">
                                 {prop.achievement?.fromName && (
-                                  <div className="font-medium">
-                                    From: {prop.achievement.fromName}
+                                  <div className="font-semibold">
+                                    {prop.achievement.fromName}
                                   </div>
                                 )}
                                 {prop.achievement?.fromDate && (
-                                  <div>
+                                  <div className="text-white">
                                     {(() => {
                                       const [year, month, day] =
                                         prop.achievement.fromDate.split("-");
@@ -247,13 +252,20 @@ export default function PropDetailPage() {
                               </div>
                             )}
                             {prop.achievement?.fromMessage && (
-                              <div className="mt-1">
+                              <div className="text-sm leading-relaxed">
                                 {prop.achievement.fromMessage}
                               </div>
                             )}
                           </div>
                         </div>
                       )}
+
+                      {/* SkillTrait tag - bottom right corner */}
+                      <div className="absolute bottom-1 right-0 z-30">
+                        <div className="text-white text-sm font-semibold bg-black/50 p-2 rounded-l">
+                          @SkillTrait
+                        </div>
+                      </div>
                     </>
                   ) : (
                     /* Fallback: Show placeholder when no images available */
