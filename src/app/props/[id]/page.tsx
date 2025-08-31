@@ -18,6 +18,80 @@ const getProxiedUrlForPreview = (imageUrl: string): string => {
   return `/api/proxy-image?url=${encodeURIComponent(imageUrl)}`;
 };
 
+// EmailRecipients component
+function EmailRecipients() {
+  const [email, setEmail] = useState("");
+  const [emails, setEmails] = useState<string[]>([]);
+  const [error, setError] = useState("");
+
+  const handleAdd = () => {
+    if (!email) return;
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      setError("Invalid email");
+      return;
+    }
+    if (emails.includes(email)) {
+      setError("Email already added");
+      return;
+    }
+    setEmails([...emails, email]);
+    setEmail("");
+    setError("");
+  };
+
+  const handleRemove = (removeEmail: string) => {
+    setEmails(emails.filter((e) => e !== removeEmail));
+  };
+
+  return (
+    <div>
+      <div className="flex gap-2 mb-2">
+        <input
+          type="email"
+          placeholder="Enter one email at a time"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          className="flex-1 px-3 py-2 rounded bg-[#1B1D21] border border-gray-600 text-white placeholder-gray-400 focus:outline-none focus:border-[var(--primary-dark)]"
+          style={{ fontFamily: "Poppins", fontSize: "14px" }}
+          onKeyPress={(e) => {
+            if (e.key === "Enter") {
+              e.preventDefault();
+              handleAdd();
+            }
+          }}
+        />
+        <button
+          type="button"
+          onClick={handleAdd}
+          className="bg-white text-black px-4 py-2 rounded font-semibold hover:bg-gray-200"
+        >
+          Add
+        </button>
+      </div>
+      {error && <div className="text-red-400 text-xs mb-2">{error}</div>}
+      <div className="flex flex-wrap gap-2">
+        {emails.map((e) => (
+          <span
+            key={e}
+            className="flex items-center bg-gray-700 text-white px-3 py-1 rounded-full text-sm"
+          >
+            {e}
+            <button
+              type="button"
+              onClick={() => handleRemove(e)}
+              className="ml-2 text-gray-300 hover:text-red-400 focus:outline-none"
+              aria-label={`Remove ${e}`}
+            >
+              ×
+            </button>
+          </span>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export default function PropDetailPage() {
   const params = useParams();
   const router = useRouter();
@@ -87,45 +161,46 @@ export default function PropDetailPage() {
     <div className="min-h-screen" style={{ backgroundColor: "#1A1D21" }}>
       <SideNavigation />
       <div className="md:ml-[66px] ml-0 p-4 md:p-8">
-        <div className="max-w-4xl mx-auto">
-          <div className="flex items-center gap-2 mb-4">
-            <button
-              type="button"
-              aria-label="Go back"
-              onClick={() => router.back()}
-              className="flex items-center text-gray-300 hover:text-white transition-colors"
-            >
-              <svg
-                className="w-5 h-5"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
+        <div className="w-full flex justify-center">
+          <div className="w-full max-w-6xl">
+            <div className="flex items-center gap-2 mb-4">
+              <button
+                type="button"
+                aria-label="Go back"
+                onClick={() => router.back()}
+                className="flex items-center text-gray-300 hover:text-white transition-colors"
               >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M15 19l-7-7 7-7"
-                />
-              </svg>
-            </button>
-            <h1 className="text-2xl font-bold text-white">Prop Detail</h1>
-          </div>
+                <svg
+                  className="w-5 h-5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M15 19l-7-7 7-7"
+                  />
+                </svg>
+              </button>
+              <h1 className="text-2xl font-bold text-white">Prop Detail</h1>
+            </div>
 
           {loading ? (
             <div className="text-gray-400">Loading...</div>
           ) : !prop ? (
             <div className="text-gray-400">Not found</div>
           ) : (
-            <div className="space-y-4">
-              <div className="w-full flex justify-center">
+            <div className="flex flex-col lg:flex-row items-start justify-center gap-6">
+              {/* Left Column - Prop Image */}
+              <div className="flex justify-center">
                 <div
                   className="relative bg-white rounded"
                   style={{
                     borderRadius: "4px",
-                    width: "100%",
-                    maxWidth: "600px",
-                    aspectRatio: "5 / 4",
+                    width: "600px",
+                    height: "480px",
                   }}
                 >
                   {/* Use the saved base64 preview image - this should match exactly what was generated in ShareStep */}
@@ -281,10 +356,10 @@ export default function PropDetailPage() {
                 </div>
               </div>
 
-              <div
-                className="bg-[#212327] rounded-lg shadow-sm border border-[#454446] p-4 mx-auto"
-                style={{ maxWidth: "600px" }}
-              >
+              {/* Right Column - Share Prop and Email Recipients */}
+              <div className="w-full max-w-md space-y-4">
+                {/* Share Prop Container */}
+                <div className="bg-[#212327] rounded-lg shadow-sm border border-[#454446] p-4">
                 <h3 className="text-lg font-medium text-white mb-3">
                   Share Prop
                 </h3>
@@ -366,61 +441,19 @@ export default function PropDetailPage() {
                     Delete Prop
                   </button>
                 </div>
-              </div>
-
-              {showDeleteModal && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                  <div className="bg-[#212327] rounded-lg p-6 max-w-md w-full mx-4 border border-[#454446]">
-                    <div className="text-center">
-                      <h3 className="text-lg font-semibold text-white mb-4">
-                        Delete Prop
-                      </h3>
-                      <p className="text-gray-300 mb-6">
-                        Are you sure you want to delete this prop? This action
-                        cannot be undone.
-                      </p>
-                      <div className="flex gap-3 justify-center">
-                        <button
-                          onClick={() => setShowDeleteModal(false)}
-                          className="px-4 py-2 text-sm font-medium transition-colors bg-gray-600 text-white rounded hover:bg-gray-500"
-                        >
-                          Cancel
-                        </button>
-                        <button
-                          onClick={async () => {
-                            if (!user?.uid || !params?.id) return;
-                            try {
-                              setIsDeleting(true);
-                              const ref = doc(
-                                db,
-                                "users",
-                                user.uid,
-                                "props",
-                                params.id as string
-                              );
-                              await deleteDoc(ref);
-                              setIsDeleting(false);
-                              setShowDeleteModal(false);
-                              router.push("/props");
-                            } catch (e) {
-                              console.error("Failed to delete prop:", e);
-                              setIsDeleting(false);
-                              alert("Failed to delete prop. Please try again.");
-                            }
-                          }}
-                          disabled={isDeleting}
-                          className="px-4 py-2 text-sm font-medium text-white rounded disabled:opacity-50 disabled:cursor-not-allowed hover:opacity-90"
-                          style={{ backgroundColor: "#ED6568" }}
-                        >
-                          {isDeleting ? "Deleting..." : "Delete"}
-                        </button>
-                      </div>
-                    </div>
-                  </div>
                 </div>
-              )}
+
+                {/* Email Recipients Container */}
+                <div className="bg-[#212327] rounded-lg shadow-sm border border-[#454446] p-4">
+                  <h3 className="text-lg font-medium text-white mb-3">
+                    Email Recipients
+                  </h3>
+                  <EmailRecipients />
+                </div>
+              </div>
             </div>
           )}
+          </div>
         </div>
       </div>
     </div>

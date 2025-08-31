@@ -351,26 +351,24 @@ export default function ProfileSnapshot({ employee }: ProfileSnapshotProps) {
                       key={`${skillId}-${expandedSkills.size}`} 
                       className="w-full mt-2 p-3 bg-[#1F2327] border border-[#454446] rounded-lg animate-in fade-in-0 slide-in-from-top-2 duration-300"
                     >
-                      <div className="space-y-2">
-                        <div className="flex justify-between items-center">
-                          <span className="text-[#aeaeae] text-xs">Proficiency:</span>
-                          <span className="text-[#00DF71] text-xs font-medium">
-                            {skill.proficiency || 'Advanced'}
-                          </span>
-                        </div>
-                        <div className="flex justify-between items-center">
-                          <span className="text-[#aeaeae] text-xs">Motivation:</span>
-                          <span className="text-[#00DF71] text-xs font-medium">
-                            {skill.motivation || 'Moderate'}
-                          </span>
-                        </div>
-                        <div className="pt-2 border-t border-[#454446]">
-                          <p className="text-[#aeaeae] text-xs leading-relaxed">
-                            This skill demonstrates the employee's expertise and interest level.
-                            <br />
-                            Proficiency and motivation levels are key indicators of performance potential.
-                          </p>
-                        </div>
+                                              <div className="space-y-2">
+                                                    <div className="flex items-center gap-2">
+                            <span className="text-white text-xs">Proficiency:</span>
+                            <span className="text-[#00DF71] text-xs font-medium">
+                              {skill.proficiency || 'Not specified'}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <span className="text-white text-xs">Motivation:</span>
+                            <span className="text-[#00DF71] text-xs font-medium">
+                              {skill.motivation || 'Not specified'}
+                            </span>
+                          </div>
+                          <div className="pt-2 border-t border-[#454446]">
+                            <p className="text-[#aeaeae] text-xs leading-relaxed">
+                              {skill.description || 'No description available for this skill.'}
+                            </p>
+                          </div>
                       </div>
                     </div>
                   );

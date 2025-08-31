@@ -360,10 +360,6 @@ function SkillRankSection({ skillData, employeesRanked, onChevronClick, rankedEm
             <p className="text-xs text-gray-500 mt-1">
               Rankings based on confidence scores (highest to lowest)
             </p>
-            {/* Debug info */}
-            <p className="text-xs text-red-400 mt-1">
-              DEBUG: skillRankedEmployees.length = {skillRankedEmployees.length}, isExpanded = {isExpanded.toString()}
-            </p>
           </div>
         </div>
       )}
@@ -2195,12 +2191,14 @@ export default function Team() {
                         }}
                                       disabled={selectedSkillsForAction.length === 0 || Object.keys(pendingChanges).length > 0}
                                       className={`px-3 py-1 text-xs rounded-full transition-colors ${
-                                        selectedSkillsForAction.length > 0 && Object.keys(pendingChanges).length === 0
-                                          ? 'bg-[#00DF71] hover:bg-[#0AFB84] text-[#212327] font-medium cursor-pointer'
-                                          : 'bg-gray-500 text-gray-300 cursor-not-allowed'
+                                        employeesRanked
+                                          ? 'border border-[#00DF71] bg-transparent text-[#00DF71] font-medium cursor-pointer hover:bg-[#00DF71] hover:text-[#212327]'
+                                          : selectedSkillsForAction.length > 0 && Object.keys(pendingChanges).length === 0
+                                            ? 'bg-[#00DF71] hover:bg-[#0AFB84] text-[#212327] font-medium cursor-pointer'
+                                            : 'bg-gray-500 text-gray-300 cursor-not-allowed'
                                       }`}
                                     >
-                                      Next
+                                      {employeesRanked ? 'Ranked' : 'Next'}
                                     </button>
                                 </div>
                               </div>
