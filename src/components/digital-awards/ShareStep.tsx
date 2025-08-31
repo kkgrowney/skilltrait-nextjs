@@ -565,28 +565,69 @@ This digital award recognizes excellence and dedication in professional developm
             ctx.textAlign = "right";
             ctx.fillText(propsTitle || "Title", canvas.width - 16, 32);
 
-            // Draw white header background with border - matching prop detail page exactly
+            // Draw white header background with border - increased to 80px height
             ctx.fillStyle = "white";
-            ctx.fillRect(0, 0, canvas.width, 60); // 60px height like prop detail page
+            ctx.fillRect(0, 0, canvas.width, 80); // 80px height
             ctx.strokeStyle = "#E4E4E4"; // Same border color as prop detail page
             ctx.lineWidth = 1;
-            ctx.strokeRect(0, 59, canvas.width, 1); // Bottom border at 59
+            ctx.strokeRect(0, 79, canvas.width, 1); // Bottom border at 79
 
-            // Redraw logo on top of white background - matching prop detail page
+            // Redraw logo on top of white background - adjusted for 80px header
             if (logoUrl) {
-              const logoHeight = 40; // 40px height like prop detail page
+              const logoHeight = 50; // Increased height for larger header
               const logoWidth = Math.min(
-                250, // 250px max width like prop detail page
+                300, // Increased max width for larger header
                 logoImg.width * (logoHeight / logoImg.height)
               );
-              ctx.drawImage(logoImg, 16, 10, logoWidth, logoHeight); // Positioned like prop detail page
+              ctx.drawImage(logoImg, 16, 15, logoWidth, logoHeight); // Adjusted Y position
             }
 
-            // Redraw title text on top of white background - matching prop detail page
+            // Redraw title text on top of white background - adjusted for 80px header
             ctx.fillStyle = "black";
-            ctx.font = "20px Poppins"; // Reduced from 25px to 20px for smaller canvas
+            ctx.font = "24px Poppins"; // Increased font size for larger header
             ctx.textAlign = "right";
-            ctx.fillText(propsTitle || "Title", canvas.width - 16, 42); // Positioned like prop detail page
+            ctx.fillText(propsTitle || "Title", canvas.width - 16, 52); // Adjusted Y position
+
+            // Add Skilltrait branding at bottom right corner with top-left border rounded
+            ctx.fillStyle = "rgba(0, 0, 0, 0.4)"; // Decreased opacity background
+            ctx.font = "10px Poppins"; // Reduced font size
+            ctx.textAlign = "center"; // Center align text
+
+            // Create rounded rectangle for Skilltrait branding
+            const skilltraitText = "@Skilltrait";
+            const skilltraitTextWidth = ctx.measureText(skilltraitText).width;
+            const skilltraitPadding = 12; // Increased padding
+            const skilltraitWidth = skilltraitTextWidth + skilltraitPadding * 2;
+            const skilltraitHeight = 24; // Increased height for more padding
+            const skilltraitX = canvas.width - skilltraitWidth; // Joint to right edge
+            const skilltraitY = canvas.height - skilltraitHeight; // Joint to bottom edge
+
+            // Draw rounded rectangle with top-left border radius
+            ctx.beginPath();
+            ctx.moveTo(skilltraitX + 8, skilltraitY); // Top-left rounded corner
+            ctx.lineTo(skilltraitX + skilltraitWidth, skilltraitY);
+            ctx.lineTo(
+              skilltraitX + skilltraitWidth,
+              skilltraitY + skilltraitHeight
+            );
+            ctx.lineTo(skilltraitX, skilltraitY + skilltraitHeight);
+            ctx.lineTo(skilltraitX, skilltraitY + 8);
+            ctx.quadraticCurveTo(
+              skilltraitX,
+              skilltraitY,
+              skilltraitX + 8,
+              skilltraitY
+            );
+            ctx.closePath();
+            ctx.fill();
+
+            // Add Skilltrait text centered in the tag
+            ctx.fillStyle = "white";
+            ctx.fillText(
+              skilltraitText,
+              skilltraitX + skilltraitWidth / 2,
+              skilltraitY + 16 // Adjusted for new height
+            );
 
             // Helper function to draw rounded rectangle with proper border radius
             const drawRoundedRect = (
@@ -617,7 +658,7 @@ This digital award recognizes excellence and dedication in professional developm
             const borderRadius = 12; // Tailwind rounded-lg equivalent (12px for better visibility)
 
             // Add props recipients box first (if any) - matching prop detail page exactly
-            let currentY = 70; // Reduced from 80 to 70 to reduce top space
+            let currentY = 90; // Adjusted for 80px header
             const padding = 12; // Reduced from 16 to 12 for smaller canvas
             const lineHeight = 14; // Reduced from 16 to 14 for smaller canvas
             const maxBoxWidth = 296; // Max width like prop detail page

@@ -46,14 +46,14 @@ export default function TemplateDetailPage() {
         // Draw background
         ctx.drawImage(backgroundImg, 0, 0, width, height);
 
-        // Draw white header bar (20% height)
-        const headerHeight = height * 0.2;
+        // Draw white header bar (60px height to match prop detail page)
+        const headerHeight = 60;
         ctx.fillStyle = "white";
         ctx.fillRect(0, 0, width, headerHeight);
 
         // Draw border under header
-        ctx.strokeStyle = "#e5e7eb";
-        ctx.lineWidth = 2;
+        ctx.strokeStyle = "#E4E4E4";
+        ctx.lineWidth = 1;
         ctx.beginPath();
         ctx.moveTo(0, headerHeight);
         ctx.lineTo(width, headerHeight);
@@ -62,9 +62,9 @@ export default function TemplateDetailPage() {
         // Add company name
         if (template.company) {
           ctx.fillStyle = "black";
-          ctx.font = "bold 48px Arial, sans-serif";
-          ctx.textAlign = "left";
-          ctx.fillText(template.company, 40, headerHeight * 0.75);
+          ctx.font = "bold 24px Arial, sans-serif";
+          ctx.textAlign = "right";
+          ctx.fillText(template.company, width - 40, headerHeight * 0.75);
         }
 
         // Add logo if available
@@ -72,9 +72,13 @@ export default function TemplateDetailPage() {
           const logoImg = new Image();
           logoImg.crossOrigin = "anonymous";
           logoImg.onload = () => {
-            const logoSize = headerHeight * 0.6;
-            const logoY = headerHeight * 0.2;
-            ctx.drawImage(logoImg, 40, logoY, logoSize, logoSize);
+            const logoHeight = 40;
+            const logoWidth = Math.min(
+              250,
+              logoImg.width * (logoHeight / logoImg.height)
+            );
+            const logoY = (headerHeight - logoHeight) / 2;
+            ctx.drawImage(logoImg, 40, logoY, logoWidth, logoHeight);
 
             // Trigger download
             const link = document.createElement("a");
@@ -210,22 +214,21 @@ export default function TemplateDetailPage() {
                           // objectPosition: "center",
                         }}
                       />
-                      {/* White header with logo/company (scaled proportionally) */}
+                      {/* White header with logo/company - matching prop detail page */}
                       <div
-                        className="absolute top-0 left-0 right-0 bg-white border-b-2 border-gray-200 z-30"
+                        className="absolute top-0 left-0 right-0 bg-white border-b border-gray-200 z-30"
                         style={{
-                          height: "35px",
+                          height: "60px",
                           borderRadius: "4px 4px 0 0",
                         }}
                       >
                         <div
-                          className="absolute flex items-center gap-1 px-2 justify-between"
+                          className="absolute flex items-center gap-3 px-4 justify-between"
                           style={{
-                            height: "60%",
+                            height: "100%",
                             width: "100%",
                             left: 0,
-                            top: "50%",
-                            transform: "translateY(-50%)",
+                            top: 0,
                           }}
                         >
                           {template.achievement?.logoImage ? (
@@ -237,13 +240,14 @@ export default function TemplateDetailPage() {
                               className="object-contain relative z-20"
                               style={{
                                 borderRadius: "4px",
-                                height: "17px",
+                                height: "40px",
                                 width: "auto",
+                                maxWidth: "250px",
                               }}
                             />
                           ) : null}
                           <div
-                            className="text-black font-medium truncate text-xs"
+                            className="text-black font-medium truncate text-base"
                             style={{ maxWidth: "70%" }}
                           >
                             {template.achievement?.company || ""}
