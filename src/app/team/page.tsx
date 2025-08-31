@@ -35,13 +35,28 @@ function SkillRankSection({ skillData, employeesRanked, onChevronClick, rankedEm
 
   // Get ranked employees from parent component
   const skillRankedEmployees = useMemo(() => {
+    console.log(`🔍 useMemo for skill: ${skillData.skill}`);
+    console.log(`  - rankedEmployees:`, rankedEmployees);
+    console.log(`  - rankedEmployees.length:`, rankedEmployees.length);
+    
     // Find the employees for this specific skill
     const skillResult = rankedEmployees.find(result => result.skill === skillData.skill);
-    return skillResult ? skillResult.employees : [];
+    console.log(`  - skillResult found:`, skillResult);
+    
+    const employees = skillResult ? skillResult.employees : [];
+    console.log(`  - returning employees:`, employees);
+    console.log(`  - employees.length:`, employees.length);
+    
+    return employees;
   }, [rankedEmployees, skillData.skill]);
 
   // Auto-expand when employee data is successfully loaded for this specific skill
   useEffect(() => {
+    console.log(`🔍 Auto-expand check for skill: ${skillData.skill}`);
+    console.log(`  - skillRankedEmployees.length: ${skillRankedEmployees.length}`);
+    console.log(`  - isExpanded: ${isExpanded}`);
+    console.log(`  - skillRankedEmployees:`, skillRankedEmployees);
+    
     if (skillRankedEmployees.length > 0 && !isExpanded) {
       console.log(`🔍 Auto-expanding chevron for skill: ${skillData.skill}, employees: ${skillRankedEmployees.length}`);
       setIsExpanded(true);
@@ -344,6 +359,10 @@ function SkillRankSection({ skillData, employeesRanked, onChevronClick, rankedEm
             </p>
             <p className="text-xs text-gray-500 mt-1">
               Rankings based on confidence scores (highest to lowest)
+            </p>
+            {/* Debug info */}
+            <p className="text-xs text-red-400 mt-1">
+              DEBUG: skillRankedEmployees.length = {skillRankedEmployees.length}, isExpanded = {isExpanded.toString()}
             </p>
           </div>
         </div>
@@ -815,6 +834,7 @@ export default function Team() {
       }
       
       // Store the ranked results
+      console.log('🔍 Storing ranked results:', allRankedEmployees);
       setRankedEmployeeResults(allRankedEmployees);
       
       // Mark ranking as complete
@@ -1892,12 +1912,13 @@ export default function Team() {
                         Required Skills
                       </button>
                       <button
-                        onClick={() => setRightContainerTab('rank-employees')}
+                        disabled={true}
                         className={`px-4 py-2 text-sm font-medium transition-colors ${
                           rightContainerTab === 'rank-employees'
                             ? 'text-[#00DF71] border-b-2 border-[#00DF71]'
-                            : 'text-gray-400 hover:text-white'
+                            : 'text-gray-500 cursor-not-allowed'
                         }`}
+                        title="Click 'Rank Employees' button below to activate this tab"
                       >
                         Rank Employees
                       </button>
@@ -2179,7 +2200,7 @@ export default function Team() {
                                           : 'bg-gray-500 text-gray-300 cursor-not-allowed'
                                       }`}
                                     >
-                                      Rank Employees
+                                      Next
                                     </button>
                                 </div>
                               </div>
