@@ -19,9 +19,11 @@ const getProxiedUrlForPreview = (imageUrl: string): string => {
 };
 
 // EmailRecipients component
-function EmailRecipients() {
+function EmailRecipients({ onRecipientNamesChange }: { onRecipientNamesChange?: (names: string) => void }) {
   const [email, setEmail] = useState("");
   const [emails, setEmails] = useState<string[]>([]);
+  const [recipientNames, setRecipientNames] = useState("");
+  const [showRecipientsInput, setShowRecipientsInput] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
 
@@ -45,6 +47,8 @@ function EmailRecipients() {
     setEmails(emails.filter((e) => e !== removeEmail));
   };
 
+
+
   const handleSend = () => {
     if (emails.length === 0) {
       setError("Please add at least one email address");
@@ -61,6 +65,7 @@ function EmailRecipients() {
     
     // Clear form after sending
     setEmails([]);
+    setRecipientNames("");
     setMessage("");
     setError("");
     
@@ -112,6 +117,69 @@ function EmailRecipients() {
         ))}
       </div>
       
+      {/* Recipient Names field */}
+      <div className="mb-4">
+        <div
+          className="p-4 rounded-sm border"
+          style={{ backgroundColor: "#1B1D21", borderColor: "#454446" }}
+        >
+          {showRecipientsInput ? (
+            <div className="flex items-center space-x-2">
+              <input
+                type="text"
+                placeholder="Add one or more recipient names"
+                value={recipientNames}
+                maxLength={67}
+                onChange={(e) => {
+                  setRecipientNames(e.target.value);
+                  onRecipientNamesChange?.(e.target.value);
+                }}
+                className="flex-1 px-4 py-2 text-sm bg-[#1B1D21] border rounded text-white placeholder-gray-400 focus:outline-none focus:border-[var(--primary-dark)]"
+                style={{
+                  borderColor: "#454446",
+                  fontFamily: "Poppins",
+                  fontSize: "14px",
+                  color: "white",
+                  textAlign: "left",
+                  paddingLeft: "12px",
+                }}
+              />
+              <button
+                onClick={() => {
+                  setShowRecipientsInput(false);
+                }}
+                className="px-4 py-2 text-sm font-medium transition-colors bg-white text-[#212327] rounded hover:bg-gray-100"
+              >
+                Add
+              </button>
+            </div>
+          ) : (
+            <div
+              onClick={() => setShowRecipientsInput(true)}
+              className="w-full px-4 py-2 text-sm bg-[#1B1D21] border rounded text-white placeholder-gray-400 cursor-pointer hover:border-[var(--primary-dark)] transition-colors"
+              style={{
+                borderColor: "#454446",
+                textAlign: "left",
+                paddingLeft: "12px",
+              }}
+            >
+              {recipientNames ? (
+                <span className="text-white" style={{ textAlign: "left", display: "block" }}>
+                  {recipientNames}
+                </span>
+              ) : (
+                <span
+                  className="text-gray-400"
+                  style={{ textAlign: "left", display: "block" }}
+                >
+                  Add one or more recipient names
+                </span>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
+      
       {/* Message field */}
       <div className="mb-4">
         <textarea
@@ -144,6 +212,7 @@ export default function PropDetailPage() {
   const { user } = useAuth();
   const [prop, setProp] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
+  const [recipientNames, setRecipientNames] = useState("");
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
@@ -346,18 +415,26 @@ export default function PropDetailPage() {
                         prop.achievement?.fromMessage ||
                         prop.achievement?.fromDate) && (
                         <div className="absolute top-20 left-4 z-30 font-semibold">
-                          {prop.propsRecipients.length > 0 && (
-                            <div className="prop-inside-box text-white text-[16px] px-4 py-3 rounded-lg shadow-lg max-w-[296px]">
+                          {(prop.propsRecipients.length > 0 || recipientNames) && (
+                            <div className="prop-inside-box text-white px-3 py-3 rounded-lg shadow-lg max-w-[296px] break-words" style={{ fontFamily: "Poppins", fontSize: "16px", fontWeight: "500", lineHeight: "110%", marginTop: "10px" }}>
                               Props:
                               <br />
-                              {prop.propsRecipients &&
-                                prop.propsRecipients.join(", ")}
+                              <span className="whitespace-normal break-words">
+                                {recipientNames || (prop.propsRecipients &&
+                                  prop.propsRecipients.join(", "))}
+                              </span>
                             </div>
                           )}
-                          <div
-                            className={`prop-inside-box ${
-                              prop.propsRecipients.length > 0 ? "mt-2.5" : ""
-                            } text-white text-[16px] px-4 py-3 rounded-lg shadow-lg max-w-[296px]`}
+                          <div 
+                            className="prop-inside-box text-white px-3 py-3 rounded-lg shadow-lg max-w-[296px] min-w-[300px]"
+                            style={{ 
+                              position: "absolute",
+                              top: (prop.propsRecipients.length > 0 || recipientNames) ? "100%" : "0px",
+                              marginTop: "12px",
+                              fontFamily: "Poppins",
+                              fontSize: "16px",
+                              fontWeight: "400"
+                            }}
                           >
                             {/* From name and date on same line with flex justify-between */}
                             {(prop.achievement?.fromName ||
@@ -484,7 +561,7 @@ export default function PropDetailPage() {
                   <h3 className="text-lg font-medium text-white mb-3">
                     Email Recipients
                   </h3>
-                  <EmailRecipients />
+                  <EmailRecipients onRecipientNamesChange={setRecipientNames} />
                 </div>
               </div>
             </div>

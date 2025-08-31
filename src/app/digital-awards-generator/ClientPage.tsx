@@ -749,48 +749,31 @@ export default function DigitalAwardsPage() {
                   }}
                 />
 
-                {propsRecipients && propsRecipients.length > 0 && (
-                  <div
-                    className="absolute mb-7 z-30 bg-gradient-to-r from-[#ADAFBE] via-[#4F7295] to-[#ADAFBE] opacity-80 rounded-lg p-2"
-                    style={{
-                      left: "20px",
-                      top: "92px",
-                      maxWidth: "280px",
-                      minHeight: "60px",
-                    }}
-                  >
-                    <p
-                      className="text-white text-sm font-medium mb-1"
-                      style={{ color: "white", opacity: 1 }}
-                    >
-                      Props recipients:
-                    </p>
-                    <p
-                      className="text-white text-base font-medium"
-                      style={{
-                        lineHeight: "1.2",
-                        color: "white",
-                        opacity: 1,
-                      }}
-                    >
-                      {propsRecipients.join(", ")}
-                    </p>
-                  </div>
-                )}
-
-                {(fromName || fromDate || fromMessage) && (
-                  <div
-                    className="absolute z-30 bg-gradient-to-r from-[#ADAFBE] via-[#4F7295] to-[#ADAFBE] opacity-80 rounded-lg p-2"
-                    style={{
-                      left: "20px",
-                      top:
-                        propsRecipients && propsRecipients.length > 0
-                          ? "calc(92px + 60px + 12px)"
-                          : "92px",
-                      maxWidth: "280px",
-                      minHeight: "60px",
-                    }}
-                  >
+                {/* Overlay Text Container */}
+                {(propsRecipients && propsRecipients.length > 0) || (fromName || fromDate || fromMessage) ? (
+                  <div className="absolute top-20 left-4 z-30 font-semibold">
+                    {propsRecipients && propsRecipients.length > 0 && (
+                      <div className="prop-inside-box text-white px-3 py-3 rounded-lg shadow-lg max-w-[296px] break-words" style={{ fontFamily: "Poppins", fontSize: "16px", fontWeight: "500", lineHeight: "110%", marginTop: "10px" }}>
+                        Props:
+                        <br />
+                        <span className="whitespace-normal break-words">
+                          {propsRecipients.join(", ")}
+                        </span>
+                      </div>
+                    )}
+                    
+                    {(fromName || fromDate || fromMessage) && (
+                      <div 
+                        className="prop-inside-box text-white px-3 py-3 rounded-lg shadow-lg max-w-[296px] min-w-[300px]"
+                        style={{ 
+                          position: "absolute",
+                          top: propsRecipients && propsRecipients.length > 0 ? "100%" : "0px",
+                          marginTop: "12px",
+                          fontFamily: "Poppins",
+                          fontSize: "16px",
+                          fontWeight: "400"
+                        }}
+                      >
                     {fromName && (
                       <div className="flex justify-between items-center mb-2">
                         <p
@@ -824,8 +807,10 @@ export default function DigitalAwardsPage() {
                         {fromMessage}
                       </p>
                     )}
+                      </div>
+                    )}
                   </div>
-                )}
+                ) : null}
               </div>
             </div>
           )}
