@@ -22,6 +22,7 @@ const getProxiedUrlForPreview = (imageUrl: string): string => {
 function EmailRecipients() {
   const [email, setEmail] = useState("");
   const [emails, setEmails] = useState<string[]>([]);
+  const [message, setMessage] = useState("");
   const [error, setError] = useState("");
 
   const handleAdd = () => {
@@ -42,6 +43,28 @@ function EmailRecipients() {
 
   const handleRemove = (removeEmail: string) => {
     setEmails(emails.filter((e) => e !== removeEmail));
+  };
+
+  const handleSend = () => {
+    if (emails.length === 0) {
+      setError("Please add at least one email address");
+      return;
+    }
+    if (!message.trim()) {
+      setError("Please enter a message");
+      return;
+    }
+    
+    // TODO: Implement email sending logic
+    console.log("Sending emails to:", emails);
+    console.log("Message:", message);
+    
+    // Clear form after sending
+    setEmails([]);
+    setMessage("");
+    setError("");
+    
+    alert("Emails sent successfully!");
   };
 
   return (
@@ -70,7 +93,7 @@ function EmailRecipients() {
         </button>
       </div>
       {error && <div className="text-red-400 text-xs mb-2">{error}</div>}
-      <div className="flex flex-wrap gap-2">
+      <div className="flex flex-wrap gap-2 mb-4">
         {emails.map((e) => (
           <span
             key={e}
@@ -87,6 +110,29 @@ function EmailRecipients() {
             </button>
           </span>
         ))}
+      </div>
+      
+      {/* Message field */}
+      <div className="mb-4">
+        <textarea
+          placeholder="Enter message"
+          value={message}
+          onChange={(e) => setMessage(e.target.value)}
+          className="w-full px-3 py-2 rounded bg-[#1B1D21] border border-gray-600 text-white placeholder-gray-400 focus:outline-none focus:border-[var(--primary-dark)] resize-none"
+          style={{ fontFamily: "Poppins", fontSize: "14px" }}
+          rows={4}
+        />
+      </div>
+      
+      {/* Send button */}
+      <div className="flex justify-end">
+        <button
+          type="button"
+          onClick={handleSend}
+          className="bg-[#00DF71] text-[#212327] px-6 py-2 rounded font-semibold hover:bg-[#0AFB84] transition-colors"
+        >
+          Send
+        </button>
       </div>
     </div>
   );
@@ -363,7 +409,7 @@ export default function PropDetailPage() {
                 <h3 className="text-lg font-medium text-white mb-3">
                   Share Prop
                 </h3>
-                <div className="flex flex-wrap justify-center gap-3 mb-2 sm:gap-4 md:gap-5">
+                <div className="flex flex-wrap justify-start gap-3 mb-2 sm:gap-4 md:gap-5">
                   {[
                     {
                       label: "Copy",
@@ -421,17 +467,7 @@ export default function PropDetailPage() {
                     </button>
                   ))}
                 </div>
-                <div className="flex justify-end mt-2 gap-2">
-                  <button
-                    type="button"
-                    className="px-3 py-1 text-xs bg-gray-600 text-white rounded hover:bg-gray-500"
-                    onClick={async () => {
-                      // naive retry: navigate user to Share step with this prop context
-                      router.push(`/digital-awards-generator`);
-                    }}
-                  >
-                    Regenerate Image
-                  </button>
+                <div className="flex justify-end mt-2">
                   <button
                     type="button"
                     className="px-3 py-1 text-xs text-white rounded hover:opacity-90"
