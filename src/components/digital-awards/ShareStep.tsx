@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
+import { useRouter } from "next/navigation";
 import { auth } from "@/lib/firebase";
 import {
   saveUserProp,
@@ -43,6 +44,7 @@ export default function ShareStep({
   fromDate,
   fromMessage,
 }: ShareStepProps) {
+  const router = useRouter();
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedAward, setGeneratedAward] = useState("");
   const [isLoggedIn, setIsLoggedIn] = useState<boolean | null>(null);
@@ -60,6 +62,15 @@ export default function ShareStep({
   const showGeneratedAwardText = false;
   // Toggle to show/hide the login notice link
   const showLoginNotice = false;
+
+  // Monitor authentication state
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      setIsLoggedIn(!!user);
+    });
+
+    return () => unsubscribe();
+  }, []);
 
   const handleGenerateAward = async () => {
     setIsGenerating(true);
@@ -948,25 +959,13 @@ This digital award recognizes excellence and dedication in professional developm
       setPreviewImageUrl(null);
     }
   };
-  const handleDownload = () => {
-    const element = document.createElement("a");
-    const file = new Blob([generatedAward], { type: "text/plain" });
-    element.href = URL.createObjectURL(file);
-    element.download = "digital-award.txt";
-    document.body.appendChild(element);
-    element.click();
-    document.body.removeChild(element);
-  };
 
   const handleShare = () => {
-    if (navigator.share) {
-      navigator.share({
-        title: "Digital Award",
-        text: generatedAward,
-      });
+    if (savedPropId) {
+      router.push(`/props/${savedPropId}`);
     } else {
-      navigator.clipboard.writeText(generatedAward);
-      alert("Award copied to clipboard!");
+      console.error("No saved prop ID available");
+      alert("Error: Prop not found. Please try generating again.");
     }
   };
 
@@ -1172,16 +1171,10 @@ This digital award recognizes excellence and dedication in professional developm
 
             <div className="flex gap-2">
               <button
-                onClick={handleDownload}
-                className="flex-1 px-4 py-2 text-sm font-medium transition-colors bg-gray-600 text-white rounded hover:bg-gray-500"
-              >
-                Download
-              </button>
-              <button
                 onClick={handleShare}
-                className="flex-1 px-4 py-2 text-sm font-medium transition-colors bg-[var(--primary-dark)] text-[#212327] rounded hover:bg-[#0AFB84]"
+                className="w-full px-4 py-2 text-sm font-medium transition-colors bg-[var(--primary-dark)] text-[#212327] rounded hover:bg-[#0AFB84]"
               >
-                Share
+                View Prop
               </button>
             </div>
           </div>

@@ -213,7 +213,7 @@ export default function PropDetailPage() {
               <button
                 type="button"
                 aria-label="Go back"
-                onClick={() => router.back()}
+                onClick={() => router.push(`/profile`)}
                 className="flex items-center text-gray-300 hover:text-white transition-colors"
               >
                 <svg
