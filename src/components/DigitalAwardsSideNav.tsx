@@ -23,7 +23,7 @@ export default function DigitalAwardsSideNav({
     { key: "company", label: "Company", icon: "/company.svg" },
     { key: "background", label: "Background", icon: "/background.svg" },
     { key: "props-details", label: "Details", icon: "/details.svg" },
-    { key: "share", label: "Share", icon: "/share.svg" },
+    { key: "share", label: "Save", icon: "/save.svg" },
   ];
 
   return (
