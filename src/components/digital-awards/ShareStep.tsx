@@ -485,7 +485,6 @@ This digital award recognizes excellence and dedication in professional developm
       reader.onerror = (error) => reject(error);
     });
   };
-
   const generatePreviewImage = async (uploadedAssets: any) => {
     try {
       console.log("Generating preview image with assets:", uploadedAssets);
@@ -671,21 +670,55 @@ This digital award recognizes excellence and dedication in professional developm
             // Add props recipients box first (if any) - matching prop detail page exactly
             let currentY = 90; // Adjusted for 80px header
             const padding = 12; // Reduced from 16 to 12 for smaller canvas
-            const lineHeight = 14; // Reduced from 16 to 14 for smaller canvas
+            const lineHeight = 20; // Increased for larger font
             const maxBoxWidth = 296; // Max width like prop detail page
             const availableTextWidth = maxBoxWidth - padding * 2; // Width available for text
 
             // Draw props recipients box if there are any
             if (propsRecipients && propsRecipients.length > 0) {
-              // Format recipients: "Props recipients:" on first line, recipients on second line
-              const recipientsLines = [
-                "Props recipients:",
-                propsRecipients.join(", "),
-              ];
+              // Handle text wrapping for recipients
+              const recipientsText = propsRecipients.join(", ");
+              const recipientsLines: string[] = ["Props recipients:"];
+
+              // Proper text wrapping for recipients
+              let currentLine = "";
+              const maxLineWidth = availableTextWidth;
+
+              // Split by commas first, then by spaces if needed
+              const recipients = recipientsText.split(", ");
+
+              // Set font for accurate measurement
+              ctx.font = "16px Poppins"; // Increased font size
+
+              for (let i = 0; i < recipients.length; i++) {
+                const recipient = recipients[i];
+
+                // If this recipient fits on the current line
+                if (currentLine === "") {
+                  currentLine = recipient;
+                } else {
+                  const testLine = currentLine + ", " + recipient;
+                  const testWidth = ctx.measureText(testLine).width;
+
+                  if (testWidth <= maxLineWidth) {
+                    currentLine = testLine;
+                  } else {
+                    // Current line is full, add it and start new line
+                    if (currentLine) {
+                      recipientsLines.push(currentLine);
+                    }
+                    currentLine = recipient;
+                  }
+                }
+              }
+
+              // Add the last line
+              if (currentLine) {
+                recipientsLines.push(currentLine);
+              }
 
               // Calculate text width for recipients box - auto width with max constraint
               let maxRecipientsTextWidth = 0;
-              ctx.font = "12px Poppins";
               recipientsLines.forEach((line: string) => {
                 const textWidth = ctx.measureText(line).width;
                 maxRecipientsTextWidth = Math.max(
@@ -694,11 +727,8 @@ This digital award recognizes excellence and dedication in professional developm
                 );
               });
 
-              // Calculate recipients box width - auto width with max of 296px
-              const recipientsBoxWidth = Math.min(
-                maxRecipientsTextWidth + padding * 2,
-                maxBoxWidth
-              );
+              // Calculate recipients box width - same width as message box will be
+              const recipientsBoxWidth = maxBoxWidth; // Use full max width to match message box
 
               // Calculate box height for recipients - auto height based on content
               const recipientsBoxHeight = Math.max(
@@ -733,16 +763,16 @@ This digital award recognizes excellence and dedication in professional developm
 
               // Add recipients text
               ctx.fillStyle = "white";
-              ctx.font = "12px Poppins"; // Reduced from 16px to 12px for smaller canvas
+              ctx.font = "16px Poppins"; // Increased font size
               ctx.textAlign = "left";
 
               recipientsLines.forEach((line: string, index: number) => {
                 // Add extra spacing between "Props recipients:" and the names
-                const extraSpacing = index === 1 ? 6 : 0; // Add 6px extra space after the heading
+                const extraSpacing = index === 1 ? 4 : 0; // Reduced extra space
                 ctx.fillText(
                   line,
                   24,
-                  currentY + padding + index * lineHeight + 8 + extraSpacing // Reduced margin top to match second box (8 instead of 16)
+                  currentY + padding + index * lineHeight + 12 + extraSpacing
                 );
               });
 
@@ -755,7 +785,7 @@ This digital award recognizes excellence and dedication in professional developm
             let maxTextWidth = 0;
 
             // Set font for measuring
-            ctx.font = "12px Poppins";
+            ctx.font = "16px Poppins"; // Increased font size
 
             // Add From name (without date on same line)
             let hasFromLine = false;
@@ -812,7 +842,7 @@ This digital award recognizes excellence and dedication in professional developm
             }
 
             // Calculate final box dimensions based on actual text content (no extra whitespace)
-            const boxWidth = maxTextWidth + padding * 2; // Size exactly to content
+            const boxWidth = Math.min(maxTextWidth + padding * 2, maxBoxWidth); // Use max width to match recipients box
             const spacingBetweenSections = hasFromLine && fromMessage ? 8 : 0; // Extra spacing between From and message
             const boxHeight =
               textLines.length * lineHeight +
@@ -840,11 +870,11 @@ This digital award recognizes excellence and dedication in professional developm
 
             // Add text inside message box - matching prop detail page exactly
             ctx.fillStyle = "white";
-            ctx.font = "12px Poppins"; // Reduced from 16px to 12px for smaller canvas
+            ctx.font = "16px Poppins"; // Increased font size
             ctx.textAlign = "left";
 
             // Draw all text lines with proper spacing
-            let textY = currentY + padding + 4; // Starting Y position
+            let textY = currentY + padding + 8; // Starting Y position
             textLines.forEach((line, index) => {
               // Add extra spacing after the "From:" line
               if (index === 1 && hasFromLine) {
@@ -867,7 +897,7 @@ This digital award recognizes excellence and dedication in professional developm
               ctx.fillText(
                 formattedDate,
                 16 + boxWidth - padding, // Right edge minus padding
-                currentY + padding + 4 // Same Y as first line with offset
+                currentY + padding + 8 // Same Y as first line with offset
               );
               ctx.textAlign = "left"; // Reset to left alignment
             }
@@ -968,11 +998,6 @@ This digital award recognizes excellence and dedication in professional developm
       alert("Error: Prop not found. Please try generating again.");
     }
   };
-
-
-
-
-
 
   return (
     <div
@@ -1179,7 +1204,6 @@ This digital award recognizes excellence and dedication in professional developm
             </div>
           </div>
         )}
-
       </div>
 
       {/* Navigation buttons */}
