@@ -676,38 +676,32 @@ This digital award recognizes excellence and dedication in professional developm
 
             // Draw props recipients box if there are any
             if (propsRecipients && propsRecipients.length > 0) {
-              // Handle text wrapping for recipients
+              // Handle text wrapping for recipients - FIXED TO USE COMMA SEPARATION
               const recipientsText = propsRecipients.join(", ");
               const recipientsLines: string[] = ["Props recipients:"];
-
-              // Proper text wrapping for recipients
-              let currentLine = "";
-              const maxLineWidth = availableTextWidth;
-
-              // Split by commas first, then by spaces if needed
-              const recipients = recipientsText.split(", ");
 
               // Set font for accurate measurement
               ctx.font = "16px Poppins"; // Increased font size
 
-              for (let i = 0; i < recipients.length; i++) {
-                const recipient = recipients[i];
+              // Wrap the comma-separated names properly
+              const words = recipientsText.split(" ");
+              let currentLine = "";
+              const maxLineWidth = availableTextWidth;
 
-                // If this recipient fits on the current line
-                if (currentLine === "") {
-                  currentLine = recipient;
+              for (let i = 0; i < words.length; i++) {
+                const testLine =
+                  currentLine + (currentLine ? " " : "") + words[i];
+                const testWidth = ctx.measureText(testLine).width;
+
+                if (testWidth <= maxLineWidth) {
+                  currentLine = testLine;
                 } else {
-                  const testLine = currentLine + ", " + recipient;
-                  const testWidth = ctx.measureText(testLine).width;
-
-                  if (testWidth <= maxLineWidth) {
-                    currentLine = testLine;
+                  if (currentLine) {
+                    recipientsLines.push(currentLine);
+                    currentLine = words[i];
                   } else {
-                    // Current line is full, add it and start new line
-                    if (currentLine) {
-                      recipientsLines.push(currentLine);
-                    }
-                    currentLine = recipient;
+                    // Single word is too long, add it anyway
+                    recipientsLines.push(words[i]);
                   }
                 }
               }
