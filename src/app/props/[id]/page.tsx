@@ -318,21 +318,34 @@ export default function PropDetailPage() {
                     height: "480px",
                   }}
                 >
-                  {/* Use the saved base64 preview image - this should match exactly what was generated in ShareStep */}
-                  {prop.previewImageBase64 ? (
+                  {/* Use the saved Cloudinary preview image - this should match exactly what was generated in ShareStep */}
+                  {prop.previewImageUrl ? (
                     <img
-                      src={prop.previewImageBase64}
+                      src={prop.previewImageUrl}
                       alt={prop.propsTitle || "Prop"}
                       className="relative z-20 w-full h-full"
                       style={{
                         borderRadius: "4px",
                         width: "100%",
-                        height: "100%",
-                        objectFit: "cover",
-                        objectPosition: "center",
-                      }}
-                    />
-                  ) : prop.achievement?.backgroundImage ||
+                                  height: "100%",
+                                  objectFit: "cover",
+                                  objectPosition: "center",
+                                }}
+                              />
+                            ) : prop.previewImageBase64 ? (
+                              <img
+                                src={prop.previewImageBase64}
+                                alt={prop.propsTitle || "Prop"}
+                                className="relative z-20 w-full h-full"
+                                style={{
+                                  borderRadius: "4px",
+                                  width: "100%",
+                                  height: "100%",
+                                  objectFit: "cover",
+                                  objectPosition: "center",
+                                }}
+                              />
+                            ) : prop.achievement?.backgroundImage ||
                     prop.achievement?.props ? (
                     /* Fallback: Reconstruct from template data like in preview */
                     <>

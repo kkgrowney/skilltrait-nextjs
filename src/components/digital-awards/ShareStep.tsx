@@ -14,6 +14,7 @@ import {
 } from "@/lib/firebase";
 import Link from "next/link";
 import AuthModal from "./AuthModal";
+import { uploadToCloudinary } from "@/lib/cloudinary";
 
 interface ShareStepProps {
   onPrevious: () => void;
@@ -89,23 +90,25 @@ export default function ShareStep({
       setProcessStep("Uploading assets and creating template...");
       const uploadedAssets = await uploadAssetsAndCreateTemplate(user.uid);
 
-      // Step 2: Generate preview image locally first
-      setProcessStep("Generating preview image...");
-      await generatePreviewImage(uploadedAssets);
+      // Step 2: Generate preview image and upload to Cloudinary
+      setProcessStep("Generating preview image and uploading to Cloudinary...");
+      const previewResult = await generatePreviewImage(uploadedAssets);
 
       // Step 3: Save the preview image to database
       setProcessStep("Saving preview image to database...");
 
-      // Wait a moment to ensure the preview image is generated
-      await new Promise((resolve) => setTimeout(resolve, 2000));
+      // Get the preview image result (Cloudinary URL or base64 fallback)
+      const cloudinaryUrl = previewResult?.startsWith("http")
+        ? previewResult
+        : null;
+      const savedPreviewImage = previewResult?.startsWith("http")
+        ? null
+        : previewResult;
 
-      // Get the base64 image from localStorage
-      const savedPreviewImage = localStorage.getItem(
-        "temp-preview-image-base64"
-      );
       console.log(
-        "Retrieved preview image from localStorage:",
-        savedPreviewImage
+        "Retrieved preview image result:",
+        cloudinaryUrl ? "Cloudinary URL" : "Base64",
+        cloudinaryUrl || savedPreviewImage
       );
 
       // Log the uploaded assets for debugging
@@ -153,7 +156,8 @@ export default function ShareStep({
           },
           logoUrl: uploadedAssets.logoUrl || null,
           backgroundUrl: uploadedAssets.backgroundUrl || null,
-          previewImageBase64: savedPreviewImage || "", // Use the base64 from localStorage
+          previewImageUrl: cloudinaryUrl || null, // Save Cloudinary URL
+          previewImageBase64: cloudinaryUrl ? null : savedPreviewImage || "", // Fallback to base64 if no Cloudinary URL
           createdAt: new Date(),
           updatedAt: new Date(),
         };
@@ -485,503 +489,679 @@ This digital award recognizes excellence and dedication in professional developm
       reader.onerror = (error) => reject(error);
     });
   };
-  const generatePreviewImage = async (uploadedAssets: any) => {
-    try {
-      console.log("Generating preview image with assets:", uploadedAssets);
+  const generatePreviewImage = async (uploadedAssets: any): Promise<string> => {
+    return new Promise(async (resolve, reject) => {
+      try {
+        console.log("Generating preview image with assets:", uploadedAssets);
 
-      // Create a canvas to composite the images
-      const canvas = document.createElement("canvas");
-      const ctx = canvas.getContext("2d");
-      if (!ctx) {
-        throw new Error("Could not get canvas context");
-      }
-
-      // Set canvas size to match prop detail page (full image without aspect ratio constraint)
-      canvas.width = 600;
-      canvas.height = 480;
-
-      // Load background image
-      const backgroundImg = new Image();
-      backgroundImg.crossOrigin = "anonymous";
-
-      backgroundImg.onload = () => {
-        // Draw background with object-fit: cover behavior to prevent distortion
-        const canvasAspectRatio = canvas.width / canvas.height;
-        const imageAspectRatio = backgroundImg.width / backgroundImg.height;
-
-        let drawWidth, drawHeight, drawX, drawY;
-
-        if (imageAspectRatio > canvasAspectRatio) {
-          // Image is wider than canvas - fit to height, crop width
-          drawHeight = canvas.height;
-          drawWidth =
-            backgroundImg.width * (canvas.height / backgroundImg.height);
-          drawX = (canvas.width - drawWidth) / 2;
-          drawY = 0;
-        } else {
-          // Image is taller than canvas - fit to width, crop height
-          drawWidth = canvas.width;
-          drawHeight =
-            backgroundImg.height * (canvas.width / backgroundImg.width);
-          drawX = 0;
-          drawY = (canvas.height - drawHeight) / 2;
+        // Create a canvas to composite the images
+        const canvas = document.createElement("canvas");
+        const ctx = canvas.getContext("2d");
+        if (!ctx) {
+          throw new Error("Could not get canvas context");
         }
 
-        ctx.drawImage(backgroundImg, drawX, drawY, drawWidth, drawHeight);
+        // Set canvas size to match prop detail page (full image without aspect ratio constraint)
+        canvas.width = 600;
+        canvas.height = 480;
 
-        // Load props image (main illustration)
-        const propsImg = new Image();
-        propsImg.crossOrigin = "anonymous";
+        // Load background image
+        const backgroundImg = new Image();
+        backgroundImg.crossOrigin = "anonymous";
 
-        propsImg.onload = () => {
-          // Draw props image on top of background with object-fit: cover behavior
+        backgroundImg.onload = () => {
+          // Draw background with object-fit: cover behavior to prevent distortion
           const canvasAspectRatio = canvas.width / canvas.height;
-          const imageAspectRatio = propsImg.width / propsImg.height;
+          const imageAspectRatio = backgroundImg.width / backgroundImg.height;
 
           let drawWidth, drawHeight, drawX, drawY;
 
           if (imageAspectRatio > canvasAspectRatio) {
             // Image is wider than canvas - fit to height, crop width
             drawHeight = canvas.height;
-            drawWidth = propsImg.width * (canvas.height / propsImg.height);
+            drawWidth =
+              backgroundImg.width * (canvas.height / backgroundImg.height);
             drawX = (canvas.width - drawWidth) / 2;
             drawY = 0;
           } else {
             // Image is taller than canvas - fit to width, crop height
             drawWidth = canvas.width;
-            drawHeight = propsImg.height * (canvas.width / propsImg.width);
+            drawHeight =
+              backgroundImg.height * (canvas.width / backgroundImg.width);
             drawX = 0;
             drawY = (canvas.height - drawHeight) / 2;
           }
 
-          ctx.drawImage(propsImg, drawX, drawY, drawWidth, drawHeight);
+          ctx.drawImage(backgroundImg, drawX, drawY, drawWidth, drawHeight);
 
-          // Load logo image
-          const logoImg = new Image();
-          logoImg.crossOrigin = "anonymous";
+          // Load props image (main illustration)
+          const propsImg = new Image();
+          propsImg.crossOrigin = "anonymous";
 
-          logoImg.onload = () => {
-            // Draw logo in top-left corner (32px height, 200px width area) - scaled down
-            const logoHeight = 32;
-            const logoWidth = Math.min(
-              200,
-              logoImg.width * (logoHeight / logoImg.height)
-            );
-            ctx.drawImage(logoImg, 16, 16, logoWidth, logoHeight);
+          propsImg.onload = () => {
+            // Draw props image on top of background with object-fit: cover behavior
+            const canvasAspectRatio = canvas.width / canvas.height;
+            const imageAspectRatio = propsImg.width / propsImg.height;
 
-            // Add title text in top-right (16px font, right-aligned) - scaled down
-            ctx.fillStyle = "black";
-            ctx.font = "bold 16px Poppins";
-            ctx.textAlign = "right";
-            ctx.fillText(propsTitle || "Title", canvas.width - 16, 32);
+            let drawWidth, drawHeight, drawX, drawY;
 
-            // Draw white header background with border - increased to 80px height
-            ctx.fillStyle = "white";
-            ctx.fillRect(0, 0, canvas.width, 80); // 80px height
-            ctx.strokeStyle = "#E4E4E4"; // Same border color as prop detail page
-            ctx.lineWidth = 1;
-            ctx.strokeRect(0, 79, canvas.width, 1); // Bottom border at 79
-
-            // Redraw logo on top of white background - adjusted for 80px header
-            if (logoUrl) {
-              const logoHeight = 50; // Increased height for larger header
-              const logoWidth = Math.min(
-                300, // Increased max width for larger header
-                logoImg.width * (logoHeight / logoImg.height)
-              );
-              ctx.drawImage(logoImg, 16, 15, logoWidth, logoHeight); // Adjusted Y position
+            if (imageAspectRatio > canvasAspectRatio) {
+              // Image is wider than canvas - fit to height, crop width
+              drawHeight = canvas.height;
+              drawWidth = propsImg.width * (canvas.height / propsImg.height);
+              drawX = (canvas.width - drawWidth) / 2;
+              drawY = 0;
+            } else {
+              // Image is taller than canvas - fit to width, crop height
+              drawWidth = canvas.width;
+              drawHeight = propsImg.height * (canvas.width / propsImg.width);
+              drawX = 0;
+              drawY = (canvas.height - drawHeight) / 2;
             }
 
-            // Redraw title text on top of white background - adjusted for 80px header
-            ctx.fillStyle = "black";
-            ctx.font = "24px Poppins"; // Increased font size for larger header
-            ctx.textAlign = "right";
-            ctx.fillText(propsTitle || "Title", canvas.width - 16, 52); // Adjusted Y position
+            ctx.drawImage(propsImg, drawX, drawY, drawWidth, drawHeight);
 
-            // Add Skilltrait branding at bottom right corner with top-left border rounded
-            ctx.fillStyle = "rgba(0, 0, 0, 0.4)"; // Decreased opacity background
-            ctx.font = "10px Poppins"; // Reduced font size
-            ctx.textAlign = "center"; // Center align text
+            // Load logo image
+            const logoImg = new Image();
+            logoImg.crossOrigin = "anonymous";
 
-            // Create rounded rectangle for Skilltrait branding
-            const skilltraitText = "@Skilltrait";
-            const skilltraitTextWidth = ctx.measureText(skilltraitText).width;
-            const skilltraitPadding = 12; // Increased padding
-            const skilltraitWidth = skilltraitTextWidth + skilltraitPadding * 2;
-            const skilltraitHeight = 24; // Increased height for more padding
-            const skilltraitX = canvas.width - skilltraitWidth; // Joint to right edge
-            const skilltraitY = canvas.height - skilltraitHeight; // Joint to bottom edge
-
-            // Draw rounded rectangle with top-left border radius
-            ctx.beginPath();
-            ctx.moveTo(skilltraitX + 8, skilltraitY); // Top-left rounded corner
-            ctx.lineTo(skilltraitX + skilltraitWidth, skilltraitY);
-            ctx.lineTo(
-              skilltraitX + skilltraitWidth,
-              skilltraitY + skilltraitHeight
-            );
-            ctx.lineTo(skilltraitX, skilltraitY + skilltraitHeight);
-            ctx.lineTo(skilltraitX, skilltraitY + 8);
-            ctx.quadraticCurveTo(
-              skilltraitX,
-              skilltraitY,
-              skilltraitX + 8,
-              skilltraitY
-            );
-            ctx.closePath();
-            ctx.fill();
-
-            // Add Skilltrait text centered in the tag
-            ctx.fillStyle = "white";
-            ctx.fillText(
-              skilltraitText,
-              skilltraitX + skilltraitWidth / 2,
-              skilltraitY + 16 // Adjusted for new height
-            );
-
-            // Helper function to draw rounded rectangle with proper border radius
-            const drawRoundedRect = (
-              x: number,
-              y: number,
-              width: number,
-              height: number,
-              radius: number
-            ) => {
-              ctx.beginPath();
-              ctx.moveTo(x + radius, y);
-              ctx.lineTo(x + width - radius, y);
-              ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
-              ctx.lineTo(x + width, y + height - radius);
-              ctx.quadraticCurveTo(
-                x + width,
-                y + height,
-                x + width - radius,
-                y + height
+            logoImg.onload = () => {
+              // Draw logo in top-left corner (32px height, 200px width area) - scaled down
+              const logoHeight = 32;
+              const logoWidth = Math.min(
+                200,
+                logoImg.width * (logoHeight / logoImg.height)
               );
-              ctx.lineTo(x + radius, y + height);
-              ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
-              ctx.lineTo(x, y + radius);
-              ctx.quadraticCurveTo(x, y, x + radius, y);
+              ctx.drawImage(logoImg, 16, 16, logoWidth, logoHeight);
+
+              // Add title text in top-right (16px font, right-aligned) - scaled down
+              ctx.fillStyle = "black";
+              ctx.font = "bold 16px Poppins";
+              ctx.textAlign = "right";
+              ctx.fillText(propsTitle || "Title", canvas.width - 16, 32);
+
+              // Draw white header background with border - increased to 80px height
+              ctx.fillStyle = "white";
+              ctx.fillRect(0, 0, canvas.width, 80); // 80px height
+              ctx.strokeStyle = "#E4E4E4"; // Same border color as prop detail page
+              ctx.lineWidth = 1;
+              ctx.strokeRect(0, 79, canvas.width, 1); // Bottom border at 79
+
+              // Redraw logo on top of white background - adjusted for 80px header
+              if (logoUrl) {
+                const logoHeight = 50; // Increased height for larger header
+                const logoWidth = Math.min(
+                  300, // Increased max width for larger header
+                  logoImg.width * (logoHeight / logoImg.height)
+                );
+                ctx.drawImage(logoImg, 16, 15, logoWidth, logoHeight); // Adjusted Y position
+              }
+
+              // Redraw title text on top of white background - adjusted for 80px header
+              ctx.fillStyle = "black";
+              ctx.font = "24px Poppins"; // Increased font size for larger header
+              ctx.textAlign = "right";
+              ctx.fillText(propsTitle || "Title", canvas.width - 16, 52); // Adjusted Y position
+
+              // Add Skilltrait branding at bottom right corner with top-left border rounded
+              ctx.fillStyle = "rgba(0, 0, 0, 0.4)"; // Decreased opacity background
+              ctx.font = "10px Poppins"; // Reduced font size
+              ctx.textAlign = "center"; // Center align text
+
+              // Create rounded rectangle for Skilltrait branding
+              const skilltraitText = "@Skilltrait";
+              const skilltraitTextWidth = ctx.measureText(skilltraitText).width;
+              const skilltraitPadding = 12; // Increased padding
+              const skilltraitWidth =
+                skilltraitTextWidth + skilltraitPadding * 2;
+              const skilltraitHeight = 24; // Increased height for more padding
+              const skilltraitX = canvas.width - skilltraitWidth; // Joint to right edge
+              const skilltraitY = canvas.height - skilltraitHeight; // Joint to bottom edge
+
+              // Draw rounded rectangle with top-left border radius
+              ctx.beginPath();
+              ctx.moveTo(skilltraitX + 8, skilltraitY); // Top-left rounded corner
+              ctx.lineTo(skilltraitX + skilltraitWidth, skilltraitY);
+              ctx.lineTo(
+                skilltraitX + skilltraitWidth,
+                skilltraitY + skilltraitHeight
+              );
+              ctx.lineTo(skilltraitX, skilltraitY + skilltraitHeight);
+              ctx.lineTo(skilltraitX, skilltraitY + 8);
+              ctx.quadraticCurveTo(
+                skilltraitX,
+                skilltraitY,
+                skilltraitX + 8,
+                skilltraitY
+              );
               ctx.closePath();
-            };
+              ctx.fill();
 
-            const borderRadius = 12; // Tailwind rounded-lg equivalent (12px for better visibility)
+              // Add Skilltrait text centered in the tag
+              ctx.fillStyle = "white";
+              ctx.fillText(
+                skilltraitText,
+                skilltraitX + skilltraitWidth / 2,
+                skilltraitY + 16 // Adjusted for new height
+              );
 
-            // Add props recipients box first (if any) - matching prop detail page exactly
-            let currentY = 90; // Adjusted for 80px header
-            const padding = 12; // Reduced from 16 to 12 for smaller canvas
-            const lineHeight = 20; // Increased for larger font
-            const maxBoxWidth = 296; // Max width like prop detail page
-            const availableTextWidth = maxBoxWidth - padding * 2; // Width available for text
+              // Helper function to draw rounded rectangle with proper border radius
+              const drawRoundedRect = (
+                x: number,
+                y: number,
+                width: number,
+                height: number,
+                radius: number
+              ) => {
+                ctx.beginPath();
+                ctx.moveTo(x + radius, y);
+                ctx.lineTo(x + width - radius, y);
+                ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
+                ctx.lineTo(x + width, y + height - radius);
+                ctx.quadraticCurveTo(
+                  x + width,
+                  y + height,
+                  x + width - radius,
+                  y + height
+                );
+                ctx.lineTo(x + radius, y + height);
+                ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
+                ctx.lineTo(x, y + radius);
+                ctx.quadraticCurveTo(x, y, x + radius, y);
+                ctx.closePath();
+              };
 
-            // Draw props recipients box if there are any
-            if (propsRecipients && propsRecipients.length > 0) {
-              // Handle text wrapping for recipients - FIXED TO USE COMMA SEPARATION
-              const recipientsText = propsRecipients.join(", ");
-              const recipientsLines: string[] = ["Props recipients:"];
+              const borderRadius = 12; // Tailwind rounded-lg equivalent (12px for better visibility)
 
-              // Set font for accurate measurement
+              // Add props recipients box first (if any) - matching prop detail page exactly
+              let currentY = 90; // Adjusted for 80px header
+              const padding = 12; // Reduced from 16 to 12 for smaller canvas
+              const lineHeight = 20; // Increased for larger font
+              const maxBoxWidth = 296; // Max width like prop detail page
+              const availableTextWidth = maxBoxWidth - padding * 2; // Width available for text
+
+              // Draw props recipients box if there are any
+              if (propsRecipients && propsRecipients.length > 0) {
+                // Handle text wrapping for recipients - FIXED TO USE COMMA SEPARATION
+                const recipientsText = propsRecipients.join(", ");
+                const recipientsLines: string[] = ["Props recipients:"];
+
+                // Set font for accurate measurement
+                ctx.font = "16px Poppins"; // Increased font size
+
+                // Wrap the comma-separated names properly
+                const words = recipientsText.split(" ");
+                let currentLine = "";
+                const maxLineWidth = availableTextWidth;
+
+                for (let i = 0; i < words.length; i++) {
+                  const testLine =
+                    currentLine + (currentLine ? " " : "") + words[i];
+                  const testWidth = ctx.measureText(testLine).width;
+
+                  if (testWidth <= maxLineWidth) {
+                    currentLine = testLine;
+                  } else {
+                    if (currentLine) {
+                      recipientsLines.push(currentLine);
+                      currentLine = words[i];
+                    } else {
+                      // Single word is too long, add it anyway
+                      recipientsLines.push(words[i]);
+                    }
+                  }
+                }
+
+                // Add the last line
+                if (currentLine) {
+                  recipientsLines.push(currentLine);
+                }
+
+                // Calculate text width for recipients box - auto width with max constraint
+                let maxRecipientsTextWidth = 0;
+                recipientsLines.forEach((line: string) => {
+                  const textWidth = ctx.measureText(line).width;
+                  maxRecipientsTextWidth = Math.max(
+                    maxRecipientsTextWidth,
+                    textWidth
+                  );
+                });
+
+                // Calculate recipients box width - same width as message box will be
+                const recipientsBoxWidth = maxBoxWidth; // Use full max width to match message box
+
+                // Calculate box height for recipients - auto height based on content
+                const recipientsBoxHeight = Math.max(
+                  recipientsLines.length * lineHeight + padding * 2,
+                  lineHeight + padding * 2 // Minimum height for single line
+                );
+
+                // Create linear gradient background for recipients box - matching prop-inside-box class exactly
+                const recipientsGradient = ctx.createLinearGradient(
+                  16,
+                  currentY,
+                  16 + recipientsBoxWidth,
+                  currentY
+                );
+                recipientsGradient.addColorStop(0, "rgba(173, 175, 190, 0.8)");
+                recipientsGradient.addColorStop(0.5, "rgba(79, 114, 149, 0.8)"); // Increased opacity to match CSS
+                recipientsGradient.addColorStop(1, "rgba(173, 175, 190, 0.8)");
+
+                ctx.fillStyle = recipientsGradient;
+                ctx.globalAlpha = 1.0; // Full opacity to match CSS
+
+                // Draw rounded rectangle for recipients box
+                drawRoundedRect(
+                  16,
+                  currentY,
+                  recipientsBoxWidth,
+                  recipientsBoxHeight,
+                  borderRadius
+                );
+                ctx.fill();
+                ctx.globalAlpha = 1.0;
+
+                // Add recipients text
+                ctx.fillStyle = "white";
+                ctx.font = "16px Poppins"; // Increased font size
+                ctx.textAlign = "left";
+
+                recipientsLines.forEach((line: string, index: number) => {
+                  // Add extra spacing between "Props recipients:" and the names
+                  const extraSpacing = index === 1 ? 4 : 0; // Reduced extra space
+                  ctx.fillText(
+                    line,
+                    24,
+                    currentY + padding + index * lineHeight + 12 + extraSpacing
+                  );
+                });
+
+                // Move to next position for message box
+                currentY += recipientsBoxHeight + 10; // Add spacing between boxes
+              }
+
+              // Calculate text content and measure dimensions
+              const textLines: string[] = [];
+              let maxTextWidth = 0;
+
+              // Set font for measuring
               ctx.font = "16px Poppins"; // Increased font size
 
-              // Wrap the comma-separated names properly
-              const words = recipientsText.split(" ");
-              let currentLine = "";
-              const maxLineWidth = availableTextWidth;
+              // Add From name (without date on same line)
+              let hasFromLine = false;
+              if (fromName) {
+                const headerLine = `From: ${fromName}`;
+                textLines.push(headerLine);
+                hasFromLine = true;
+                maxTextWidth = Math.max(
+                  maxTextWidth,
+                  ctx.measureText(headerLine).width
+                );
+              }
 
-              for (let i = 0; i < words.length; i++) {
-                const testLine =
-                  currentLine + (currentLine ? " " : "") + words[i];
-                const testWidth = ctx.measureText(testLine).width;
+              // Handle message text with word wrapping
+              if (fromMessage) {
+                const words = fromMessage.split(" ");
+                let currentLine = "";
+                const maxWidth = availableTextWidth; // Use the actual available width
 
-                if (testWidth <= maxLineWidth) {
-                  currentLine = testLine;
-                } else {
-                  if (currentLine) {
-                    recipientsLines.push(currentLine);
-                    currentLine = words[i];
+                for (let i = 0; i < words.length; i++) {
+                  const testLine =
+                    currentLine + (currentLine ? " " : "") + words[i];
+                  const testWidth = ctx.measureText(testLine).width;
+
+                  if (testWidth <= maxWidth) {
+                    currentLine = testLine;
                   } else {
-                    // Single word is too long, add it anyway
-                    recipientsLines.push(words[i]);
+                    if (currentLine) {
+                      textLines.push(currentLine);
+                      maxTextWidth = Math.max(
+                        maxTextWidth,
+                        ctx.measureText(currentLine).width
+                      );
+                      currentLine = words[i];
+                    } else {
+                      // Single word is too long, add it anyway
+                      textLines.push(words[i]);
+                      maxTextWidth = Math.max(
+                        maxTextWidth,
+                        ctx.measureText(words[i]).width
+                      );
+                    }
                   }
+                }
+
+                // Add the last line
+                if (currentLine) {
+                  textLines.push(currentLine);
+                  maxTextWidth = Math.max(
+                    maxTextWidth,
+                    ctx.measureText(currentLine).width
+                  );
                 }
               }
 
-              // Add the last line
-              if (currentLine) {
-                recipientsLines.push(currentLine);
-              }
+              // Calculate final box dimensions based on actual text content (no extra whitespace)
+              const boxWidth = Math.min(
+                maxTextWidth + padding * 2,
+                maxBoxWidth
+              ); // Use max width to match recipients box
+              const spacingBetweenSections = hasFromLine && fromMessage ? 8 : 0; // Extra spacing between From and message
+              const boxHeight =
+                textLines.length * lineHeight +
+                padding * 2 +
+                spacingBetweenSections; // Added padding to bottom + spacing
 
-              // Calculate text width for recipients box - auto width with max constraint
-              let maxRecipientsTextWidth = 0;
-              recipientsLines.forEach((line: string) => {
-                const textWidth = ctx.measureText(line).width;
-                maxRecipientsTextWidth = Math.max(
-                  maxRecipientsTextWidth,
-                  textWidth
-                );
-              });
-
-              // Calculate recipients box width - same width as message box will be
-              const recipientsBoxWidth = maxBoxWidth; // Use full max width to match message box
-
-              // Calculate box height for recipients - auto height based on content
-              const recipientsBoxHeight = Math.max(
-                recipientsLines.length * lineHeight + padding * 2,
-                lineHeight + padding * 2 // Minimum height for single line
-              );
-
-              // Create linear gradient background for recipients box - matching prop-inside-box class exactly
-              const recipientsGradient = ctx.createLinearGradient(
+              // Create linear gradient background for message box - matching prop-inside-box class exactly
+              const messageGradient = ctx.createLinearGradient(
                 16,
                 currentY,
-                16 + recipientsBoxWidth,
+                16 + maxBoxWidth,
                 currentY
               );
-              recipientsGradient.addColorStop(0, "rgba(173, 175, 190, 0.8)");
-              recipientsGradient.addColorStop(0.5, "rgba(79, 114, 149, 0.8)"); // Increased opacity to match CSS
-              recipientsGradient.addColorStop(1, "rgba(173, 175, 190, 0.8)");
+              messageGradient.addColorStop(0, "rgba(173, 175, 190, 0.8)");
+              messageGradient.addColorStop(0.5, "rgba(79, 114, 149, 0.8)"); // Increased opacity to match CSS
+              messageGradient.addColorStop(1, "rgba(173, 175, 190, 0.8)");
 
-              ctx.fillStyle = recipientsGradient;
+              ctx.fillStyle = messageGradient;
               ctx.globalAlpha = 1.0; // Full opacity to match CSS
 
-              // Draw rounded rectangle for recipients box
-              drawRoundedRect(
-                16,
-                currentY,
-                recipientsBoxWidth,
-                recipientsBoxHeight,
-                borderRadius
-              );
+              // Draw rounded rectangle for message box
+              drawRoundedRect(16, currentY, boxWidth, boxHeight, borderRadius);
               ctx.fill();
               ctx.globalAlpha = 1.0;
 
-              // Add recipients text
+              // Add text inside message box - matching prop detail page exactly
               ctx.fillStyle = "white";
               ctx.font = "16px Poppins"; // Increased font size
               ctx.textAlign = "left";
 
-              recipientsLines.forEach((line: string, index: number) => {
-                // Add extra spacing between "Props recipients:" and the names
-                const extraSpacing = index === 1 ? 4 : 0; // Reduced extra space
+              // Draw all text lines with proper spacing
+              let textY = currentY + padding + 8; // Starting Y position
+              textLines.forEach((line, index) => {
+                // Add extra spacing after the "From:" line
+                if (index === 1 && hasFromLine) {
+                  textY += spacingBetweenSections;
+                }
+
                 ctx.fillText(
                   line,
-                  24,
-                  currentY + padding + index * lineHeight + 12 + extraSpacing
+                  24, // Left padding
+                  textY
                 );
+                textY += lineHeight;
               });
 
-              // Move to next position for message box
-              currentY += recipientsBoxHeight + 10; // Add spacing between boxes
-            }
-
-            // Calculate text content and measure dimensions
-            const textLines: string[] = [];
-            let maxTextWidth = 0;
-
-            // Set font for measuring
-            ctx.font = "16px Poppins"; // Increased font size
-
-            // Add From name (without date on same line)
-            let hasFromLine = false;
-            if (fromName) {
-              const headerLine = `From: ${fromName}`;
-              textLines.push(headerLine);
-              hasFromLine = true;
-              maxTextWidth = Math.max(
-                maxTextWidth,
-                ctx.measureText(headerLine).width
-              );
-            }
-
-            // Handle message text with word wrapping
-            if (fromMessage) {
-              const words = fromMessage.split(" ");
-              let currentLine = "";
-              const maxWidth = availableTextWidth; // Use the actual available width
-
-              for (let i = 0; i < words.length; i++) {
-                const testLine =
-                  currentLine + (currentLine ? " " : "") + words[i];
-                const testWidth = ctx.measureText(testLine).width;
-
-                if (testWidth <= maxWidth) {
-                  currentLine = testLine;
-                } else {
-                  if (currentLine) {
-                    textLines.push(currentLine);
-                    maxTextWidth = Math.max(
-                      maxTextWidth,
-                      ctx.measureText(currentLine).width
-                    );
-                    currentLine = words[i];
-                  } else {
-                    // Single word is too long, add it anyway
-                    textLines.push(words[i]);
-                    maxTextWidth = Math.max(
-                      maxTextWidth,
-                      ctx.measureText(words[i]).width
-                    );
-                  }
-                }
-              }
-
-              // Add the last line
-              if (currentLine) {
-                textLines.push(currentLine);
-                maxTextWidth = Math.max(
-                  maxTextWidth,
-                  ctx.measureText(currentLine).width
+              // Draw date at the rightmost position inside the gray box
+              if (fromDate) {
+                const [year, month, day] = fromDate.split("-");
+                const formattedDate = `${month}/${day}/${year.slice(2)}`;
+                ctx.textAlign = "right";
+                ctx.fillText(
+                  formattedDate,
+                  16 + boxWidth - padding, // Right edge minus padding
+                  currentY + padding + 8 // Same Y as first line with offset
                 );
-              }
-            }
-
-            // Calculate final box dimensions based on actual text content (no extra whitespace)
-            const boxWidth = Math.min(maxTextWidth + padding * 2, maxBoxWidth); // Use max width to match recipients box
-            const spacingBetweenSections = hasFromLine && fromMessage ? 8 : 0; // Extra spacing between From and message
-            const boxHeight =
-              textLines.length * lineHeight +
-              padding * 2 +
-              spacingBetweenSections; // Added padding to bottom + spacing
-
-            // Create linear gradient background for message box - matching prop-inside-box class exactly
-            const messageGradient = ctx.createLinearGradient(
-              16,
-              currentY,
-              16 + maxBoxWidth,
-              currentY
-            );
-            messageGradient.addColorStop(0, "rgba(173, 175, 190, 0.8)");
-            messageGradient.addColorStop(0.5, "rgba(79, 114, 149, 0.8)"); // Increased opacity to match CSS
-            messageGradient.addColorStop(1, "rgba(173, 175, 190, 0.8)");
-
-            ctx.fillStyle = messageGradient;
-            ctx.globalAlpha = 1.0; // Full opacity to match CSS
-
-            // Draw rounded rectangle for message box
-            drawRoundedRect(16, currentY, boxWidth, boxHeight, borderRadius);
-            ctx.fill();
-            ctx.globalAlpha = 1.0;
-
-            // Add text inside message box - matching prop detail page exactly
-            ctx.fillStyle = "white";
-            ctx.font = "16px Poppins"; // Increased font size
-            ctx.textAlign = "left";
-
-            // Draw all text lines with proper spacing
-            let textY = currentY + padding + 8; // Starting Y position
-            textLines.forEach((line, index) => {
-              // Add extra spacing after the "From:" line
-              if (index === 1 && hasFromLine) {
-                textY += spacingBetweenSections;
+                ctx.textAlign = "left"; // Reset to left alignment
               }
 
-              ctx.fillText(
-                line,
-                24, // Left padding
-                textY
-              );
-              textY += lineHeight;
-            });
+              // Convert canvas to data URL and upload to Cloudinary
+              const previewDataUrl = canvas.toDataURL("image/png");
 
-            // Draw date at the rightmost position inside the gray box
-            if (fromDate) {
-              const [year, month, day] = fromDate.split("-");
-              const formattedDate = `${month}/${day}/${year.slice(2)}`;
-              ctx.textAlign = "right";
-              ctx.fillText(
-                formattedDate,
-                16 + boxWidth - padding, // Right edge minus padding
-                currentY + padding + 8 // Same Y as first line with offset
-              );
-              ctx.textAlign = "left"; // Reset to left alignment
+              // Use a separate async function to handle the upload
+              const handleMainUpload = async () => {
+                try {
+                  // Upload to Cloudinary
+                  const cloudinaryUrl = await uploadToCloudinary(
+                    previewDataUrl
+                  );
+                  setPreviewImageUrl(cloudinaryUrl);
+
+                  // Save Cloudinary URL to localStorage for immediate access
+                  localStorage.setItem("temp-preview-image-url", cloudinaryUrl);
+                  console.log(
+                    "Preview image uploaded to Cloudinary:",
+                    cloudinaryUrl
+                  );
+
+                  // Resolve the promise with the Cloudinary URL
+                  resolve(cloudinaryUrl);
+                } catch (error) {
+                  console.error(
+                    "Failed to upload to Cloudinary, falling back to base64:",
+                    error
+                  );
+                  // Fallback to base64 if Cloudinary upload fails
+                  setPreviewImageUrl(previewDataUrl);
+                  localStorage.setItem(
+                    "temp-preview-image-base64",
+                    previewDataUrl
+                  );
+
+                  // Resolve the promise with the base64 fallback
+                  resolve(previewDataUrl);
+                }
+              };
+
+              handleMainUpload();
+            };
+
+            logoImg.onerror = async () => {
+              console.warn("Could not load logo image, continuing without it");
+              // Continue without logo
+              const previewDataUrl = canvas.toDataURL("image/png");
+
+              try {
+                const cloudinaryUrl = await uploadToCloudinary(previewDataUrl);
+                setPreviewImageUrl(cloudinaryUrl);
+                localStorage.setItem("temp-preview-image-url", cloudinaryUrl);
+                resolve(cloudinaryUrl);
+              } catch (error) {
+                setPreviewImageUrl(previewDataUrl);
+                localStorage.setItem(
+                  "temp-preview-image-base64",
+                  previewDataUrl
+                );
+                resolve(previewDataUrl);
+              }
+            };
+
+            // Set logo source
+            const logoUrl =
+              uploadedAssets.logoUrl ||
+              selectedTemplate?.achievement?.logoImage;
+            if (logoUrl) {
+              logoImg.src = getProxiedUrlForPreview(logoUrl);
+            } else {
+              // No logo, continue without it
+              const previewDataUrl = canvas.toDataURL("image/png");
+
+              // Use a separate async function to handle the upload
+              const handleNoLogoUpload = async () => {
+                try {
+                  const cloudinaryUrl = await uploadToCloudinary(
+                    previewDataUrl
+                  );
+                  setPreviewImageUrl(cloudinaryUrl);
+                  localStorage.setItem("temp-preview-image-url", cloudinaryUrl);
+                  resolve(cloudinaryUrl);
+                } catch (error) {
+                  setPreviewImageUrl(previewDataUrl);
+                  localStorage.setItem(
+                    "temp-preview-image-base64",
+                    previewDataUrl
+                  );
+                  resolve(previewDataUrl);
+                }
+              };
+
+              handleNoLogoUpload();
             }
-
-            // Convert canvas to data URL
-            const previewDataUrl = canvas.toDataURL("image/png");
-            setPreviewImageUrl(previewDataUrl);
-            // Save to localStorage for immediate access
-            localStorage.setItem("temp-preview-image-base64", previewDataUrl);
-            console.log(
-              "Preview image generated and saved to localStorage:",
-              previewDataUrl
-            );
           };
 
-          logoImg.onerror = () => {
-            console.warn("Could not load logo image, continuing without it");
-            // Continue without logo
+          propsImg.onerror = () => {
+            console.warn("Could not load props image, continuing without it");
+            // Continue without props image
             const previewDataUrl = canvas.toDataURL("image/png");
-            setPreviewImageUrl(previewDataUrl);
-            localStorage.setItem("temp-preview-image-base64", previewDataUrl);
+
+            // Use a separate async function to handle the upload
+            const handlePropsErrorUpload = async () => {
+              try {
+                const cloudinaryUrl = await uploadToCloudinary(previewDataUrl);
+                setPreviewImageUrl(cloudinaryUrl);
+                localStorage.setItem("temp-preview-image-url", cloudinaryUrl);
+                resolve(cloudinaryUrl);
+              } catch (error) {
+                setPreviewImageUrl(previewDataUrl);
+                localStorage.setItem(
+                  "temp-preview-image-base64",
+                  previewDataUrl
+                );
+                resolve(previewDataUrl);
+              }
+            };
+
+            handlePropsErrorUpload();
           };
 
-          // Set logo source
-          const logoUrl =
-            uploadedAssets.logoUrl || selectedTemplate?.achievement?.logoImage;
-          if (logoUrl) {
-            logoImg.src = getProxiedUrlForPreview(logoUrl);
+          // Set props image source
+          const propsUrl = selectedTemplate?.achievement?.props;
+          if (propsUrl) {
+            propsImg.src = getProxiedUrlForPreview(propsUrl);
           } else {
-            // No logo, continue without it
+            // No props image, continue without it
             const previewDataUrl = canvas.toDataURL("image/png");
-            setPreviewImageUrl(previewDataUrl);
-            localStorage.setItem("temp-preview-image-base64", previewDataUrl);
+
+            // Use a separate async function to handle the upload
+            const handleNoPropsUpload = async () => {
+              try {
+                const cloudinaryUrl = await uploadToCloudinary(previewDataUrl);
+                setPreviewImageUrl(cloudinaryUrl);
+                localStorage.setItem("temp-preview-image-url", cloudinaryUrl);
+                resolve(cloudinaryUrl);
+              } catch (error) {
+                setPreviewImageUrl(previewDataUrl);
+                localStorage.setItem(
+                  "temp-preview-image-base64",
+                  previewDataUrl
+                );
+                resolve(previewDataUrl);
+              }
+            };
+
+            handleNoPropsUpload();
           }
         };
 
-        propsImg.onerror = () => {
-          console.warn("Could not load props image, continuing without it");
-          // Continue without props image
+        backgroundImg.onerror = () => {
+          console.warn("Could not load background image, using fallback");
+          // Use fallback background
+          ctx.fillStyle = "#FF69B4"; // Pink background as fallback
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+          // Continue with other elements
           const previewDataUrl = canvas.toDataURL("image/png");
-          setPreviewImageUrl(previewDataUrl);
-          localStorage.setItem("temp-preview-image-base64", previewDataUrl);
+
+          // Use a separate async function to handle the upload
+          const handleBackgroundErrorUpload = async () => {
+            try {
+              const cloudinaryUrl = await uploadToCloudinary(previewDataUrl);
+              setPreviewImageUrl(cloudinaryUrl);
+              localStorage.setItem("temp-preview-image-url", cloudinaryUrl);
+              resolve(cloudinaryUrl);
+            } catch (error) {
+              setPreviewImageUrl(previewDataUrl);
+              localStorage.setItem("temp-preview-image-base64", previewDataUrl);
+              resolve(previewDataUrl);
+            }
+          };
+
+          handleBackgroundErrorUpload();
         };
 
-        // Set props image source
-        const propsUrl = selectedTemplate?.achievement?.props;
-        if (propsUrl) {
-          propsImg.src = getProxiedUrlForPreview(propsUrl);
+        // Set background image source
+        const backgroundUrl =
+          uploadedAssets.backgroundUrl ||
+          selectedTemplate?.achievement?.backgroundImage;
+        if (backgroundUrl) {
+          backgroundImg.src = getProxiedUrlForPreview(backgroundUrl);
         } else {
-          // No props image, continue without it
+          // No background image, use fallback
+          ctx.fillStyle = "#FF69B4"; // Pink background as fallback
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
+
           const previewDataUrl = canvas.toDataURL("image/png");
-          setPreviewImageUrl(previewDataUrl);
-          localStorage.setItem("temp-preview-image-base64", previewDataUrl);
+
+          try {
+            const cloudinaryUrl = await uploadToCloudinary(previewDataUrl);
+            setPreviewImageUrl(cloudinaryUrl);
+            localStorage.setItem("temp-preview-image-url", cloudinaryUrl);
+            resolve(cloudinaryUrl);
+          } catch (error) {
+            setPreviewImageUrl(previewDataUrl);
+            localStorage.setItem("temp-preview-image-base64", previewDataUrl);
+            resolve(previewDataUrl);
+          }
         }
-      };
 
-      backgroundImg.onerror = () => {
-        console.warn("Could not load background image, using fallback");
-        // Use fallback background
-        ctx.fillStyle = "#FF69B4"; // Pink background as fallback
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        backgroundImg.onerror = () => {
+          console.warn("Could not load background image, using fallback");
+          // Use fallback background
+          ctx.fillStyle = "#FF69B4"; // Pink background as fallback
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-        // Continue with other elements
-        const previewDataUrl = canvas.toDataURL("image/png");
+          // Continue with other elements
+          const previewDataUrl = canvas.toDataURL("image/png");
 
-        setPreviewImageUrl(previewDataUrl);
-        localStorage.setItem("temp-preview-image-base64", previewDataUrl);
-      };
+          // Use a separate async function to handle the upload
+          const handleBackgroundErrorUpload2 = async () => {
+            try {
+              const cloudinaryUrl = await uploadToCloudinary(previewDataUrl);
+              setPreviewImageUrl(cloudinaryUrl);
+              localStorage.setItem("temp-preview-image-url", cloudinaryUrl);
+              resolve(cloudinaryUrl);
+            } catch (error) {
+              setPreviewImageUrl(previewDataUrl);
+              localStorage.setItem("temp-preview-image-base64", previewDataUrl);
+              resolve(previewDataUrl);
+            }
+          };
 
-      // Set background image source
-      const backgroundUrl =
-        uploadedAssets.backgroundUrl ||
-        selectedTemplate?.achievement?.backgroundImage;
-      if (backgroundUrl) {
-        backgroundImg.src = getProxiedUrlForPreview(backgroundUrl);
-      } else {
-        // No background image, use fallback
-        ctx.fillStyle = "#FF69B4"; // Pink background as fallback
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
+          handleBackgroundErrorUpload2();
+        };
 
-        const previewDataUrl = canvas.toDataURL("image/png");
-        setPreviewImageUrl(previewDataUrl);
-        localStorage.setItem("temp-preview-image-base64", previewDataUrl);
+        // Set background image source
+        if (backgroundUrl) {
+          backgroundImg.src = getProxiedUrlForPreview(backgroundUrl);
+        } else {
+          // No background image, use fallback
+          ctx.fillStyle = "#FF69B4"; // Pink background as fallback
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-        return previewDataUrl;
+          const previewDataUrl = canvas.toDataURL("image/png");
+
+          // Use a separate async function to handle the upload
+          const handleNoBackgroundUpload = async () => {
+            try {
+              const cloudinaryUrl = await uploadToCloudinary(previewDataUrl);
+              setPreviewImageUrl(cloudinaryUrl);
+              localStorage.setItem("temp-preview-image-url", cloudinaryUrl);
+              resolve(cloudinaryUrl);
+            } catch (error) {
+              setPreviewImageUrl(previewDataUrl);
+              localStorage.setItem("temp-preview-image-base64", previewDataUrl);
+              resolve(previewDataUrl);
+            }
+          };
+
+          handleNoBackgroundUpload();
+        }
+      } catch (error) {
+        console.error("Error generating preview image:", error);
+        setPreviewImageUrl(null);
+        reject(error);
       }
-    } catch (error) {
-      console.error("Error generating preview image:", error);
-      setPreviewImageUrl(null);
-    }
+    });
   };
 
   const handleShare = () => {
