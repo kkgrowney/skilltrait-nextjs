@@ -60,10 +60,8 @@ export async function generateMetadata({
 
     return {
       title: `${displayName} sent props via SkillTrait`,
-      description: message,
       openGraph: {
         title: `${displayName} sent props via SkillTrait`,
-        description: message,
         images: imageUrl ? [imageUrl] : [],
         url: shareUrl,
         type: "website",
@@ -72,7 +70,6 @@ export async function generateMetadata({
       twitter: {
         card: "summary_large_image",
         title: `${displayName} sent props via SkillTrait`,
-        description: message,
         images: imageUrl ? [imageUrl] : [],
       },
       alternates: {
