@@ -11,6 +11,7 @@ import {
   savePropWithImage,
   updatePropWithImage,
   saveUserTemplateAssets,
+  savePublicProp,
 } from "@/lib/firebase";
 import Link from "next/link";
 import AuthModal from "./AuthModal";
@@ -158,6 +159,8 @@ export default function ShareStep({
           backgroundUrl: uploadedAssets.backgroundUrl || null,
           previewImageUrl: cloudinaryUrl || null, // Save Cloudinary URL
           previewImageBase64: cloudinaryUrl ? null : savedPreviewImage || "", // Fallback to base64 if no Cloudinary URL
+          isPublic: true, // Make prop publicly shareable
+          userDisplayName: (user as any).display_name || user.displayName || "", // Store user's display name for sharing
           createdAt: new Date(),
           updatedAt: new Date(),
         };
@@ -166,6 +169,15 @@ export default function ShareStep({
         setSavedPropId(propId);
         console.log("Preview image saved to database with prop ID:", propId);
         setProcessStep("Preview image saved successfully!");
+
+        // Also save to public collection for sharing
+        try {
+          await savePublicProp(propId, propData);
+          console.log("Prop saved to public collection for sharing");
+        } catch (error) {
+          console.error("Error saving to public collection:", error);
+          // Don't fail the whole process if public save fails
+        }
 
         // Step 4: If user selected "Save as reusable template", create template in user's collection
         if (saveAsTemplate) {
