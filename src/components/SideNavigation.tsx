@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import React, { useState } from 'react';
-import { useNavigation } from '@/contexts/NavigationContext';
-import SideNavAuth from './side_nav_auth';
-import SideNavCollapsed from './side_nav_collapsed';
+import React, { useState } from "react";
+import { useNavigation } from "@/contexts/NavigationContext";
+import SideNavAuth from "./side_nav_auth";
+import SideNavCollapsed from "./side_nav_collapsed";
 
 export default function SideNavigation() {
   const { isCollapsed } = useNavigation();
@@ -26,7 +26,7 @@ export default function SideNavigation() {
         {/* Hamburger Menu Button */}
         <button
           onClick={() => setIsMobileMenuOpen(true)}
-          className="fixed top-3 left-3 z-40 p-2 bg-[#1F2327] rounded-lg border border-[#454446] hover:bg-[#2a2e32] transition-colors"
+          className="fixed top-3 left-3 z-[85] p-2 bg-[#1F2327] rounded-lg border border-[#454446] hover:bg-[#2a2e32] transition-colors"
         >
           <img
             src="/skilltrait_icon.svg"
@@ -40,14 +40,18 @@ export default function SideNavigation() {
           <>
             {/* Backdrop */}
             <div
-              className="fixed inset-0 bg-black bg-opacity-50 z-50"
+              className="fixed inset-0 bg-black/50 z-[85]"
               onClick={closeMobileMenu}
             />
-            
+
             {/* Mobile Navigation Container */}
             <div
-              className="fixed left-0 top-0 h-full w-[280px] bg-[#1F2327] border-r border-[#454446] z-50 transform transition-transform duration-300 ease-in-out"
-              style={{ transform: isMobileMenuOpen ? 'translateX(0)' : 'translateX(-100%)' }}
+              className="fixed left-0 top-0 h-full w-[280px] bg-[#1F2327] border-r border-[#454446] z-[85] transform transition-transform duration-300 ease-in-out"
+              style={{
+                transform: isMobileMenuOpen
+                  ? "translateX(0)"
+                  : "translateX(-100%)",
+              }}
             >
               {/* Close Button */}
               <button
@@ -71,7 +75,10 @@ export default function SideNavigation() {
 
               {/* Mobile Navigation Content */}
               <div className="h-full flex flex-col">
-                <SideNavAuth onNavigationClick={closeMobileMenu} isMobileOpen={isMobileMenuOpen} />
+                <SideNavAuth
+                  onNavigationClick={closeMobileMenu}
+                  isMobileOpen={isMobileMenuOpen}
+                />
               </div>
             </div>
           </>
@@ -84,5 +91,5 @@ export default function SideNavigation() {
 // Hook to get the current margin for main content
 export const useSideNavMargin = () => {
   const { isCollapsed } = useNavigation();
-  return isCollapsed ? 'ml-[66px]' : 'ml-60';
-}; 
+  return isCollapsed ? "ml-[66px]" : "ml-60";
+};

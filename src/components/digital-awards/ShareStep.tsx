@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
+import { useRouter } from "next/navigation";
 import { auth } from "@/lib/firebase";
 import {
   saveUserProp,
@@ -12,7 +13,7 @@ import {
   saveUserTemplateAssets,
 } from "@/lib/firebase";
 import Link from "next/link";
-import SignUpModal from "./SignupModal";
+import AuthModal from "./AuthModal";
 
 interface ShareStepProps {
   onPrevious: () => void;
@@ -43,15 +44,17 @@ export default function ShareStep({
   fromDate,
   fromMessage,
 }: ShareStepProps) {
+  const router = useRouter();
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedAward, setGeneratedAward] = useState("");
   const [isLoggedIn, setIsLoggedIn] = useState<boolean | null>(null);
-  const [isSignupModalOpen, setisSignupModalOpen] = useState<boolean>(false);
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState<boolean>(false);
   const [savedPropId, setSavedPropId] = useState<string | null>(null);
   const [processStep, setProcessStep] = useState<string>("");
   const [generatedImageUrl, setGeneratedImageUrl] = useState<string | null>(
     null
   );
+  const [previewImageUrl, setPreviewImageUrl] = useState<string | null>(null);
   const [saveAsTemplate, setSaveAsTemplate] = useState<boolean>(true);
   // Toggle to show/hide the raw image URL in the UI (kept in code for debugging)
   const showImageUrlDebug = false;
@@ -59,6 +62,15 @@ export default function ShareStep({
   const showGeneratedAwardText = false;
   // Toggle to show/hide the login notice link
   const showLoginNotice = false;
+
+  // Monitor authentication state
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      setIsLoggedIn(!!user);
+    });
+
+    return () => unsubscribe();
+  }, []);
 
   const handleGenerateAward = async () => {
     setIsGenerating(true);
@@ -71,27 +83,133 @@ export default function ShareStep({
         throw new Error("User not authenticated");
       }
 
+      console.log({ selectedTemplate });
+
       // Step 1: Upload assets and create template
       setProcessStep("Uploading assets and creating template...");
       const uploadedAssets = await uploadAssetsAndCreateTemplate(user.uid);
 
-      // Step 2: Create prop in user subcollection
-      setProcessStep("Creating prop in user subcollection...");
-      const propId = await createPropInUserSubcollection(
-        user.uid,
-        uploadedAssets
+      // Step 2: Generate preview image locally first
+      setProcessStep("Generating preview image...");
+      await generatePreviewImage(uploadedAssets);
+
+      // Step 3: Save the preview image to database
+      setProcessStep("Saving preview image to database...");
+
+      // Wait a moment to ensure the preview image is generated
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+
+      // Get the base64 image from localStorage
+      const savedPreviewImage = localStorage.getItem(
+        "temp-preview-image-base64"
+      );
+      console.log(
+        "Retrieved preview image from localStorage:",
+        savedPreviewImage
       );
 
-      // Step 3: Generate image and saving to prop document
-      setProcessStep("Generating image and saving to prop document...");
-      
-      // Add a small delay to ensure the prop document is fully written to Firestore
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      const imageUrl = await generateAndSaveImage(user.uid, propId, uploadedAssets);
+      // Log the uploaded assets for debugging
+      console.log("Uploaded assets for preview:", uploadedAssets);
+      console.log("Selected template:", selectedTemplate);
+      console.log("Preview image URL:", previewImageUrl);
+      console.log("Template achievement structure:", {
+        props: selectedTemplate?.achievement?.props,
+        logoImage: selectedTemplate?.achievement?.logoImage,
+        backgroundImage: selectedTemplate?.achievement?.backgroundImage,
+        propsTitle,
+        fromName,
+        fromDate,
+        fromMessage,
+      });
 
-      setSavedPropId(propId);
-      setGeneratedImageUrl(imageUrl);
+      // Save the preview image to the user's props collection
+      try {
+        const propData = {
+          fromMessage: fromMessage || "",
+          propsTitle: propsTitle || "",
+          propsRecipients: propsRecipients || [],
+          fromDate: fromDate || "",
+          fromName: fromName || "",
+          templateId: selectedTemplate?.id || "",
+          isPrivateTemplate: false,
+          status: "preview_generated",
+          achievement: {
+            props: selectedTemplate?.achievement?.props || "",
+            logoImage:
+              uploadedAssets.logoUrl ||
+              selectedTemplate?.achievement?.logoImage ||
+              "",
+            backgroundImage:
+              uploadedAssets.backgroundUrl ||
+              selectedTemplate?.achievement?.backgroundImage ||
+              "",
+            propsTitle: propsTitle || "",
+            fromName: fromName || "",
+            fromDate: fromDate || "",
+            fromMessage: fromMessage || "",
+            tags: selectedTemplate?.achievement?.tags || [],
+            company:
+              companyNameText || selectedTemplate?.achievement?.company || "",
+          },
+          logoUrl: uploadedAssets.logoUrl || null,
+          backgroundUrl: uploadedAssets.backgroundUrl || null,
+          previewImageBase64: savedPreviewImage || "", // Use the base64 from localStorage
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        };
+
+        const propId = await saveUserProp(user.uid, propData);
+        setSavedPropId(propId);
+        console.log("Preview image saved to database with prop ID:", propId);
+        setProcessStep("Preview image saved successfully!");
+
+        // Step 4: If user selected "Save as reusable template", create template in user's collection
+        if (saveAsTemplate) {
+          setProcessStep("Creating reusable template...");
+          try {
+            const userTemplateId = await createPropInUserSubcollection(
+              user.uid,
+              uploadedAssets
+            );
+            console.log(
+              "Successfully created reusable template with ID:",
+              userTemplateId
+            );
+            setProcessStep("Reusable template created successfully!");
+          } catch (error) {
+            console.error("Error creating reusable template:", error);
+            setProcessStep("Template creation failed, but prop was saved");
+          }
+        }
+
+        // Clear all localStorage persistence for digital awards generator
+        if (typeof window !== "undefined") {
+          localStorage.removeItem("digital-awards-current-step");
+          localStorage.removeItem("digital-awards-active-tab");
+          localStorage.removeItem("digital-awards-selected-template");
+          localStorage.removeItem("digital-awards-show-template-detail");
+          localStorage.removeItem("digital-awards-logo-visible");
+          localStorage.removeItem("digital-awards-company-name");
+          localStorage.removeItem("digital-awards-background-visible");
+          localStorage.removeItem("digital-awards-background-name");
+          localStorage.removeItem("digital-awards-props-title");
+          localStorage.removeItem("digital-awards-props-recipients");
+          localStorage.removeItem("digital-awards-from-name");
+          localStorage.removeItem("digital-awards-from-date");
+          localStorage.removeItem("digital-awards-from-message");
+          localStorage.removeItem("digital-awards-filters");
+          localStorage.removeItem("digital-awards-search-query");
+          localStorage.removeItem("temp-preview-image-base64"); // Clean up temporary preview image
+          console.log("Cleared all digital awards localStorage persistence");
+        }
+
+        // Keep user on Share step to see generated award
+        // Only clear localStorage so next visit will be fresh
+        console.log("Award generated successfully! User stays on Share step.");
+      } catch (error) {
+        console.error("Error saving preview image to database:", error);
+        setProcessStep("Error saving preview image");
+      }
 
       // Simulate award generation
       setTimeout(() => {
@@ -110,8 +228,15 @@ for outstanding achievement in
 
 ${fromMessage || "Excellence in customer service and team collaboration"}
 
-Date: ${fromDate ? (() => { const [year, month, day] = fromDate.split('-'); return `${month}/${day}/${year.slice(2)}`; })() : new Date().toLocaleDateString()}
-Certificate ID: ${propId}
+Date: ${
+          fromDate
+            ? (() => {
+                const [year, month, day] = fromDate.split("-");
+                return `${month}/${day}/${year.slice(2)}`;
+              })()
+            : new Date().toLocaleDateString()
+        }
+Certificate ID: PREVIEW-${Date.now()}
 
 This digital award recognizes excellence and dedication in professional development.
         `;
@@ -133,7 +258,6 @@ This digital award recognizes excellence and dedication in professional developm
     const uploadedAssets: any = {
       logoUrl: null,
       backgroundUrl: null,
-      templateId: null,
     };
 
     try {
@@ -159,42 +283,22 @@ This digital award recognizes excellence and dedication in professional developm
       // Always ensure we have the base template data, even if no custom assets are uploaded
       if (selectedTemplate?.achievement) {
         uploadedAssets.baseTemplateData = {
-          // props should contain the background image, not the props text
-          props: uploadedAssets.backgroundUrl || selectedTemplate.achievement.backgroundImage || "",
+          // props should contain the props image URL (the main template image)
+          props: selectedTemplate.achievement.props || "",
           logoImage: selectedTemplate.achievement.logoImage || "",
-          // backgroundImage should contain the props title text
-          backgroundImage: propsTitle || "",
+          // backgroundImage should contain the background image URL
+          backgroundImage:
+            uploadedAssets.backgroundUrl ||
+            selectedTemplate.achievement.backgroundImage ||
+            "",
+          // Add the text content as separate fields
+          propsTitle: propsTitle || "",
+          fromName: fromName || "",
+          fromDate: fromDate || "",
+          fromMessage: fromMessage || "",
           tags: selectedTemplate.achievement.tags || [],
           company: selectedTemplate.achievement.company || "",
         };
-      }
-
-      // Only create template if assets were uploaded
-      if (uploadedLogoFile || uploadedBackgroundFile) {
-        const templateData = {
-          achievement: {
-            // props should contain the background image, not the props text
-            props: uploadedAssets.backgroundUrl || selectedTemplate?.achievement?.backgroundImage || "",
-            logoImage:
-              uploadedAssets.logoUrl ||
-              selectedTemplate?.achievement?.logoImage ||
-              "",
-            // backgroundImage should contain the props title text
-            backgroundImage: propsTitle || "",
-            tags: selectedTemplate?.achievement?.tags || [],
-            company:
-              companyNameText || selectedTemplate?.achievement?.company || "",
-          },
-          isPrivate: true,
-          userRef: userId,
-          templateType: "props",
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        };
-
-        uploadedAssets.templateId = await createTemplateWithAssets(
-          templateData
-        );
       }
 
       return uploadedAssets;
@@ -204,25 +308,40 @@ This digital award recognizes excellence and dedication in professional developm
     }
   };
 
-  // Step 2: Create prop in user subcollection
+  // Step 2: Create template in user subcollection (no prop saving)
   const createPropInUserSubcollection = async (
     userId: string,
     uploadedAssets: any
   ) => {
     try {
-      let templateId = uploadedAssets.templateId || selectedTemplate?.id || "";
+      let templateId = selectedTemplate?.id || "";
       let isPrivateTemplate = false;
+      let userTemplateId = null;
 
       // If user wants to save as template, create a template in their subcollection
       if (saveAsTemplate) {
         try {
           const templateData = {
             achievement: {
-              props: uploadedAssets.backgroundUrl || selectedTemplate?.achievement?.backgroundImage || "",
-              logoImage: uploadedAssets.logoUrl || selectedTemplate?.achievement?.logoImage || "",
-              backgroundImage: propsTitle || "",
+              // props should contain the props image URL (the main template image)
+              props: selectedTemplate?.achievement?.props || "",
+              logoImage:
+                uploadedAssets.logoUrl ||
+                selectedTemplate?.achievement?.logoImage ||
+                "",
+              // backgroundImage should contain the background image URL
+              backgroundImage:
+                uploadedAssets.backgroundUrl ||
+                selectedTemplate?.achievement?.backgroundImage ||
+                "",
+              // Add the text content as separate fields
+              propsTitle: propsTitle || "",
+              fromName: fromName || "",
+              fromDate: fromDate || "",
+              fromMessage: fromMessage || "",
               tags: selectedTemplate?.achievement?.tags || [],
-              company: companyNameText || selectedTemplate?.achievement?.company || "",
+              company:
+                companyNameText || selectedTemplate?.achievement?.company || "",
             },
             isPrivate: true,
             userRef: userId,
@@ -232,19 +351,20 @@ This digital award recognizes excellence and dedication in professional developm
           };
 
           // Save template to user's subcollection
-          const userTemplateId = await saveUserTemplateAssets(userId, {
+          userTemplateId = await saveUserTemplateAssets(userId, {
             logoUrl: uploadedAssets.logoUrl || null,
             backgroundUrl: uploadedAssets.backgroundUrl || null,
-            company: companyNameText || selectedTemplate?.achievement?.company || "",
-            templateId: templateId,
+            company:
+              companyNameText || selectedTemplate?.achievement?.company || "",
+            templateId: templateId, // Keep original template ID as reference
             basePropsUrl: selectedTemplate?.achievement?.props || null,
             achievement: templateData.achievement,
             isPrivate: true,
             templateType: "props",
           });
 
-          // Update templateId to the newly created user template
-          templateId = userTemplateId;
+          console.log("Saved user template with ID:", userTemplateId);
+          console.log("Template data:", templateData);
           isPrivateTemplate = true;
         } catch (error) {
           console.error("Error saving user template:", error);
@@ -252,31 +372,8 @@ This digital award recognizes excellence and dedication in professional developm
         }
       }
 
-      const propData = {
-        fromMessage: fromMessage || "",
-        propsTitle: propsTitle || "",
-        propsRecipients: propsRecipients || [],
-        fromDate: fromDate || "",
-        fromName: fromName || "",
-        templateId: templateId,
-        isPrivateTemplate: isPrivateTemplate,
-        status: "pending_image_generation",
-        // Include the achievement data that the cloud function needs - EXACTLY like props
-        achievement: {
-          // props should contain the background image, not the props text
-          props: uploadedAssets.backgroundUrl || selectedTemplate?.achievement?.backgroundImage || "",
-          logoImage: uploadedAssets.logoUrl || selectedTemplate?.achievement?.logoImage || "",
-          // backgroundImage should contain the props title text
-          backgroundImage: propsTitle || "",
-          tags: selectedTemplate?.achievement?.tags || [],
-          company: companyNameText || selectedTemplate?.achievement?.company || "",
-        },
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      };
-
-      const propId = await saveUserProp(userId, propData);
-      return propId;
+      // Return the user template ID (no prop saving here - that's done in the main function)
+      return userTemplateId;
     } catch (error) {
       console.error("Error creating prop in user subcollection:", error);
       throw error;
@@ -287,15 +384,21 @@ This digital award recognizes excellence and dedication in professional developm
   const generateAndSaveImage = async (
     userId: string,
     propId: string,
-    uploadedAssets: { logoUrl?: string | null; backgroundUrl?: string | null; templateId?: string | null } = {}
+    uploadedAssets: {
+      logoUrl?: string | null;
+      backgroundUrl?: string | null;
+    } = {}
   ) => {
     try {
+      // First, get the prop data to ensure we have the latest information
+      console.log("Generating image for prop:", propId);
+      console.log("Uploaded assets:", uploadedAssets);
 
-      
       // Call our proxy API route instead of the cloud function directly
       const imageUrl = `/api/generate-image?user=${userId}&prop=${propId}`;
 
       console.log("Attempting to fetch image from:", imageUrl);
+      console.log("Prop ID being sent:", propId);
 
       // Fetch the image from our proxy API route
       const response = await fetch(imageUrl, {
@@ -343,6 +446,7 @@ This digital award recognizes excellence and dedication in professional developm
       // Update the prop document with the uploaded image URL
       await updatePropWithImage(userId, propId, uploadedImageUrl);
 
+      console.log("Successfully generated and saved image:", uploadedImageUrl);
       return uploadedImageUrl;
     } catch (error) {
       console.warn("Error generating and saving image:", error);
@@ -363,6 +467,15 @@ This digital award recognizes excellence and dedication in professional developm
     return imageUrl; // already relative (e.g., from our API)
   };
 
+  // Function to get proxied URL for preview generation
+  const getProxiedUrlForPreview = (imageUrl: string): string => {
+    if (!imageUrl) return imageUrl;
+    if (imageUrl.startsWith("http://") || imageUrl.startsWith("https://")) {
+      return `/api/proxy-image?url=${encodeURIComponent(imageUrl)}`;
+    }
+    return imageUrl;
+  };
+
   // Helper function to convert File to base64
   const fileToBase64 = (file: File): Promise<string> => {
     return new Promise((resolve, reject) => {
@@ -372,197 +485,528 @@ This digital award recognizes excellence and dedication in professional developm
       reader.onerror = (error) => reject(error);
     });
   };
+  const generatePreviewImage = async (uploadedAssets: any) => {
+    try {
+      console.log("Generating preview image with assets:", uploadedAssets);
 
-  const handleDownload = () => {
-    const element = document.createElement("a");
-    const file = new Blob([generatedAward], { type: "text/plain" });
-    element.href = URL.createObjectURL(file);
-    element.download = "digital-award.txt";
-    document.body.appendChild(element);
-    element.click();
-    document.body.removeChild(element);
-  };
+      // Create a canvas to composite the images
+      const canvas = document.createElement("canvas");
+      const ctx = canvas.getContext("2d");
+      if (!ctx) {
+        throw new Error("Could not get canvas context");
+      }
 
-  const handleShare = () => {
-    if (navigator.share) {
-      navigator.share({
-        title: "Digital Award",
-        text: generatedAward,
-      });
-    } else {
-      navigator.clipboard.writeText(generatedAward);
-      alert("Award copied to clipboard!");
+      // Set canvas size to match prop detail page (full image without aspect ratio constraint)
+      canvas.width = 600;
+      canvas.height = 480;
+
+      // Load background image
+      const backgroundImg = new Image();
+      backgroundImg.crossOrigin = "anonymous";
+
+      backgroundImg.onload = () => {
+        // Draw background with object-fit: cover behavior to prevent distortion
+        const canvasAspectRatio = canvas.width / canvas.height;
+        const imageAspectRatio = backgroundImg.width / backgroundImg.height;
+
+        let drawWidth, drawHeight, drawX, drawY;
+
+        if (imageAspectRatio > canvasAspectRatio) {
+          // Image is wider than canvas - fit to height, crop width
+          drawHeight = canvas.height;
+          drawWidth =
+            backgroundImg.width * (canvas.height / backgroundImg.height);
+          drawX = (canvas.width - drawWidth) / 2;
+          drawY = 0;
+        } else {
+          // Image is taller than canvas - fit to width, crop height
+          drawWidth = canvas.width;
+          drawHeight =
+            backgroundImg.height * (canvas.width / backgroundImg.width);
+          drawX = 0;
+          drawY = (canvas.height - drawHeight) / 2;
+        }
+
+        ctx.drawImage(backgroundImg, drawX, drawY, drawWidth, drawHeight);
+
+        // Load props image (main illustration)
+        const propsImg = new Image();
+        propsImg.crossOrigin = "anonymous";
+
+        propsImg.onload = () => {
+          // Draw props image on top of background with object-fit: cover behavior
+          const canvasAspectRatio = canvas.width / canvas.height;
+          const imageAspectRatio = propsImg.width / propsImg.height;
+
+          let drawWidth, drawHeight, drawX, drawY;
+
+          if (imageAspectRatio > canvasAspectRatio) {
+            // Image is wider than canvas - fit to height, crop width
+            drawHeight = canvas.height;
+            drawWidth = propsImg.width * (canvas.height / propsImg.height);
+            drawX = (canvas.width - drawWidth) / 2;
+            drawY = 0;
+          } else {
+            // Image is taller than canvas - fit to width, crop height
+            drawWidth = canvas.width;
+            drawHeight = propsImg.height * (canvas.width / propsImg.width);
+            drawX = 0;
+            drawY = (canvas.height - drawHeight) / 2;
+          }
+
+          ctx.drawImage(propsImg, drawX, drawY, drawWidth, drawHeight);
+
+          // Load logo image
+          const logoImg = new Image();
+          logoImg.crossOrigin = "anonymous";
+
+          logoImg.onload = () => {
+            // Draw logo in top-left corner (32px height, 200px width area) - scaled down
+            const logoHeight = 32;
+            const logoWidth = Math.min(
+              200,
+              logoImg.width * (logoHeight / logoImg.height)
+            );
+            ctx.drawImage(logoImg, 16, 16, logoWidth, logoHeight);
+
+            // Add title text in top-right (16px font, right-aligned) - scaled down
+            ctx.fillStyle = "black";
+            ctx.font = "bold 16px Poppins";
+            ctx.textAlign = "right";
+            ctx.fillText(propsTitle || "Title", canvas.width - 16, 32);
+
+            // Draw white header background with border - increased to 80px height
+            ctx.fillStyle = "white";
+            ctx.fillRect(0, 0, canvas.width, 80); // 80px height
+            ctx.strokeStyle = "#E4E4E4"; // Same border color as prop detail page
+            ctx.lineWidth = 1;
+            ctx.strokeRect(0, 79, canvas.width, 1); // Bottom border at 79
+
+            // Redraw logo on top of white background - adjusted for 80px header
+            if (logoUrl) {
+              const logoHeight = 50; // Increased height for larger header
+              const logoWidth = Math.min(
+                300, // Increased max width for larger header
+                logoImg.width * (logoHeight / logoImg.height)
+              );
+              ctx.drawImage(logoImg, 16, 15, logoWidth, logoHeight); // Adjusted Y position
+            }
+
+            // Redraw title text on top of white background - adjusted for 80px header
+            ctx.fillStyle = "black";
+            ctx.font = "24px Poppins"; // Increased font size for larger header
+            ctx.textAlign = "right";
+            ctx.fillText(propsTitle || "Title", canvas.width - 16, 52); // Adjusted Y position
+
+            // Add Skilltrait branding at bottom right corner with top-left border rounded
+            ctx.fillStyle = "rgba(0, 0, 0, 0.4)"; // Decreased opacity background
+            ctx.font = "10px Poppins"; // Reduced font size
+            ctx.textAlign = "center"; // Center align text
+
+            // Create rounded rectangle for Skilltrait branding
+            const skilltraitText = "@Skilltrait";
+            const skilltraitTextWidth = ctx.measureText(skilltraitText).width;
+            const skilltraitPadding = 12; // Increased padding
+            const skilltraitWidth = skilltraitTextWidth + skilltraitPadding * 2;
+            const skilltraitHeight = 24; // Increased height for more padding
+            const skilltraitX = canvas.width - skilltraitWidth; // Joint to right edge
+            const skilltraitY = canvas.height - skilltraitHeight; // Joint to bottom edge
+
+            // Draw rounded rectangle with top-left border radius
+            ctx.beginPath();
+            ctx.moveTo(skilltraitX + 8, skilltraitY); // Top-left rounded corner
+            ctx.lineTo(skilltraitX + skilltraitWidth, skilltraitY);
+            ctx.lineTo(
+              skilltraitX + skilltraitWidth,
+              skilltraitY + skilltraitHeight
+            );
+            ctx.lineTo(skilltraitX, skilltraitY + skilltraitHeight);
+            ctx.lineTo(skilltraitX, skilltraitY + 8);
+            ctx.quadraticCurveTo(
+              skilltraitX,
+              skilltraitY,
+              skilltraitX + 8,
+              skilltraitY
+            );
+            ctx.closePath();
+            ctx.fill();
+
+            // Add Skilltrait text centered in the tag
+            ctx.fillStyle = "white";
+            ctx.fillText(
+              skilltraitText,
+              skilltraitX + skilltraitWidth / 2,
+              skilltraitY + 16 // Adjusted for new height
+            );
+
+            // Helper function to draw rounded rectangle with proper border radius
+            const drawRoundedRect = (
+              x: number,
+              y: number,
+              width: number,
+              height: number,
+              radius: number
+            ) => {
+              ctx.beginPath();
+              ctx.moveTo(x + radius, y);
+              ctx.lineTo(x + width - radius, y);
+              ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
+              ctx.lineTo(x + width, y + height - radius);
+              ctx.quadraticCurveTo(
+                x + width,
+                y + height,
+                x + width - radius,
+                y + height
+              );
+              ctx.lineTo(x + radius, y + height);
+              ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
+              ctx.lineTo(x, y + radius);
+              ctx.quadraticCurveTo(x, y, x + radius, y);
+              ctx.closePath();
+            };
+
+            const borderRadius = 12; // Tailwind rounded-lg equivalent (12px for better visibility)
+
+            // Add props recipients box first (if any) - matching prop detail page exactly
+            let currentY = 90; // Adjusted for 80px header
+            const padding = 12; // Reduced from 16 to 12 for smaller canvas
+            const lineHeight = 20; // Increased for larger font
+            const maxBoxWidth = 296; // Max width like prop detail page
+            const availableTextWidth = maxBoxWidth - padding * 2; // Width available for text
+
+            // Draw props recipients box if there are any
+            if (propsRecipients && propsRecipients.length > 0) {
+              // Handle text wrapping for recipients - FIXED TO USE COMMA SEPARATION
+              const recipientsText = propsRecipients.join(", ");
+              const recipientsLines: string[] = ["Props recipients:"];
+
+              // Set font for accurate measurement
+              ctx.font = "16px Poppins"; // Increased font size
+
+              // Wrap the comma-separated names properly
+              const words = recipientsText.split(" ");
+              let currentLine = "";
+              const maxLineWidth = availableTextWidth;
+
+              for (let i = 0; i < words.length; i++) {
+                const testLine =
+                  currentLine + (currentLine ? " " : "") + words[i];
+                const testWidth = ctx.measureText(testLine).width;
+
+                if (testWidth <= maxLineWidth) {
+                  currentLine = testLine;
+                } else {
+                  if (currentLine) {
+                    recipientsLines.push(currentLine);
+                    currentLine = words[i];
+                  } else {
+                    // Single word is too long, add it anyway
+                    recipientsLines.push(words[i]);
+                  }
+                }
+              }
+
+              // Add the last line
+              if (currentLine) {
+                recipientsLines.push(currentLine);
+              }
+
+              // Calculate text width for recipients box - auto width with max constraint
+              let maxRecipientsTextWidth = 0;
+              recipientsLines.forEach((line: string) => {
+                const textWidth = ctx.measureText(line).width;
+                maxRecipientsTextWidth = Math.max(
+                  maxRecipientsTextWidth,
+                  textWidth
+                );
+              });
+
+              // Calculate recipients box width - same width as message box will be
+              const recipientsBoxWidth = maxBoxWidth; // Use full max width to match message box
+
+              // Calculate box height for recipients - auto height based on content
+              const recipientsBoxHeight = Math.max(
+                recipientsLines.length * lineHeight + padding * 2,
+                lineHeight + padding * 2 // Minimum height for single line
+              );
+
+              // Create linear gradient background for recipients box - matching prop-inside-box class exactly
+              const recipientsGradient = ctx.createLinearGradient(
+                16,
+                currentY,
+                16 + recipientsBoxWidth,
+                currentY
+              );
+              recipientsGradient.addColorStop(0, "rgba(173, 175, 190, 0.8)");
+              recipientsGradient.addColorStop(0.5, "rgba(79, 114, 149, 0.8)"); // Increased opacity to match CSS
+              recipientsGradient.addColorStop(1, "rgba(173, 175, 190, 0.8)");
+
+              ctx.fillStyle = recipientsGradient;
+              ctx.globalAlpha = 1.0; // Full opacity to match CSS
+
+              // Draw rounded rectangle for recipients box
+              drawRoundedRect(
+                16,
+                currentY,
+                recipientsBoxWidth,
+                recipientsBoxHeight,
+                borderRadius
+              );
+              ctx.fill();
+              ctx.globalAlpha = 1.0;
+
+              // Add recipients text
+              ctx.fillStyle = "white";
+              ctx.font = "16px Poppins"; // Increased font size
+              ctx.textAlign = "left";
+
+              recipientsLines.forEach((line: string, index: number) => {
+                // Add extra spacing between "Props recipients:" and the names
+                const extraSpacing = index === 1 ? 4 : 0; // Reduced extra space
+                ctx.fillText(
+                  line,
+                  24,
+                  currentY + padding + index * lineHeight + 12 + extraSpacing
+                );
+              });
+
+              // Move to next position for message box
+              currentY += recipientsBoxHeight + 10; // Add spacing between boxes
+            }
+
+            // Calculate text content and measure dimensions
+            const textLines: string[] = [];
+            let maxTextWidth = 0;
+
+            // Set font for measuring
+            ctx.font = "16px Poppins"; // Increased font size
+
+            // Add From name (without date on same line)
+            let hasFromLine = false;
+            if (fromName) {
+              const headerLine = `From: ${fromName}`;
+              textLines.push(headerLine);
+              hasFromLine = true;
+              maxTextWidth = Math.max(
+                maxTextWidth,
+                ctx.measureText(headerLine).width
+              );
+            }
+
+            // Handle message text with word wrapping
+            if (fromMessage) {
+              const words = fromMessage.split(" ");
+              let currentLine = "";
+              const maxWidth = availableTextWidth; // Use the actual available width
+
+              for (let i = 0; i < words.length; i++) {
+                const testLine =
+                  currentLine + (currentLine ? " " : "") + words[i];
+                const testWidth = ctx.measureText(testLine).width;
+
+                if (testWidth <= maxWidth) {
+                  currentLine = testLine;
+                } else {
+                  if (currentLine) {
+                    textLines.push(currentLine);
+                    maxTextWidth = Math.max(
+                      maxTextWidth,
+                      ctx.measureText(currentLine).width
+                    );
+                    currentLine = words[i];
+                  } else {
+                    // Single word is too long, add it anyway
+                    textLines.push(words[i]);
+                    maxTextWidth = Math.max(
+                      maxTextWidth,
+                      ctx.measureText(words[i]).width
+                    );
+                  }
+                }
+              }
+
+              // Add the last line
+              if (currentLine) {
+                textLines.push(currentLine);
+                maxTextWidth = Math.max(
+                  maxTextWidth,
+                  ctx.measureText(currentLine).width
+                );
+              }
+            }
+
+            // Calculate final box dimensions based on actual text content (no extra whitespace)
+            const boxWidth = Math.min(maxTextWidth + padding * 2, maxBoxWidth); // Use max width to match recipients box
+            const spacingBetweenSections = hasFromLine && fromMessage ? 8 : 0; // Extra spacing between From and message
+            const boxHeight =
+              textLines.length * lineHeight +
+              padding * 2 +
+              spacingBetweenSections; // Added padding to bottom + spacing
+
+            // Create linear gradient background for message box - matching prop-inside-box class exactly
+            const messageGradient = ctx.createLinearGradient(
+              16,
+              currentY,
+              16 + maxBoxWidth,
+              currentY
+            );
+            messageGradient.addColorStop(0, "rgba(173, 175, 190, 0.8)");
+            messageGradient.addColorStop(0.5, "rgba(79, 114, 149, 0.8)"); // Increased opacity to match CSS
+            messageGradient.addColorStop(1, "rgba(173, 175, 190, 0.8)");
+
+            ctx.fillStyle = messageGradient;
+            ctx.globalAlpha = 1.0; // Full opacity to match CSS
+
+            // Draw rounded rectangle for message box
+            drawRoundedRect(16, currentY, boxWidth, boxHeight, borderRadius);
+            ctx.fill();
+            ctx.globalAlpha = 1.0;
+
+            // Add text inside message box - matching prop detail page exactly
+            ctx.fillStyle = "white";
+            ctx.font = "16px Poppins"; // Increased font size
+            ctx.textAlign = "left";
+
+            // Draw all text lines with proper spacing
+            let textY = currentY + padding + 8; // Starting Y position
+            textLines.forEach((line, index) => {
+              // Add extra spacing after the "From:" line
+              if (index === 1 && hasFromLine) {
+                textY += spacingBetweenSections;
+              }
+
+              ctx.fillText(
+                line,
+                24, // Left padding
+                textY
+              );
+              textY += lineHeight;
+            });
+
+            // Draw date at the rightmost position inside the gray box
+            if (fromDate) {
+              const [year, month, day] = fromDate.split("-");
+              const formattedDate = `${month}/${day}/${year.slice(2)}`;
+              ctx.textAlign = "right";
+              ctx.fillText(
+                formattedDate,
+                16 + boxWidth - padding, // Right edge minus padding
+                currentY + padding + 8 // Same Y as first line with offset
+              );
+              ctx.textAlign = "left"; // Reset to left alignment
+            }
+
+            // Convert canvas to data URL
+            const previewDataUrl = canvas.toDataURL("image/png");
+            setPreviewImageUrl(previewDataUrl);
+            // Save to localStorage for immediate access
+            localStorage.setItem("temp-preview-image-base64", previewDataUrl);
+            console.log(
+              "Preview image generated and saved to localStorage:",
+              previewDataUrl
+            );
+          };
+
+          logoImg.onerror = () => {
+            console.warn("Could not load logo image, continuing without it");
+            // Continue without logo
+            const previewDataUrl = canvas.toDataURL("image/png");
+            setPreviewImageUrl(previewDataUrl);
+            localStorage.setItem("temp-preview-image-base64", previewDataUrl);
+          };
+
+          // Set logo source
+          const logoUrl =
+            uploadedAssets.logoUrl || selectedTemplate?.achievement?.logoImage;
+          if (logoUrl) {
+            logoImg.src = getProxiedUrlForPreview(logoUrl);
+          } else {
+            // No logo, continue without it
+            const previewDataUrl = canvas.toDataURL("image/png");
+            setPreviewImageUrl(previewDataUrl);
+            localStorage.setItem("temp-preview-image-base64", previewDataUrl);
+          }
+        };
+
+        propsImg.onerror = () => {
+          console.warn("Could not load props image, continuing without it");
+          // Continue without props image
+          const previewDataUrl = canvas.toDataURL("image/png");
+          setPreviewImageUrl(previewDataUrl);
+          localStorage.setItem("temp-preview-image-base64", previewDataUrl);
+        };
+
+        // Set props image source
+        const propsUrl = selectedTemplate?.achievement?.props;
+        if (propsUrl) {
+          propsImg.src = getProxiedUrlForPreview(propsUrl);
+        } else {
+          // No props image, continue without it
+          const previewDataUrl = canvas.toDataURL("image/png");
+          setPreviewImageUrl(previewDataUrl);
+          localStorage.setItem("temp-preview-image-base64", previewDataUrl);
+        }
+      };
+
+      backgroundImg.onerror = () => {
+        console.warn("Could not load background image, using fallback");
+        // Use fallback background
+        ctx.fillStyle = "#FF69B4"; // Pink background as fallback
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        // Continue with other elements
+        const previewDataUrl = canvas.toDataURL("image/png");
+
+        setPreviewImageUrl(previewDataUrl);
+        localStorage.setItem("temp-preview-image-base64", previewDataUrl);
+      };
+
+      // Set background image source
+      const backgroundUrl =
+        uploadedAssets.backgroundUrl ||
+        selectedTemplate?.achievement?.backgroundImage;
+      if (backgroundUrl) {
+        backgroundImg.src = getProxiedUrlForPreview(backgroundUrl);
+      } else {
+        // No background image, use fallback
+        ctx.fillStyle = "#FF69B4"; // Pink background as fallback
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        const previewDataUrl = canvas.toDataURL("image/png");
+        setPreviewImageUrl(previewDataUrl);
+        localStorage.setItem("temp-preview-image-base64", previewDataUrl);
+
+        return previewDataUrl;
+      }
+    } catch (error) {
+      console.error("Error generating preview image:", error);
+      setPreviewImageUrl(null);
     }
   };
 
-  // EmailRecipients component
-  function EmailRecipients() {
-    const [email, setEmail] = useState("");
-    const [emails, setEmails] = useState<string[]>([]);
-    const [error, setError] = useState("");
-
-    const handleAdd = () => {
-      if (!email) return;
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!emailRegex.test(email)) {
-        setError("Invalid email");
-        return;
-      }
-      if (emails.includes(email)) {
-        setError("Email already added");
-        return;
-      }
-      setEmails([...emails, email]);
-      setEmail("");
-      setError("");
-    };
-
-    const handleRemove = (removeEmail: string) => {
-      setEmails(emails.filter((e) => e !== removeEmail));
-    };
-
-    useEffect(() => {
-      const unsubscribe = onAuthStateChanged(auth, (user) => {
-        setIsLoggedIn(!!user);
-      });
-
-      return () => unsubscribe();
-    }, []);
-
-    return (
-      <div className="mt-6">
-        <h3 className="text-lg font-medium text-white mb-2">
-          Email Recipients
-        </h3>
-        <div className="flex gap-2 mb-2">
-          <input
-            type="email"
-            disabled={!isLoggedIn}
-            placeholder="Enter one email at a time"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            className="flex-1 px-3 py-2 rounded bg-[#1B1D21] border border-gray-600 text-white placeholder-gray-400 focus:outline-none focus:border-[var(--primary-dark)] disabled:opacity-50"
-            style={{ fontFamily: "Poppins", fontSize: "14px" }}
-          />
-          <button
-            type="button"
-            disabled={!isLoggedIn}
-            onClick={handleAdd}
-            className="bg-white text-black px-4 py-2 rounded font-semibold hover:bg-gray-200 disabled:opacity-50"
-          >
-            Add
-          </button>
-        </div>
-        {error && <div className="text-red-400 text-xs mb-2">{error}</div>}
-        <div className="flex flex-wrap gap-2">
-          {emails.map((e) => (
-            <span
-              key={e}
-              className="flex items-center bg-gray-700 text-white px-3 py-1 rounded-full text-sm"
-            >
-              {e}
-              <button
-                type="button"
-                onClick={() => handleRemove(e)}
-                className="ml-2 text-gray-300 hover:text-red-400 focus:outline-none"
-                aria-label={`Remove ${e}`}
-              >
-                ×
-              </button>
-            </span>
-          ))}
-        </div>
-
-        <h3 className="text-lg font-medium text-white mb-2 mt-6">
-          Share Props
-        </h3>
-
-        {/* Social Media Icons */}
-        <div className="flex flex-wrap justify-center gap-3 mb-4 sm:gap-4 md:gap-5">
-          {[
-            {
-              label: "Copy",
-              bg: "bg-gray-600 hover:bg-gray-500",
-              icon: (
-                <path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm-1 16H8V7h10v14z" />
-              ),
-            },
-            {
-              label: "Link",
-              bg: "bg-gray-600 hover:bg-gray-500",
-              icon: (
-                <path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z" />
-              ),
-            },
-            {
-              label: "Download",
-              bg: "bg-gray-600 hover:bg-gray-500",
-              icon: <path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z" />,
-            },
-            {
-              label: "Share on LinkedIn",
-              bg: "bg-[#0077B5] hover:bg-[#005885]",
-              icon: (
-                <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z" />
-              ),
-            },
-            {
-              label: "Share on Twitter",
-              bg: "bg-black hover:bg-gray-800",
-              icon: (
-                <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
-              ),
-            },
-            {
-              label: "Share on Facebook",
-              bg: "bg-[#1877F2] hover:bg-[#166FE5]",
-              icon: (
-                <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
-              ),
-            },
-          ]
-            .filter(({ label }) => label !== "Link")
-            .map(({ label, bg, icon }, idx) => (
-            <button
-              key={idx}
-              type="button"
-              disabled={!isLoggedIn}
-              className={`disabled:opacity-50 p-3 sm:p-2 md:p-3 rounded-full ${bg} transition-colors flex items-center justify-center`}
-              aria-label={label}
-            >
-              <svg
-                width="20"
-                height="20"
-                viewBox="0 0 24 24"
-                fill="currentColor"
-                className="text-white"
-              >
-                {icon}
-              </svg>
-            </button>
-          ))}
-        </div>
-
-        {showLoginNotice && !isLoggedIn && (
-          <Link href="/signin" className="font-bold text-[var(--primary-dark)]">
-            Please Login To Share Props And Email Receipents
-          </Link>
-        )}
-      </div>
-    );
-  }
+  const handleShare = () => {
+    if (savedPropId) {
+      router.push(`/props/${savedPropId}`);
+    } else {
+      console.error("No saved prop ID available");
+      alert("Error: Prop not found. Please try generating again.");
+    }
+  };
 
   return (
-    <div className="h-full flex flex-col" style={{ paddingLeft: "8px", paddingRight: "8px" }}>
+    <div
+      className="h-full flex flex-col"
+      style={{ paddingLeft: "8px", paddingRight: "8px" }}
+    >
       <div className="text-center flex-shrink-0" style={{ marginTop: "24px" }}>
-        <h1 className="text-[30px] font-bold text-white mb-4">Share</h1>
+        <h1 className="text-[30px] font-bold text-white mb-4">Save</h1>
       </div>
 
-      <SignUpModal
-        isOpen={isSignupModalOpen}
-        setIsOpen={setisSignupModalOpen}
+      <AuthModal
+        isOpen={isAuthModalOpen}
+        setIsOpen={setIsAuthModalOpen}
         onSuccess={() => {
-          setisSignupModalOpen(false);
+          setIsAuthModalOpen(false);
           if (onAuthSuccess) onAuthSuccess();
         }}
       />
@@ -574,7 +1018,7 @@ This digital award recognizes excellence and dedication in professional developm
             style={{ backgroundColor: "#1B1D21", borderColor: "#454446" }}
           >
             <h3 className="text-lg font-medium text-white mb-2">
-              Generate, Save and Share
+              Generate and Save
             </h3>
             <p className="text-gray-300 text-sm mb-2">
               Click the button below to generate your digital award based on all
@@ -585,6 +1029,10 @@ This digital award recognizes excellence and dedication in professional developm
                 type="checkbox"
                 checked={saveAsTemplate}
                 onChange={(e) => setSaveAsTemplate(e.target.checked)}
+                className="w-4 h-4 text-[#458CE0] bg-[#1B1D21] border-[#454446] rounded focus:ring-[#458CE0] focus:ring-2 focus:ring-offset-0"
+                style={{
+                  accentColor: "#458CE0",
+                }}
               />
               Save as reusable template
             </label>
@@ -598,7 +1046,10 @@ This digital award recognizes excellence and dedication in professional developm
                     onClick={async () => {
                       if (!auth.currentUser || !savedPropId) return;
                       setProcessStep("Retrying image generation...");
-                      await generateAndSaveImage(auth.currentUser.uid, savedPropId);
+                      await generateAndSaveImage(
+                        auth.currentUser.uid,
+                        savedPropId
+                      );
                       setProcessStep("");
                     }}
                   >
@@ -608,10 +1059,10 @@ This digital award recognizes excellence and dedication in professional developm
               </div>
             )}
             <button
-              className="w-full bg-[var(--primary-dark)] text-white font-semibold py-2 rounded mb-4 mt-2 hover:bg-[var(--primary)] transition"
+              className="w-full bg-[var(--primary-dark)] text-white font-semibold py-2 rounded mb-4 mt-2 hover:bg-[var(--primary)] hover:text-[#191d21] transition"
               onClick={
                 !isLoggedIn
-                  ? () => setisSignupModalOpen(true)
+                  ? () => setIsAuthModalOpen(true)
                   : handleGenerateAward
               }
               disabled={isGenerating}
@@ -633,10 +1084,44 @@ This digital award recognizes excellence and dedication in professional developm
                   ✓ Award saved successfully! ID: {savedPropId}
                 </div>
               )}
+              {/* Preview Image (Generated Locally) */}
+              {previewImageUrl && (
+                <div className="mb-4">
+                  <h4 className="text-md font-medium text-white mb-2">
+                    Preview Image (Generated Locally):
+                  </h4>
+                  <div className="bg-white rounded-lg p-2 inline-block">
+                    <img
+                      src={previewImageUrl}
+                      alt="Preview Prop"
+                      className="rounded border border-gray-300"
+                      style={{
+                        width: "247px",
+                        height: "197px",
+                        objectFit: "cover",
+                        objectPosition: "center",
+                      }}
+                      onLoad={() =>
+                        console.log("Preview image loaded successfully")
+                      }
+                      onError={(e) =>
+                        console.error("Preview image failed to load:", e)
+                      }
+                    />
+                  </div>
+                  {savedPropId && (
+                    <div className="mt-2 text-green-400 text-sm">
+                      ✓ Preview image saved to database (ID: {savedPropId})
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Final Generated Image (From Cloud Function) */}
               {generatedImageUrl && (
                 <div className="mb-4">
                   <h4 className="text-md font-medium text-white mb-2">
-                    Generated Prop Image:
+                    Final Generated Prop Image:
                   </h4>
                   {savedPropId ? (
                     <Link
@@ -647,8 +1132,13 @@ This digital award recognizes excellence and dedication in professional developm
                       <img
                         src={getProxiedImageUrl(generatedImageUrl)}
                         alt="Generated Prop"
-                        className="w-64 h-auto rounded border border-gray-300"
-                        style={{ maxWidth: "256px" }}
+                        className="rounded border border-gray-300"
+                        style={{
+                          width: "247px",
+                          height: "197px",
+                          objectFit: "cover",
+                          objectPosition: "center",
+                        }}
                         onLoad={() =>
                           console.log(
                             "Image loaded successfully:",
@@ -670,8 +1160,13 @@ This digital award recognizes excellence and dedication in professional developm
                       <img
                         src={getProxiedImageUrl(generatedImageUrl)}
                         alt="Generated Prop"
-                        className="w-64 h-auto rounded border border-gray-300"
-                        style={{ maxWidth: "256px" }}
+                        className="rounded border border-gray-300"
+                        style={{
+                          width: "247px",
+                          height: "197px",
+                          objectFit: "cover",
+                          objectPosition: "center",
+                        }}
                         onLoad={() =>
                           console.log(
                             "Image loaded successfully:",
@@ -689,30 +1184,20 @@ This digital award recognizes excellence and dedication in professional developm
                       />
                     </div>
                   )}
-                  
                 </div>
               )}
-              
             </div>
 
             <div className="flex gap-2">
               <button
-                onClick={handleDownload}
-                className="flex-1 px-4 py-2 text-sm font-medium transition-colors bg-gray-600 text-white rounded hover:bg-gray-500"
-              >
-                Download
-              </button>
-              <button
                 onClick={handleShare}
-                className="flex-1 px-4 py-2 text-sm font-medium transition-colors bg-[var(--primary-dark)] text-[#212327] rounded hover:bg-[#0AFB84]"
+                className="w-full px-4 py-2 text-sm font-medium transition-colors bg-[var(--primary-dark)] text-[#212327] rounded hover:bg-[#0AFB84]"
               >
-                Share
+                View Prop
               </button>
             </div>
           </div>
         )}
-        {/* Email Recipients component as a separate section below */}
-        <EmailRecipients />
       </div>
 
       {/* Navigation buttons */}

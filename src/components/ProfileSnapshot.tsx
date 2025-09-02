@@ -1,6 +1,8 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import { collection, getDocs, query, where, doc } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
 
 interface Employee {
   id: string;
@@ -15,6 +17,7 @@ interface Employee {
   photo?: string;
   role?: string;
   skills?: string[];
+  reason?: string;
 }
 
 interface ProfileSnapshotProps {
@@ -22,11 +25,66 @@ interface ProfileSnapshotProps {
 }
 
 export default function ProfileSnapshot({ employee }: ProfileSnapshotProps) {
+  const [userSkills, setUserSkills] = useState<any[]>([]);
+  const [skillsLoading, setSkillsLoading] = useState(false);
+  const [expandedSkills, setExpandedSkills] = useState<Set<string>>(new Set());
+  const [hoveredSkill, setHoveredSkill] = useState<string | null>(null);
+
   // Debug logging for employee data
   console.log('ProfileSnapshot received employee:', employee);
   if (employee) {
     console.log('Employee skills:', employee.skills);
   }
+
+  // Fetch skills from top-level skills collection
+  const fetchUserSkills = async (userId: string) => {
+    if (!userId) return;
+    
+    setSkillsLoading(true);
+    try {
+      // Query skills collection where userRef matches the user ID
+      const skillsQuery = query(
+        collection(db, 'skills'),
+        where('userRef', '==', doc(db, 'users', userId))
+      );
+      
+      const skillsSnapshot = await getDocs(skillsQuery);
+      const skills = skillsSnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+      
+      console.log('Fetched user skills:', skills);
+      setUserSkills(skills);
+    } catch (error) {
+      console.error('Error fetching user skills:', error);
+      setUserSkills([]);
+    } finally {
+      setSkillsLoading(false);
+    }
+  };
+
+  // Fetch skills when employee changes
+  useEffect(() => {
+    if (employee && employee.id) {
+      fetchUserSkills(employee.id);
+    } else {
+      setUserSkills([]);
+    }
+  }, [employee]);
+
+  // Handle skill expansion/collapse - only one skill can be expanded at a time
+  const toggleSkillExpansion = (skillId: string) => {
+    setExpandedSkills(prev => {
+      // If clicking the same skill that's already expanded, close it
+      if (prev.has(skillId)) {
+        return new Set();
+      } else {
+        // Otherwise, expand only this skill (closes any previously expanded)
+        return new Set([skillId]);
+      }
+    });
+  };
 
   // Helper function to format birthday without year
   const formatBirthday = (birthday: string): string => {
@@ -102,9 +160,9 @@ export default function ProfileSnapshot({ employee }: ProfileSnapshotProps) {
   }
 
   return (
-    <div className="bg-[#121417] box-border content-stretch flex flex-col items-center justify-center p-0 relative size-full">
+    <div className="bg-[#121417] box-border content-stretch flex flex-col items-center justify-center p-0 relative size-full border-l border-[#454446]">
       {/* Card wrapper with side nav background color */}
-      <div className="m-9 p-6 bg-[#1F2327] border border-[#1F2327] rounded-[12px] h-full overflow-hidden">
+      <div className="m-9 p-6 bg-[#1F2327] border border-[#1F2327] rounded-[12px] h-full overflow-y-auto max-w-[600px] w-full hover:overflow-y-auto">
         {/* Header with name and employee ID */}
         <div className="box-border content-stretch flex flex-row font-['Inter:Medium',_sans-serif] font-medium gap-3 items-start justify-start leading-[0] not-italic overflow-clip px-3 py-[18px] relative shrink-0 text-[#ffffff] text-[14px] w-full">
           <div className="basis-0 grow h-7 min-h-px min-w-px relative shrink-0 text-left">
@@ -114,6 +172,18 @@ export default function ProfileSnapshot({ employee }: ProfileSnapshotProps) {
             <p className="block leading-[1.5]">ID: {employee.employeeId}</p>
           </div>
         </div>
+
+        {/* Rank Summary */}
+        {employee.reason && (
+          <div className="box-border content-stretch flex flex-col gap-2 items-start justify-start overflow-hidden px-3 py-[18px] relative shrink-0 w-full max-w-full">
+            <div className="font-['Poppins:Medium',_sans-serif] text-[#ffffff] text-[12px] text-left tracking-[0.24px]">
+              <p className="block leading-[1.2]">Rank Summary</p>
+            </div>
+            <div className="font-['Poppins:Regular',_sans-serif] text-[#aeaeae] text-[11px] text-left leading-[1.3] w-full break-words">
+              <p className="block">{employee.reason}</p>
+            </div>
+          </div>
+        )}
 
         {/* Divider line */}
         <div className="box-border content-stretch flex flex-row gap-3 h-2.5 items-center justify-center overflow-clip px-3 py-[18px] relative shrink-0 w-full">
@@ -203,16 +273,107 @@ export default function ProfileSnapshot({ employee }: ProfileSnapshotProps) {
           </div>
 
           {/* Skills list */}
-          <div className="box-border content-stretch flex flex-row flex-wrap gap-2 items-start justify-start overflow-clip px-0 py-[18px] relative shrink-0 w-full">
-            {employee.skills && employee.skills.length > 0 ? (
-              employee.skills.map((skill, index) => (
-                <span 
-                  key={index}
-                  className="px-3 py-1 bg-[#00DF71] text-[#212327] text-xs font-medium rounded-full"
-                >
-                  {skill}
-                </span>
-              ))
+          <div className="box-border content-stretch flex flex-col gap-2 items-start justify-start overflow-hidden px-0 py-[18px] relative shrink-0 w-full max-w-full">
+            {skillsLoading ? (
+              <span className="text-[#aeaeae] text-xs">Loading skills...</span>
+            ) : userSkills && userSkills.length > 0 ? (
+              <>
+                {/* Skills buttons - left to right with wrapping */}
+                <div className="flex flex-row flex-wrap gap-2 items-start justify-start w-full max-w-full overflow-hidden">
+                  {userSkills.map((skill, index) => {
+                    const skillId = skill.id || `skill-${index}`;
+                    const isExpanded = expandedSkills.has(skillId);
+                    const skillName = skill.name || skill.skill || 'Unknown Skill';
+                    const hasAnyExpanded = expandedSkills.size > 0;
+                    const shouldDim = hasAnyExpanded && !isExpanded;
+                    
+                    // Check if skill has detail information (proficiency, motivation, or description)
+                    const hasDetails = skill.proficiency || skill.motivation || skill.description;
+                    
+                    // Special case for "scrum" skill - always show as stroke button
+                    const isScrumSkill = skillName.toLowerCase().includes('scrum');
+                    
+                    if (!hasDetails || isScrumSkill) {
+                      // Green stroke button for skills without details
+                      return (
+                        <div key={skillId} className="relative flex-shrink-0">
+                          <button
+                            className={`px-3 py-1 bg-[#1F2327] border border-[#00DF71] text-[#00DF71] text-xs font-medium rounded-full transition-all duration-200 whitespace-nowrap flex-shrink-0 max-w-full ${
+                              shouldDim ? 'opacity-20' : 'opacity-100'
+                            } ${isScrumSkill ? '' : 'hover:bg-[#00DF71] hover:text-[#1F2327]'}`}
+                            onMouseEnter={() => setHoveredSkill(skillId)}
+                            onMouseLeave={() => setHoveredSkill(null)}
+                          >
+                            <span>{skillName}</span>
+                          </button>
+                          
+                          {/* Custom tooltip */}
+                          {hoveredSkill === skillId && (
+                            <div className="absolute right-full top-1/2 transform -translate-y-1/2 mr-2 px-2 py-1 bg-gray-800 text-white text-xs rounded shadow-lg whitespace-nowrap z-[9999]">
+                              {isScrumSkill ? "No details available" : "No details"}
+                              <div className="absolute left-full top-1/2 transform -translate-y-1/2 w-0 h-0 border-t-4 border-b-4 border-l-4 border-transparent border-l-gray-800"></div>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    }
+                    
+                    // Green filled button for skills with details
+                    return (
+                      <button
+                        key={skillId}
+                        onClick={() => toggleSkillExpansion(skillId)}
+                        className={`flex items-center gap-1 px-3 py-1 bg-[#00DF71] text-[#212327] text-xs font-medium rounded-full hover:bg-[#0AFB84] transition-all duration-200 whitespace-nowrap flex-shrink-0 max-w-full ${
+                          shouldDim ? 'opacity-20' : 'opacity-100'
+                        }`}
+                      >
+                        <span>{skillName}</span>
+                        <svg 
+                          className={`w-3 h-3 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`}
+                          fill="none" 
+                          stroke="currentColor" 
+                          viewBox="0 0 24 24"
+                        >
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                        </svg>
+                      </button>
+                    );
+                  })}
+                </div>
+                
+                {/* Expanded skill details - full width below skills */}
+                {Array.from(expandedSkills).map(skillId => {
+                  const skill = userSkills.find(s => (s.id || `skill-${userSkills.indexOf(s)}`) === skillId);
+                  if (!skill) return null;
+                  
+                  return (
+                    <div 
+                      key={`${skillId}-${expandedSkills.size}`} 
+                      className="w-full mt-2 p-3 bg-[#1F2327] border border-[#454446] rounded-lg animate-in fade-in-0 slide-in-from-top-2 duration-300"
+                    >
+                                              <div className="space-y-2">
+                                                    <div className="flex items-center gap-2">
+                            <span className="text-white text-xs">Proficiency:</span>
+                            <span className="text-[#00DF71] text-xs font-medium">
+                              {skill.proficiency || 'Not specified'}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <span className="text-white text-xs">Motivation:</span>
+                            <span className="text-[#00DF71] text-xs font-medium">
+                              {skill.motivation || 'Not specified'}
+                            </span>
+                          </div>
+                          <div className="pt-2 border-t border-[#454446]">
+                            <p className="text-[#aeaeae] text-xs leading-relaxed">
+                              {skill.description || 'No description available for this skill.'}
+                            </p>
+                          </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </>
             ) : (
               <span className="text-[#aeaeae] text-xs">No skills listed</span>
             )}

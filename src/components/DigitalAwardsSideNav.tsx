@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 export type StepType =
   | "awards"
@@ -18,16 +18,22 @@ export default function DigitalAwardsSideNav({
   currentStep,
   onStepChange,
 }: DigitalAwardsSideNavProps) {
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   const steps: { key: StepType; label: string; icon: string }[] = [
     { key: "awards", label: "Awards", icon: "/awards.svg" },
     { key: "company", label: "Company", icon: "/company.svg" },
     { key: "background", label: "Background", icon: "/background.svg" },
     { key: "props-details", label: "Details", icon: "/details.svg" },
-    { key: "share", label: "Share", icon: "/share.svg" },
+    { key: "share", label: "Save", icon: "/save.svg" },
   ];
 
   return (
-    <div className="bg-[#191d21] pt-5 flex flex-col gap-2.5 items-center justify-start px-0 h-full w-[94px]">
+    <div className="bg-[#191d21] pt-5 flex flex-col gap-2.5 items-center justify-start px-0 h-full w-[94px] relative">
       <div className="flex flex-col gap-4">
         {steps.map((step, index) => (
           <div
@@ -37,7 +43,7 @@ export default function DigitalAwardsSideNav({
           >
             <div
               className={`h-[60px] w-[94px] flex flex-col items-center justify-center rounded-none p-2 transition-all duration-200 ${
-                currentStep !== step.key ? "group hover:bg-white/5" : ""
+                mounted && currentStep !== step.key ? "group hover:bg-white/5" : ""
               }`}
             >
               {/* SVG Icon */}
@@ -45,7 +51,7 @@ export default function DigitalAwardsSideNav({
                 <div
                   data-icon
                   className={`w-8 h-8 transition-all duration-200 ${
-                    currentStep === step.key
+                    mounted && currentStep === step.key
                       ? "text-[#00df71]"
                       : "text-gray-400"
                   }`}
@@ -59,7 +65,7 @@ export default function DigitalAwardsSideNav({
                     WebkitMaskRepeat: "no-repeat",
                     WebkitMaskPosition: "center",
                     backgroundColor:
-                      currentStep === step.key
+                      mounted && currentStep === step.key
                         ? "#00df71"
                         : "var(--icon-color, #9ca3af)",
                   }}
@@ -70,7 +76,7 @@ export default function DigitalAwardsSideNav({
                 <p
                   data-text
                   className={`text-xs font-medium text-center transition-colors ${
-                    currentStep === step.key
+                    mounted && currentStep === step.key
                       ? "text-[#00df71]"
                       : "text-gray-400"
                   }`}

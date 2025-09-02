@@ -35,6 +35,8 @@ export default function PropsDetailsStep({
   fromMessage,
   setFromMessage,
 }: PropsDetailsStepProps) {
+  const [mounted, setMounted] = useState(false);
+  
   const [title, setTitle] = useState(propsTitle || "");
   const [showTitleInput, setShowTitleInput] = useState(false);
   const [recipients, setRecipients] = useState<string[]>(propsRecipients || []);
@@ -77,6 +79,9 @@ export default function PropsDetailsStep({
   };
 
   // Remove the useEffect that sets default date - user must choose a date
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   return (
     <div className="h-full flex flex-col" style={{ marginLeft: "8px", marginRight: "8px" }}>
@@ -95,7 +100,7 @@ export default function PropsDetailsStep({
             className="p-4 rounded-sm border"
             style={{ backgroundColor: "#1B1D21", borderColor: "#454446" }}
           >
-            {showTitleInput ? (
+            {mounted && showTitleInput ? (
               <div className="flex items-center space-x-2">
                 <input
                   type="text"
@@ -183,6 +188,7 @@ export default function PropsDetailsStep({
                   type="text"
                   placeholder="Add one or more recipient names"
                   value={newRecipient}
+                  maxLength={67}
                   onChange={(e) => setNewRecipient(e.target.value)}
                   onKeyPress={(e) => e.key === "Enter" && handleAddRecipient()}
                   className="flex-1 px-4 py-2 text-sm bg-[#1B1D21] border rounded text-white placeholder-gray-400 focus:outline-none focus:border-[var(--primary-dark)]"

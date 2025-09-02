@@ -22,30 +22,182 @@ export default function DigitalAwardsPage() {
   const getCompanyName = (templateIndex: number) => {
     return companyNames[templateIndex % companyNames.length];
   };
-  const [currentStep, setCurrentStep] = useState<StepType>("awards");
-  const [activeTab, setActiveTab] = useState<"props" | "achievements">("props");
-  const [selectedTemplate, setSelectedTemplate] = useState<any | null>(null);
-  const [showTemplateDetail, setShowTemplateDetail] = useState(false);
+  const [currentStep, setCurrentStep] = useState<StepType>(() => {
+    // Try to get the current step from localStorage first
+    if (typeof window !== "undefined") {
+      const savedStep = localStorage.getItem("digital-awards-current-step");
+      if (
+        savedStep &&
+        ["awards", "company", "background", "props-details", "share"].includes(
+          savedStep
+        )
+      ) {
+        return savedStep as StepType;
+      }
+    }
+    return "awards";
+  });
+  const [activeTab, setActiveTab] = useState<"props" | "achievements">(() => {
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem("digital-awards-active-tab");
+      return saved === "achievements" ? "achievements" : "props";
+    }
+    return "props";
+  });
+  const [selectedTemplate, setSelectedTemplate] = useState<any | null>(() => {
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem("digital-awards-selected-template");
+      return saved ? JSON.parse(saved) : null;
+    }
+    return null;
+  });
+  const [showTemplateDetail, setShowTemplateDetail] = useState(() => {
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem("digital-awards-show-template-detail");
+      return saved === "true";
+    }
+    return false;
+  });
   const [showAlert, setShowAlert] = useState(false);
   const [alertMessage, setAlertMessage] = useState("");
-  const [logoVisible, setLogoVisible] = useState(true);
+  const [logoVisible, setLogoVisible] = useState(() => {
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem("digital-awards-logo-visible");
+      return saved !== "false"; // Default to true
+    }
+    return true;
+  });
   const [uploadedLogoFile, setUploadedLogoFile] = useState<File | null>(null);
   const [propsTemplates, setPropsTemplates] = useState<any[]>([]);
   const [loadingTemplates, setLoadingTemplates] = useState<boolean>(false);
-  const [companyNameText, setCompanyNameText] = useState<string>("");
-  const [backgroundVisible, setBackgroundVisible] = useState(true);
+  const [companyNameText, setCompanyNameText] = useState<string>(() => {
+    if (typeof window !== "undefined") {
+      return localStorage.getItem("digital-awards-company-name") || "";
+    }
+    return "";
+  });
+  const [backgroundVisible, setBackgroundVisible] = useState(() => {
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem("digital-awards-background-visible");
+      return saved !== "false"; // Default to true
+    }
+    return true;
+  });
   const [uploadedBackgroundFile, setUploadedBackgroundFile] =
     useState<File | null>(null);
-  const [backgroundNameText, setBackgroundNameText] = useState<string>("");
-  const [propsTitle, setPropsTitle] = useState<string>("");
-  const [propsRecipients, setPropsRecipients] = useState<string[]>([]);
-  const [fromName, setFromName] = useState<string>("");
-  const [fromDate, setFromDate] = useState<string>("");
-  const [fromMessage, setFromMessage] = useState<string>("");
-  const [filters, setFilters] = useState<{ [tag: string]: boolean }>({});
+  const [backgroundNameText, setBackgroundNameText] = useState<string>(() => {
+    if (typeof window !== "undefined") {
+      return localStorage.getItem("digital-awards-background-name") || "";
+    }
+    return "";
+  });
+  const [propsTitle, setPropsTitle] = useState<string>(() => {
+    if (typeof window !== "undefined") {
+      return localStorage.getItem("digital-awards-props-title") || "";
+    }
+    return "";
+  });
+  const [propsRecipients, setPropsRecipients] = useState<string[]>(() => {
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem("digital-awards-props-recipients");
+      return saved ? JSON.parse(saved) : [];
+    }
+    return [];
+  });
+  const [fromName, setFromName] = useState<string>(() => {
+    if (typeof window !== "undefined") {
+      return localStorage.getItem("digital-awards-from-name") || "";
+    }
+    return "";
+  });
+  const [fromDate, setFromDate] = useState<string>(() => {
+    if (typeof window !== "undefined") {
+      return localStorage.getItem("digital-awards-from-date") || "";
+    }
+    return "";
+  });
+  const [fromMessage, setFromMessage] = useState<string>(() => {
+    if (typeof window !== "undefined") {
+      return localStorage.getItem("digital-awards-from-message") || "";
+    }
+    return "";
+  });
+  const [filters, setFilters] = useState<{ [tag: string]: boolean }>(() => {
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem("digital-awards-filters");
+      return saved ? JSON.parse(saved) : {};
+    }
+    return {};
+  });
   const [filteredTemplates, setFilteredTemplates] = useState<any[]>([]);
-  const [searchQuery, setSearchQuery] = useState("");
+  const [searchQuery, setSearchQuery] = useState(() => {
+    if (typeof window !== "undefined") {
+      return localStorage.getItem("digital-awards-search-query") || "";
+    }
+    return "";
+  });
   const [showAchievementsModal, setShowAchievementsModal] = useState(false);
+  const [isStepsSidebarOpen, setIsStepsSidebarOpen] = useState(false);
+  const [selectedSidebarStep, setSelectedSidebarStep] =
+    useState<StepType | null>(null);
+
+  // Helper function to save all form state to localStorage
+  const saveFormStateToLocalStorage = () => {
+    if (typeof window !== "undefined") {
+      localStorage.setItem("digital-awards-active-tab", activeTab);
+      localStorage.setItem(
+        "digital-awards-selected-template",
+        JSON.stringify(selectedTemplate)
+      );
+      localStorage.setItem(
+        "digital-awards-show-template-detail",
+        showTemplateDetail.toString()
+      );
+      localStorage.setItem(
+        "digital-awards-logo-visible",
+        logoVisible.toString()
+      );
+      localStorage.setItem("digital-awards-company-name", companyNameText);
+      localStorage.setItem(
+        "digital-awards-background-visible",
+        backgroundVisible.toString()
+      );
+      localStorage.setItem(
+        "digital-awards-background-name",
+        backgroundNameText
+      );
+      localStorage.setItem("digital-awards-props-title", propsTitle);
+      localStorage.setItem(
+        "digital-awards-props-recipients",
+        JSON.stringify(propsRecipients)
+      );
+      localStorage.setItem("digital-awards-from-name", fromName);
+      localStorage.setItem("digital-awards-from-date", fromDate);
+      localStorage.setItem("digital-awards-from-message", fromMessage);
+      localStorage.setItem("digital-awards-filters", JSON.stringify(filters));
+      localStorage.setItem("digital-awards-search-query", searchQuery);
+    }
+  };
+
+  // Save form state to localStorage whenever any form value changes
+  useEffect(() => {
+    saveFormStateToLocalStorage();
+  }, [
+    activeTab,
+    selectedTemplate,
+    showTemplateDetail,
+    logoVisible,
+    companyNameText,
+    backgroundVisible,
+    backgroundNameText,
+    propsTitle,
+    propsRecipients,
+    fromName,
+    fromDate,
+    fromMessage,
+    filters,
+    searchQuery,
+  ]);
 
   // Prefill from query params (logo/bg/company/base, step)
   useEffect(() => {
@@ -76,6 +228,10 @@ export default function DigitalAwardsPage() {
 
     if (step === "props-details") {
       setCurrentStep("props-details");
+      // Save the current step to localStorage
+      if (typeof window !== "undefined") {
+        localStorage.setItem("digital-awards-current-step", "props-details");
+      }
     }
   }, [searchParams]);
 
@@ -118,6 +274,10 @@ export default function DigitalAwardsPage() {
     }
 
     setCurrentStep(step);
+    // Save the current step to localStorage
+    if (typeof window !== "undefined") {
+      localStorage.setItem("digital-awards-current-step", step);
+    }
   };
 
   const handleNext = () => {
@@ -130,7 +290,12 @@ export default function DigitalAwardsPage() {
     ];
     const currentIndex = steps.indexOf(currentStep);
     if (currentIndex < steps.length - 1) {
-      setCurrentStep(steps[currentIndex + 1]);
+      const nextStep = steps[currentIndex + 1];
+      setCurrentStep(nextStep);
+      // Save the current step to localStorage
+      if (typeof window !== "undefined") {
+        localStorage.setItem("digital-awards-current-step", nextStep);
+      }
     }
   };
 
@@ -144,7 +309,12 @@ export default function DigitalAwardsPage() {
     ];
     const currentIndex = steps.indexOf(currentStep);
     if (currentIndex > 0) {
-      setCurrentStep(steps[currentIndex - 1]);
+      const prevStep = steps[currentIndex - 1];
+      setCurrentStep(prevStep);
+      // Save the current step to localStorage
+      if (typeof window !== "undefined") {
+        localStorage.setItem("digital-awards-current-step", prevStep);
+      }
     }
   };
 
@@ -154,15 +324,81 @@ export default function DigitalAwardsPage() {
     setLogoVisible(true); // Reset logo visibility for new template
     setUploadedLogoFile(null); // Reset uploaded logo for new template
     setCompanyNameText(""); // Reset company name for new template
+    // Clear form data when new template is selected
+    setPropsTitle("");
+    setPropsRecipients([]);
+    setFromName("");
+    setFromDate("");
+    setFromMessage("");
+    setBackgroundNameText("");
+    setUploadedBackgroundFile(null);
+  };
+
+  // Function to clear all localStorage data
+  const clearAllLocalStorage = () => {
+    if (typeof window !== "undefined") {
+      localStorage.removeItem("digital-awards-current-step");
+      localStorage.removeItem("digital-awards-active-tab");
+      localStorage.removeItem("digital-awards-selected-template");
+      localStorage.removeItem("digital-awards-show-template-detail");
+      localStorage.removeItem("digital-awards-logo-visible");
+      localStorage.removeItem("digital-awards-company-name");
+      localStorage.removeItem("digital-awards-background-visible");
+      localStorage.removeItem("digital-awards-background-name");
+      localStorage.removeItem("digital-awards-props-title");
+      localStorage.removeItem("digital-awards-props-recipients");
+      localStorage.removeItem("digital-awards-from-name");
+      localStorage.removeItem("digital-awards-from-date");
+      localStorage.removeItem("digital-awards-from-message");
+      localStorage.removeItem("digital-awards-filters");
+      localStorage.removeItem("digital-awards-search-query");
+    }
   };
 
   const handleBackToTemplates = () => {
     setShowTemplateDetail(false);
     setSelectedTemplate(null);
+    // Reset to first step when going back to templates
+    setCurrentStep("awards");
+    // Clear all localStorage data
+    clearAllLocalStorage();
+  };
+
+  // Function to start over completely (reset all state and go back to first step)
+  const handleStartOver = () => {
+    setCurrentStep("awards");
+    setSelectedTemplate(null);
+    setShowTemplateDetail(false);
+    setLogoVisible(true);
+    setUploadedLogoFile(null);
+    setCompanyNameText("");
+    setBackgroundVisible(true);
+    setUploadedBackgroundFile(null);
+    setBackgroundNameText("");
+    setPropsTitle("");
+    setPropsRecipients([]);
+    setFromName("");
+    setFromDate("");
+    setFromMessage("");
+    setActiveTab("props");
+    setFilters({});
+    setSearchQuery("");
+    // Clear all localStorage data
+    clearAllLocalStorage();
   };
 
   const handleChangeSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(e.target.value.toLowerCase());
+  };
+
+  const openStepsSidebar = () => {
+    console.log("openStepsSidebar called, setting isStepsSidebarOpen to true");
+    setIsStepsSidebarOpen(true);
+    setSelectedSidebarStep(null); // Reset to steps list view
+  };
+
+  const handleSidebarStepSelect = (step: StepType) => {
+    setSelectedSidebarStep(step);
   };
 
   const renderCurrentStep = () => {
@@ -177,6 +413,11 @@ export default function DigitalAwardsPage() {
             onTabChange={setActiveTab}
             showTemplateDetail={showTemplateDetail}
             setShowAchievementsModal={setShowAchievementsModal}
+            selectedTemplate={selectedTemplate}
+            onStepChange={handleStepChange}
+            currentStep={currentStep}
+            isStepsSidebarOpen={isStepsSidebarOpen}
+            setIsStepsSidebarOpen={setIsStepsSidebarOpen}
           />
         );
       case "company":
@@ -259,6 +500,11 @@ export default function DigitalAwardsPage() {
             onTabChange={setActiveTab}
             showTemplateDetail={showTemplateDetail}
             setShowAchievementsModal={setShowAchievementsModal}
+            selectedTemplate={selectedTemplate}
+            onStepChange={handleStepChange}
+            currentStep={currentStep}
+            isStepsSidebarOpen={isStepsSidebarOpen}
+            setIsStepsSidebarOpen={setIsStepsSidebarOpen}
           />
         );
     }
@@ -270,7 +516,7 @@ export default function DigitalAwardsPage() {
       setLoadingTemplates(true);
       try {
         // Try the new collection name first (Kevin's approach)
-        let templatesRef = collection(db, "templates");
+        let templatesRef = collection(db, "template");
         let q = query(templatesRef);
         let querySnapshot = await getDocs(q);
 
@@ -339,6 +585,11 @@ export default function DigitalAwardsPage() {
         onTabChange={setActiveTab}
         showTemplateDetail={showTemplateDetail}
         setShowAchievementsModal={setShowAchievementsModal}
+        selectedTemplate={selectedTemplate}
+        onStepChange={handleStepChange}
+        currentStep={currentStep}
+        isStepsSidebarOpen={isStepsSidebarOpen}
+        setIsStepsSidebarOpen={setIsStepsSidebarOpen}
       />
     ) : (
       renderCurrentStep()
@@ -498,48 +749,31 @@ export default function DigitalAwardsPage() {
                   }}
                 />
 
-                {propsRecipients && propsRecipients.length > 0 && (
-                  <div
-                    className="absolute z-30 bg-gradient-to-r from-[#ADAFBE] via-[#4F7295] to-[#ADAFBE] opacity-80 rounded-lg p-2"
-                    style={{
-                      left: "20px",
-                      top: "92px",
-                      maxWidth: "280px",
-                      minHeight: "60px",
-                    }}
-                  >
-                    <p
-                      className="text-white text-sm font-medium mb-1"
-                      style={{ color: "white", opacity: 1 }}
-                    >
-                      Props recipients:
-                    </p>
-                    <p
-                      className="text-white text-base font-medium"
-                      style={{
-                        lineHeight: "1.2",
-                        color: "white",
-                        opacity: 1,
-                      }}
-                    >
-                      {propsRecipients.join(", ")}
-                    </p>
-                  </div>
-                )}
-
-                {(fromName || fromDate || fromMessage) && (
-                  <div
-                    className="absolute z-30 bg-gradient-to-r from-[#ADAFBE] via-[#4F7295] to-[#ADAFBE] opacity-80 rounded-lg p-2"
-                    style={{
-                      left: "20px",
-                      top:
-                        propsRecipients && propsRecipients.length > 0
-                          ? "calc(92px + 60px + 12px)"
-                          : "92px",
-                      maxWidth: "280px",
-                      minHeight: "60px",
-                    }}
-                  >
+                {/* Overlay Text Container */}
+                {(propsRecipients && propsRecipients.length > 0) || (fromName || fromDate || fromMessage) ? (
+                  <div className="absolute top-20 left-4 z-30 font-semibold">
+                    {propsRecipients && propsRecipients.length > 0 && (
+                      <div className="prop-inside-box text-white px-3 py-3 rounded-lg shadow-lg max-w-[296px] break-words" style={{ fontFamily: "Poppins", fontSize: "16px", fontWeight: "500", lineHeight: "110%", marginTop: "10px" }}>
+                        Props:
+                        <br />
+                        <span className="whitespace-normal break-words">
+                          {propsRecipients.join(", ")}
+                        </span>
+                      </div>
+                    )}
+                    
+                    {(fromName || fromDate || fromMessage) && (
+                      <div 
+                        className="prop-inside-box text-white px-3 py-3 rounded-lg shadow-lg max-w-[296px] min-w-[300px]"
+                        style={{ 
+                          position: "absolute",
+                          top: propsRecipients && propsRecipients.length > 0 ? "100%" : "0px",
+                          marginTop: "12px",
+                          fontFamily: "Poppins",
+                          fontSize: "16px",
+                          fontWeight: "400"
+                        }}
+                      >
                     {fromName && (
                       <div className="flex justify-between items-center mb-2">
                         <p
@@ -573,8 +807,10 @@ export default function DigitalAwardsPage() {
                         {fromMessage}
                       </p>
                     )}
+                      </div>
+                    )}
                   </div>
-                )}
+                ) : null}
               </div>
             </div>
           )}
@@ -606,18 +842,27 @@ export default function DigitalAwardsPage() {
                 </button>
               </>
             ) : (
-              <button
-                onClick={() => {
-                  // Return to template grid
-                  setShowTemplateDetail(false);
-                  setSelectedTemplate(null);
-                  setCurrentStep("awards");
-                }}
-                className="px-6 py-3 text-sm font-medium transition-colors border rounded text-gray-300 hover:text-white whitespace-nowrap"
-                style={{ borderColor: "#454446", width: "150px" }}
-              >
-                Change Template
-              </button>
+              <>
+                <button
+                  onClick={() => {
+                    // Return to template grid
+                    setShowTemplateDetail(false);
+                    setSelectedTemplate(null);
+                    setCurrentStep("awards");
+                  }}
+                  className="px-6 py-3 text-sm font-medium transition-colors border rounded text-gray-300 hover:text-white whitespace-nowrap"
+                  style={{ borderColor: "#454446", width: "150px" }}
+                >
+                  Change Template
+                </button>
+                <button
+                  onClick={openStepsSidebar}
+                  className="lg:hidden px-3 py-3 text-sm font-medium transition-colors bg-[#00DF71] text-[#212327] rounded hover:bg-opacity-90 whitespace-nowrap"
+                  style={{ width: "150px" }}
+                >
+                  Open Steps Sidebar
+                </button>
+              </>
             )}
           </div>
         </div>
@@ -889,6 +1134,247 @@ export default function DigitalAwardsPage() {
         viewTitleText=""
         isStandalone={false}
       />
+
+      {/* Steps Sidebar - Always accessible from main layout */}
+      {isStepsSidebarOpen && (
+        <div
+          className="fixed inset-0 bg-black bg-opacity-50 z-[60]"
+          onClick={() => setIsStepsSidebarOpen(false)}
+        />
+      )}
+      <div
+        className={`fixed top-0 right-0 h-full w-full bg-[#212327] z-[70] transform transition-transform duration-300 ease-in-out ${
+          isStepsSidebarOpen ? "translate-x-0" : "translate-x-full"
+        }`}
+      >
+        <div className="h-full overflow-y-auto p-4">
+          {/* Desktop Message */}
+          <div className=" mb-6 p-4 bg-[#00DF71] bg-opacity-10 border border-[#00DF71] border-opacity-30 rounded-lg">
+            <div className="flex items-center space-x-2">
+              <svg
+                className="w-5 h-5 text-[#00DF71]"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
+              <span className="text-white font-medium">
+                SkillTrait Awards Generator is best used on desktop.
+              </span>
+            </div>
+          </div>
+
+          {/* Back Button */}
+          <div className="mb-6">
+            <button
+              onClick={() => {
+                if (selectedSidebarStep) {
+                  setSelectedSidebarStep(null); // Go back to steps list
+                } else {
+                  setIsStepsSidebarOpen(false); // Close sidebar
+                }
+              }}
+              className="flex items-center text-gray-300 hover:text-white transition-colors"
+            >
+              <svg
+                className="w-5 h-5 mr-2"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M15 19l-7-7 7-7"
+                />
+              </svg>
+              {selectedSidebarStep ? "Back to Steps" : "Back to Main View"}
+            </button>
+          </div>
+
+          {!selectedSidebarStep ? (
+            // Steps List View
+            <>
+              <div className="text-center mb-6">
+                <h1 className="text-[24px] font-bold text-white mb-4">Steps</h1>
+                <p className="text-md text-gray-300 mb-0">
+                  Navigate through the award creation process
+                </p>
+              </div>
+
+              {/* Steps Navigation */}
+              <div className="space-y-3">
+                {[
+                  { step: "awards" as const, label: "Awards", icon: "🏆" },
+                  { step: "company" as const, label: "Company", icon: "🏢" },
+                  {
+                    step: "background" as const,
+                    label: "Background",
+                    icon: "🖼️",
+                  },
+                  {
+                    step: "props-details" as const,
+                    label: "Details",
+                    icon: "📝",
+                  },
+                  { step: "share" as const, label: "Share", icon: "📤" },
+                ].map(({ step, label, icon }) => (
+                  <button
+                    key={step}
+                    onClick={() => handleSidebarStepSelect(step)}
+                    className={`w-full p-4 text-left rounded-lg transition-colors ${
+                      currentStep === step
+                        ? "bg-[var(--primary-dark)] text-[#212327]"
+                        : "bg-[#1B1D21] text-white hover:bg-[#454446]"
+                    }`}
+                  >
+                    <div className="flex items-center space-x-3">
+                      <span className="text-xl">{icon}</span>
+                      <span className="font-medium">{label}</span>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </>
+          ) : (
+            // Step Content View
+            <>
+              <div className="text-center mb-6">
+                <h1 className="text-[24px] font-bold text-white mb-4">
+                  {selectedSidebarStep === "awards" && "🏆 Awards"}
+                  {selectedSidebarStep === "company" && "🏢 Company"}
+                  {selectedSidebarStep === "background" && "🖼️ Background"}
+                  {selectedSidebarStep === "props-details" && "📝 Details"}
+                  {selectedSidebarStep === "share" && "📤 Share"}
+                </h1>
+                <p className="text-md text-gray-300 mb-0">
+                  {selectedSidebarStep === "awards" &&
+                    "Select and customize award templates"}
+                  {selectedSidebarStep === "company" &&
+                    "Configure company branding and logo"}
+                  {selectedSidebarStep === "background" &&
+                    "Choose and customize background images"}
+                  {selectedSidebarStep === "props-details" &&
+                    "Add recipient details and personal message"}
+                  {selectedSidebarStep === "share" &&
+                    "Generate and share your digital award"}
+                </p>
+              </div>
+
+              {/* Step-specific content */}
+              <div className="space-y-4">
+                {selectedSidebarStep === "awards" && (
+                  <div className="bg-[#1B1D21] p-4 rounded-lg">
+                    <h3 className="text-lg font-medium text-white mb-3">
+                      Award Templates
+                    </h3>
+                    <p className="text-gray-300 mb-4">
+                      Choose from our collection of professional award
+                      templates.
+                    </p>
+                    <button
+                      onClick={() => {
+                        handleStepChange("awards");
+                        setIsStepsSidebarOpen(false);
+                      }}
+                      className="w-full px-4 py-2 bg-[var(--primary-dark)] text-[#212327] rounded hover:bg-opacity-90 transition-colors"
+                    >
+                      Go to Awards
+                    </button>
+                  </div>
+                )}
+
+                {selectedSidebarStep === "company" && (
+                  <div className="bg-[#1B1D21] p-4 rounded-lg">
+                    <h3 className="text-lg font-medium text-white mb-3">
+                      Company Setup
+                    </h3>
+                    <p className="text-gray-300 mb-4">
+                      Configure your company branding and upload logos.
+                    </p>
+                    <button
+                      onClick={() => {
+                        handleStepChange("company");
+                        setIsStepsSidebarOpen(false);
+                      }}
+                      className="w-full px-4 py-2 bg-[var(--primary-dark)] text-[#212327] rounded hover:bg-opacity-90 transition-colors"
+                    >
+                      Go to Company
+                    </button>
+                  </div>
+                )}
+
+                {selectedSidebarStep === "background" && (
+                  <div className="bg-[#1B1D21] p-4 rounded-lg">
+                    <h3 className="text-lg font-medium text-white mb-3">
+                      Background Selection
+                    </h3>
+                    <p className="text-gray-300 mb-4">
+                      Choose and customize background images for your awards.
+                    </p>
+                    <button
+                      onClick={() => {
+                        handleStepChange("background");
+                        setIsStepsSidebarOpen(false);
+                      }}
+                      className="w-full px-4 py-2 bg-[var(--primary-dark)] text-[#212327] rounded hover:bg-opacity-90 transition-colors"
+                    >
+                      Go to Background
+                    </button>
+                  </div>
+                )}
+
+                {selectedSidebarStep === "props-details" && (
+                  <div className="bg-[#1B1D21] p-4 rounded-lg">
+                    <h3 className="text-lg font-medium text-white mb-3">
+                      Recipient Details
+                    </h3>
+                    <p className="text-gray-300 mb-4">
+                      Add recipient information and personal messages.
+                    </p>
+                    <button
+                      onClick={() => {
+                        handleStepChange("props-details");
+                        setIsStepsSidebarOpen(false);
+                      }}
+                      className="w-full px-4 py-2 bg-[var(--primary-dark)] text-[#212327] rounded hover:bg-opacity-90 transition-colors"
+                    >
+                      Go to Details
+                    </button>
+                  </div>
+                )}
+
+                {selectedSidebarStep === "share" && (
+                  <div className="bg-[#1B1D21] p-4 rounded-lg">
+                    <h3 className="text-lg font-medium text-white mb-3">
+                      Share Award
+                    </h3>
+                    <p className="text-gray-300 mb-4">
+                      Generate and share your completed digital award.
+                    </p>
+                    <button
+                      onClick={() => {
+                        handleStepChange("share");
+                        setIsStepsSidebarOpen(false);
+                      }}
+                      className="w-full px-4 py-2 bg-[var(--primary-dark)] text-[#212327] rounded hover:bg-opacity-90 transition-colors"
+                    >
+                      Go to Share
+                    </button>
+                  </div>
+                )}
+              </div>
+            </>
+          )}
+        </div>
+      </div>
 
       {showAlert && (
         <div className="fixed bottom-4 left-0 right-0 flex justify-center z-50">
