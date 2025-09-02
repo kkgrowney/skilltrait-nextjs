@@ -1,10 +1,27 @@
-"use client";
-
-import { useEffect, useState } from "react";
-import { useParams } from "next/navigation";
-import { db } from "@/lib/firebase";
+import { Metadata } from "next";
 import { doc, getDoc } from "firebase/firestore";
-import Head from "next/head";
+import { db } from "@/lib/firebase";
+import { notFound } from "next/navigation";
+
+// Type for prop data
+interface PropData {
+  id: string;
+  userDisplayName?: string;
+  propsTitle?: string;
+  previewImageUrl?: string;
+  previewImageBase64?: string;
+  achievement?: {
+    fromName?: string;
+    fromMessage?: string;
+    fromDate?: string;
+    backgroundImage?: string;
+    props?: string;
+    logoImage?: string;
+    company?: string;
+  };
+  createdAt?: any;
+  updatedAt?: any;
+}
 
 // Helper function to get proxied image URLs
 const getProxiedUrlForPreview = (imageUrl: string): string => {
@@ -12,123 +29,82 @@ const getProxiedUrlForPreview = (imageUrl: string): string => {
   return `/api/proxy-image?url=${encodeURIComponent(imageUrl)}`;
 };
 
-export default function PublicSharePage() {
-  const params = useParams();
-  const [prop, setProp] = useState<any | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+// Generate metadata for the page
+export async function generateMetadata({
+  params,
+}: {
+  params: { id: string };
+}): Promise<Metadata> {
+  try {
+    // Get prop data for metadata
+    const propDoc = await getDoc(doc(db, "publicProps", params.id));
 
-  useEffect(() => {
-    const loadProp = async () => {
-      if (!params.id) {
-        setError("No prop ID provided");
-        setLoading(false);
-        return;
-      }
+    if (!propDoc.exists()) {
+      return {
+        title: "Prop Not Found - SkillTrait",
+        description:
+          "The prop you're looking for doesn't exist or isn't publicly shared.",
+      };
+    }
 
-      try {
-        // First try to find the prop in the public props collection
-        let propDoc = await getDoc(doc(db, "publicProps", params.id as string));
+    const propData: PropData = propDoc.data() as PropData;
+    const displayName =
+      propData.userDisplayName || propData.achievement?.fromName || "Someone";
+    const message =
+      propData.achievement?.fromMessage ||
+      "Check out these props sent via SkillTrait!";
+    const imageUrl = propData.previewImageUrl || propData.previewImageBase64;
+    const shareUrl = `${
+      process.env.NEXT_PUBLIC_APP_URL || "https://skilltrait.com"
+    }/share/${params.id}`;
 
-        if (propDoc.exists()) {
-          const propData = propDoc.data();
-          setProp({ id: propDoc.id, ...propData });
-        } else {
-          // If not in public props, try to find in user props by searching through all users
-          // This is a fallback for props that were created before the public collection was implemented
-          // For now, we'll just show an error, but in the future we could implement a search
-          setError("Prop not found or not publicly shared");
-          setLoading(false);
-          return;
-        }
-      } catch (err) {
-        console.error("Error loading prop:", err);
-        setError("Failed to load prop");
-      } finally {
-        setLoading(false);
-      }
+    return {
+      title: `${displayName} sent props via SkillTrait`,
+      description: message,
+      openGraph: {
+        title: `${displayName} sent props via SkillTrait`,
+        description: message,
+        images: imageUrl ? [imageUrl] : [],
+        url: shareUrl,
+        type: "website",
+        siteName: "SkillTrait",
+      },
+      twitter: {
+        card: "summary_large_image",
+        title: `${displayName} sent props via SkillTrait`,
+        description: message,
+        images: imageUrl ? [imageUrl] : [],
+      },
+      alternates: {
+        canonical: shareUrl,
+      },
     };
-
-    loadProp();
-  }, [params.id]);
-
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-gray-900 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading prop...</p>
-        </div>
-      </div>
-    );
+  } catch (error) {
+    console.error("Error generating metadata:", error);
+    return {
+      title: "Props via SkillTrait",
+      description: "Check out these props sent via SkillTrait!",
+    };
   }
+}
 
-  if (error || !prop) {
+// Main component
+export default async function PublicSharePage({
+  params,
+}: {
+  params: { id: string };
+}) {
+  try {
+    // Get prop data
+    const propDoc = await getDoc(doc(db, "publicProps", params.id));
+
+    if (!propDoc.exists()) {
+      notFound();
+    }
+
+    const prop: PropData = { id: propDoc.id, ...propDoc.data() };
+
     return (
-      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-900 mb-4">
-            Prop Not Found
-          </h1>
-          <p className="text-gray-600">
-            {error ||
-              "The prop you're looking for doesn't exist or isn't publicly shared."}
-          </p>
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <>
-      <Head>
-        <title>{`${
-          prop.userDisplayName || prop.achievement?.fromName || "Someone"
-        } sent props via SkillTrait`}</title>
-        <meta
-          property="og:title"
-          content={`${
-            prop.userDisplayName || prop.achievement?.fromName || "Someone"
-          } sent props via SkillTrait`}
-        />
-        <meta
-          property="og:description"
-          content={
-            prop.achievement?.fromMessage ||
-            "Check out these props sent via SkillTrait!"
-          }
-        />
-        <meta
-          property="og:image"
-          content={prop.previewImageUrl || prop.previewImageBase64}
-        />
-        <meta property="og:type" content="website" />
-        <meta
-          property="og:url"
-          content={`${
-            typeof window !== "undefined" ? window.location.href : ""
-          }`}
-        />
-        <meta name="twitter:card" content="summary_large_image" />
-        <meta
-          name="twitter:title"
-          content={`${
-            prop.userDisplayName || prop.achievement?.fromName || "Someone"
-          } sent props via SkillTrait`}
-        />
-        <meta
-          name="twitter:description"
-          content={
-            prop.achievement?.fromMessage ||
-            "Check out these props sent via SkillTrait!"
-          }
-        />
-        <meta
-          name="twitter:image"
-          content={prop.previewImageUrl || prop.previewImageBase64}
-        />
-      </Head>
-
       <div className="min-h-screen bg-gray-100 py-8">
         <div className="max-w-4xl mx-auto px-4">
           {/* Header */}
@@ -278,6 +254,9 @@ export default function PublicSharePage() {
           </div>
         </div>
       </div>
-    </>
-  );
+    );
+  } catch (error) {
+    console.error("Error loading prop:", error);
+    notFound();
+  }
 }
