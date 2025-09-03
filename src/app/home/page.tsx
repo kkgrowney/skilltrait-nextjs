@@ -712,8 +712,20 @@ export default function Home() {
                         className="relative"
                         style={{ aspectRatio: "5 / 4" }}
                       >
-                        {/* Use the saved preview image if available, otherwise fallback */}
-                        {prop.previewImageBase64 ? (
+                        {/* Use the saved Cloudinary preview image if available, otherwise fallback to base64 */}
+                        {prop.previewImageUrl ? (
+                          <img
+                            src={prop.previewImageUrl}
+                            alt={prop.propsTitle || "Recent Prop"}
+                            className="object-contain relative z-20 w-full h-full"
+                            style={{
+                              borderRadius: "4px",
+                              width: "100%",
+                              height: "100%",
+                              objectPosition: "bottom",
+                            }}
+                          />
+                        ) : prop.previewImageBase64 ? (
                           <img
                             src={prop.previewImageBase64}
                             alt={prop.propsTitle || "Recent Prop"}

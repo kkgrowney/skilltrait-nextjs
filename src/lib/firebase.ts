@@ -160,4 +160,21 @@ export const updatePropWithImage = async (
   }
 };
 
+// Function to save prop to public collection for sharing
+export const savePublicProp = async (propId: string, propData: any) => {
+  try {
+    const publicPropsRef = doc(db, "publicProps", propId);
+    await setDoc(publicPropsRef, {
+      ...propData,
+      originalPropId: propId,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    });
+    return propId;
+  } catch (error) {
+    console.error("Error saving public prop:", error);
+    throw error;
+  }
+};
+
 // export default app;

@@ -920,8 +920,21 @@ export default function ProfilePage() {
                               style={{ borderRadius: "4px" }}
                             />
 
-                            {/* Use the saved base64 preview image - this should match exactly what was generated in ShareStep */}
-                            {prop.previewImageBase64 ? (
+                            {/* Use the saved Cloudinary preview image - this should match exactly what was generated in ShareStep */}
+                            {prop.previewImageUrl ? (
+                              <img
+                                src={prop.previewImageUrl}
+                                alt={prop.propsTitle || "Recent Prop"}
+                                className="relative z-20 w-full h-full"
+                                style={{
+                                  borderRadius: "4px",
+                                  width: "100%",
+                                  height: "100%",
+                                  objectFit: "cover",
+                                  objectPosition: "center",
+                                }}
+                              />
+                            ) : prop.previewImageBase64 ? (
                               <img
                                 src={prop.previewImageBase64}
                                 alt={prop.propsTitle || "Recent Prop"}

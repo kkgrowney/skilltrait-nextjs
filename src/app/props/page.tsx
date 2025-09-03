@@ -137,8 +137,21 @@ export default function PropsListPage() {
                   };
                   const content = (
                     <div className="relative w-full h-full">
-                      {/* Use the saved preview image if available, otherwise reconstruct from template data */}
-                      {prop.previewImageBase64 ? (
+                      {/* Use the saved Cloudinary preview image if available, otherwise fallback to base64 */}
+                      {prop.previewImageUrl ? (
+                        <img
+                          src={prop.previewImageUrl}
+                          alt={prop.propsTitle || "Prop"}
+                          className="relative z-20 w-full h-full"
+                          style={{
+                            borderRadius: "4px",
+                            width: "100%",
+                            height: "100%",
+                            objectFit: "cover",
+                            // objectPosition: "center",
+                          }}
+                        />
+                      ) : prop.previewImageBase64 ? (
                         <img
                           src={prop.previewImageBase64}
                           alt={prop.propsTitle || "Prop"}
