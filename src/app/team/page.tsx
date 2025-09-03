@@ -489,6 +489,7 @@ export default function Team() {
   const [skillsToRemove, setSkillsToRemove] = useState<string[]>([]);
   const [csvFile, setCsvFile] = useState<File | null>(null);
   const [csvFileName, setCsvFileName] = useState<string>('');
+  const [isProcessingFile, setIsProcessingFile] = useState(false);
   const [editingSkill, setEditingSkill] = useState<string | null>(null);
   const [editingSkillValue, setEditingSkillValue] = useState<string>('');
   const [rankedEmployeeResults, setRankedEmployeeResults] = useState<any[]>([]);
@@ -583,50 +584,168 @@ export default function Team() {
     setPendingChanges({}); // Clear pending changes after saving
   };
 
-  // Handle CSV upload and skills building
+  // Handle file upload and skills building
   const handleBuildSkills = async () => {
-    if (!csvFile) return;
+    if (!csvFile || !user) return;
 
+    setIsProcessingFile(true);
     try {
-      const text = await csvFile.text();
-      const lines = text.split('\n').filter(line => line.trim());
+      // Get Firebase auth token
+      const token = await user.getIdToken();
       
-      // Parse CSV (assuming first line might be headers)
-      const skills: string[] = [];
-      
-      lines.forEach((line, index) => {
-        // Skip empty lines and potential headers
-        if (line.trim() && index > 0) {
-          // Split by comma and clean up each skill
-          const skillParts = line.split(',').map(part => part.trim()).filter(part => part);
-          skills.push(...skillParts);
-        }
+      // Create form data
+      const formData = new FormData();
+      formData.append('file', csvFile);
+
+      // Call the parse-file API
+      const response = await fetch('/api/parse-file', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        },
+        body: formData
       });
 
-      // Add unique skills to required skills
-      const newSkills = skills.filter(skill => 
-        skill && 
-        !requiredSkills.includes(skill) && 
-        skill.length > 0
-      );
+      const data = await response.json();
 
-      if (newSkills.length > 0) {
-        setRequiredSkills(prev => [...prev, ...newSkills]);
-        setNotification(`Added ${newSkills.length} new skills from CSV!`);
-        setTimeout(() => setNotification(null), 3000);
+      if (response.ok && data.text) {
+        // Log the extracted text content to console
+        console.log('=== EXTRACTED FILE CONTENT ===');
+        console.log('File name:', csvFileName);
+        console.log('File type:', csvFile.type);
+        console.log('Extracted text:');
+        console.log(data.text);
+        console.log('=== END EXTRACTED CONTENT ===');
         
-        // Clear the CSV file after successful import
-        setCsvFile(null);
-        setCsvFileName('');
+        // Send extracted text to our proxy API route to get skills
+        try {
+          console.log('=== CALLING GET SKILLS API ===');
+          console.log('Extracted text length:', data.text.length);
+          
+          const skillsResponse = await fetch("/api/get-skills", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              value: data.text
+            })
+          });
+          
+          console.log('Response status:', skillsResponse.status);
+          console.log('Response ok:', skillsResponse.ok);
+          
+          const skillsData = await skillsResponse.json();
+          
+          if (!skillsResponse.ok) {
+            throw new Error(skillsData.error || 'Failed to get skills from API');
+          }
+          
+          const skillsResult = skillsData.skills;
+          
+          console.log('=== CLOUD FUNCTION RESPONSE ===');
+          console.log('Skills from cloud function:', skillsResult);
+          console.log('=== END CLOUD FUNCTION RESPONSE ===');
+          
+          // Parse the skills from the cloud function response
+          let skills: string[] = [];
+          try {
+            // The cloud function returns: {"message":"```json\n[\"skill1\",\"skill2\"]\n```"}
+            // First try to parse the outer JSON
+            const outerResponse = JSON.parse(skillsResult);
+            
+            if (outerResponse.message) {
+              // Extract the JSON array from the markdown code block
+              const jsonMatch = outerResponse.message.match(/```json\n(.*?)\n```/s);
+              if (jsonMatch) {
+                const skillsArray = JSON.parse(jsonMatch[1]);
+                if (Array.isArray(skillsArray)) {
+                  skills = skillsArray;
+                }
+              }
+            } else if (Array.isArray(outerResponse)) {
+              // Direct array response
+              skills = outerResponse;
+            } else if (outerResponse.skills && Array.isArray(outerResponse.skills)) {
+              // Skills property
+              skills = outerResponse.skills;
+            }
+          } catch (parseError) {
+            console.log('JSON parsing failed, trying fallback:', parseError);
+            // If not JSON, try to split by common delimiters
+            skills = skillsResult.split(/[,\n\r;]/).map(skill => skill.trim()).filter(skill => skill.length > 0);
+          }
+          
+          console.log('=== PARSED SKILLS FROM CLOUD FUNCTION ===');
+          console.log('Skills array:', skills);
+          console.log('=== END PARSED SKILLS ===');
+
+          // Add unique skills to required skills
+          const newSkills = skills.filter(skill => 
+            skill && 
+            !requiredSkills.includes(skill) && 
+            skill.length > 0
+          );
+
+          console.log('=== FINAL SKILLS TO ADD ===');
+          console.log('New skills to add:', newSkills);
+          console.log('Existing skills:', requiredSkills);
+          console.log('=== END FINAL SKILLS ===');
+
+          if (newSkills.length > 0) {
+            setRequiredSkills(prev => [...prev, ...newSkills]);
+            setNotification(`Added ${newSkills.length} new skills from file!`);
+            setTimeout(() => setNotification(null), 3000);
+            
+            // Clear the file after successful import
+            setCsvFile(null);
+            setCsvFileName('');
+          } else {
+            setNotification('No new skills found in file or all skills already exist.');
+            setTimeout(() => setNotification(null), 3000);
+          }
+        } catch (apiError) {
+          console.error('Error calling get-skills API:', apiError);
+          console.log('=== FALLBACK: USING EXTRACTED TEXT DIRECTLY ===');
+          
+          // Fallback: Use the extracted text directly and try to extract skills
+          const fallbackSkills = data.text
+            .split(/[,\n\r;]/)
+            .map(skill => skill.trim())
+            .filter(skill => skill.length > 0 && skill.length < 100)
+            .slice(0, 15); // Limit to first 15 potential skills
+          
+          console.log('Fallback skills extracted:', fallbackSkills);
+          
+          const newSkills = fallbackSkills.filter(skill => 
+            skill && 
+            !requiredSkills.includes(skill) && 
+            skill.length > 0
+          );
+
+          if (newSkills.length > 0) {
+            setRequiredSkills(prev => [...prev, ...newSkills]);
+            setNotification(`Added ${newSkills.length} skills from file (using fallback method).`);
+            setTimeout(() => setNotification(null), 3000);
+            
+            // Clear the file after successful import
+            setCsvFile(null);
+            setCsvFileName('');
+          } else {
+            setNotification('Skills API unavailable and no skills could be extracted from file.');
+            setTimeout(() => setNotification(null), 3000);
+          }
+        }
       } else {
-        setNotification('No new skills found in CSV or all skills already exist.');
-        setNotification('No new skills found in CSV or all skills already exist.');
+        setNotification(data.error || 'Error processing file.');
         setTimeout(() => setNotification(null), 3000);
       }
     } catch (error) {
-      console.error('Error parsing CSV:', error);
-      setNotification('Error parsing CSV file. Please check the file format.');
+      console.error('Error processing file:', error);
+      setNotification('Error processing file. Please check the file format.');
       setTimeout(() => setNotification(null), 3000);
+    } finally {
+      setIsProcessingFile(false);
     }
   };
 
@@ -1724,7 +1843,7 @@ export default function Team() {
                       <div className="flex-1">
                       <input
                           type="file"
-                          accept=".csv"
+                          accept=".csv,.docx,.xlsx,.xls"
                           onChange={(e) => {
                             const file = e.target.files?.[0];
                             if (file) {
@@ -1733,25 +1852,25 @@ export default function Team() {
                             }
                           }}
                           className="hidden"
-                          id="csv-upload"
+                          id="file-upload"
                         />
                         <label
-                          htmlFor="csv-upload"
+                          htmlFor="file-upload"
                           className="flex items-center justify-center w-full bg-[#1e2327] border-2 border-dashed border-[#454446] rounded-lg px-4 py-3 text-white hover:border-[#00DF71] transition-colors cursor-pointer"
                         >
                           {csvFileName ? (
                             <span className="text-gray-300">{csvFileName}</span>
                           ) : (
-                            <span className="text-gray-400">Click to upload CSV file</span>
+                            <span className="text-gray-400">Click to upload CSV, DOCX, or XLSX file</span>
                           )}
                         </label>
                       </div>
                       <button 
                         onClick={handleBuildSkills}
-                        disabled={!csvFile}
+                        disabled={!csvFile || isProcessingFile}
                         className="px-6 py-3 bg-[#00DF71] text-[#212327] font-medium rounded-lg hover:bg-[#0AFB84] transition-colors whitespace-nowrap disabled:bg-gray-600 disabled:cursor-not-allowed disabled:text-gray-400"
                       >
-                        Build Skills
+                        {isProcessingFile ? 'Processing...' : 'Build Skills'}
                       </button>
                     </div>
                     {csvFile && (
