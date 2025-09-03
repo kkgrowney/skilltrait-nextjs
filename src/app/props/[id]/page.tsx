@@ -221,17 +221,57 @@ export default function PropDetailPage() {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
-  // High-resolution PNG download function
+  // Download function for preview image
   const handleDownloadProp = async () => {
     if (!prop) return;
 
-    const imageUrl = prop.fullPropImage || "/liquid_death_props.png";
+    // Prioritize previewImageUrl (Cloudinary) over other image sources
+    const imageUrl =
+      prop.previewImageUrl ||
+      prop.previewImageBase64 ||
+      prop.fullPropImage ||
+      "/liquid_death_props.png";
     const filename = `${prop.propsTitle || "prop"}-${Date.now()}.png`;
 
     console.log("Attempting to download:", { imageUrl, filename });
 
     try {
-      // For Firebase Storage URLs, use the optimized download first
+      // For Cloudinary URLs, use fetch and blob download
+      if (
+        imageUrl.includes("cloudinary.com") ||
+        imageUrl.includes("res.cloudinary.com")
+      ) {
+        console.log("Using Cloudinary download method");
+
+        try {
+          // Fetch the image as a blob
+          const response = await fetch(imageUrl);
+          const blob = await response.blob();
+
+          // Create a blob URL
+          const blobUrl = window.URL.createObjectURL(blob);
+
+          // Create download link
+          const link = document.createElement("a");
+          link.href = blobUrl;
+          link.download = filename;
+
+          // Trigger download
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+
+          // Clean up blob URL
+          window.URL.revokeObjectURL(blobUrl);
+
+          return;
+        } catch (error) {
+          console.error("Cloudinary download failed:", error);
+          // Fall through to other methods
+        }
+      }
+
+      // For Firebase Storage URLs, use the optimized download
       if (imageUrl.includes("firebasestorage.googleapis.com")) {
         console.log("Using Firebase download method");
         await downloadFirebaseImage(imageUrl, filename);
@@ -243,6 +283,13 @@ export default function PropDetailPage() {
           );
         }, 500);
 
+        return;
+      }
+
+      // For base64 images, try direct download
+      if (imageUrl.startsWith("data:image")) {
+        console.log("Using base64 download method");
+        await downloadImageDirectly(imageUrl, filename);
         return;
       }
 
