@@ -110,6 +110,11 @@ export default async function PublicSharePage({
               Props from{" "}
               {prop.userDisplayName || prop.achievement?.fromName || "Someone"}
             </h1>
+            {prop.propsTitle && (
+              <p className="text-lg text-gray-600 max-w-2xl mx-auto font-medium">
+                {prop.propsTitle}
+              </p>
+            )}
             {prop.achievement?.fromMessage && (
               <p className="text-lg text-gray-600 max-w-2xl mx-auto">
                 {prop.achievement.fromMessage}
@@ -124,14 +129,15 @@ export default async function PublicSharePage({
           </div>
 
           {/* Prop Image */}
-          <div className="bg-white rounded-lg shadow-lg overflow-hidden mb-8">
-            <div className="relative" style={{ aspectRatio: "5/4" }}>
+          <div className="mx-auto overflow-hidden mb-8">
+            <div className="relative">
               {/* Use the saved Cloudinary preview image if available, otherwise fallback to base64 */}
               {prop.previewImageUrl ? (
                 <img
                   src={prop.previewImageUrl}
                   alt={prop.propsTitle || "Prop"}
-                  className="w-full h-full object-cover"
+                  style={{ width: "600px", height: "auto" }}
+                  className="object-cover mx-auto"
                 />
               ) : prop.previewImageBase64 ? (
                 <img
