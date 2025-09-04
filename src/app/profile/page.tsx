@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import SideNavigation, { useSideNavMargin } from "@/components/SideNavigation";
 import ProfileViewTitleTab from "@/components/ProfileViewTitleTab";
+import SkillsSection from "@/components/SkillsSection";
 import { useAuth } from "@/contexts/AuthContext";
 import { auth } from "@/lib/firebase";
 import {
@@ -17,6 +18,7 @@ import {
   updateDoc,
   where,
 } from "firebase/firestore";
+import { updatePassword, updateEmail, reauthenticateWithCredential, EmailAuthProvider, linkWithCredential, GoogleAuthProvider, deleteUser } from "firebase/auth";
 import { db } from "@/lib/firebase";
 import Link from "next/link";
 
@@ -55,6 +57,26 @@ export default function ProfilePage() {
   const [isLoadingTeam, setIsLoadingTeam] = useState(true);
   const [companyInfo, setCompanyInfo] = useState<any>(null);
   const [isLoadingCompany, setIsLoadingCompany] = useState(true);
+  
+  // Settings form state
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [newEmail, setNewEmail] = useState("");
+  const [isUpdatingPassword, setIsUpdatingPassword] = useState(false);
+  const [isUpdatingEmail, setIsUpdatingEmail] = useState(false);
+  const [passwordError, setPasswordError] = useState("");
+  const [emailError, setEmailError] = useState("");
+  const [passwordSuccess, setPasswordSuccess] = useState("");
+  const [emailSuccess, setEmailSuccess] = useState("");
+  const [isGoogleUser, setIsGoogleUser] = useState(false);
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleteConfirmationText, setDeleteConfirmationText] = useState("");
+  const [isDeletingAccount, setIsDeletingAccount] = useState(false);
+  const [deleteSuccess, setDeleteSuccess] = useState(false);
 
   // Fetch user profile data
   const fetchUserProfile = async () => {
@@ -142,6 +164,169 @@ export default function ProfilePage() {
     } catch (error) {
       console.error("Error during logout:", error);
       alert("An error occurred during logout. Please try again.");
+    }
+  };
+
+  // Set password for Google users
+  const handleSetPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setPasswordError("");
+    setPasswordSuccess("");
+    
+    if (newPassword !== confirmPassword) {
+      setPasswordError("Passwords do not match");
+      return;
+    }
+    
+    if (newPassword.length < 6) {
+      setPasswordError("Password must be at least 6 characters long");
+      return;
+    }
+    
+    setIsUpdatingPassword(true);
+    
+    try {
+      if (!user || !user.email) {
+        throw new Error("User not authenticated");
+      }
+      
+      // Create email/password credential and link it to the Google account
+      const credential = EmailAuthProvider.credential(user.email, newPassword);
+      await linkWithCredential(user, credential);
+      
+      setPasswordSuccess("Password set successfully! You can now sign in with email and password.");
+      setNewPassword("");
+      setConfirmPassword("");
+      setIsGoogleUser(false); // Update state since user now has password provider
+    } catch (error: any) {
+      console.error("Password set error:", error);
+      if (error.code === "auth/email-already-in-use") {
+        setPasswordError("This email is already associated with another account");
+      } else if (error.code === "auth/weak-password") {
+        setPasswordError("Password is too weak");
+      } else {
+        setPasswordError(error.message || "Failed to set password");
+      }
+    } finally {
+      setIsUpdatingPassword(false);
+    }
+  };
+
+  // Password update function for users with existing password
+  const handlePasswordUpdate = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setPasswordError("");
+    setPasswordSuccess("");
+    
+    if (newPassword !== confirmPassword) {
+      setPasswordError("New passwords do not match");
+      return;
+    }
+    
+    if (newPassword.length < 6) {
+      setPasswordError("Password must be at least 6 characters long");
+      return;
+    }
+    
+    setIsUpdatingPassword(true);
+    
+    try {
+      if (!user || !user.email) {
+        throw new Error("User not authenticated");
+      }
+      
+      // Re-authenticate user before updating password
+      const credential = EmailAuthProvider.credential(user.email, currentPassword);
+      await reauthenticateWithCredential(user, credential);
+      
+      // Update password
+      await updatePassword(user, newPassword);
+      
+      setPasswordSuccess("Password updated successfully");
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
+    } catch (error: any) {
+      console.error("Password update error:", error);
+      if (error.code === "auth/wrong-password") {
+        setPasswordError("Current password is incorrect");
+      } else if (error.code === "auth/weak-password") {
+        setPasswordError("Password is too weak");
+      } else {
+        setPasswordError(error.message || "Failed to update password");
+      }
+    } finally {
+      setIsUpdatingPassword(false);
+    }
+  };
+
+  // Email update function
+  const handleEmailUpdate = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setEmailError("");
+    setEmailSuccess("");
+    
+    if (!newEmail || !newEmail.includes("@")) {
+      setEmailError("Please enter a valid email address");
+      return;
+    }
+    
+    setIsUpdatingEmail(true);
+    
+    try {
+      if (!user) {
+        throw new Error("User not authenticated");
+      }
+      
+      // Update email
+      await updateEmail(user, newEmail);
+      
+      setEmailSuccess("Email updated successfully. Please check your new email for verification.");
+      setNewEmail("");
+    } catch (error: any) {
+      console.error("Email update error:", error);
+      if (error.code === "auth/email-already-in-use") {
+        setEmailError("This email is already in use");
+      } else if (error.code === "auth/invalid-email") {
+        setEmailError("Invalid email address");
+      } else {
+        setEmailError(error.message || "Failed to update email");
+      }
+    } finally {
+      setIsUpdatingEmail(false);
+    }
+  };
+
+  // Delete account function
+  const handleDeleteAccount = async () => {
+    if (deleteConfirmationText !== "Delete Account") {
+      alert("Please enter 'Delete Account' exactly as shown to confirm.");
+      return;
+    }
+
+    setIsDeletingAccount(true);
+    
+    try {
+      if (!user) {
+        throw new Error("User not authenticated");
+      }
+
+      // Delete user from Firebase Auth
+      await deleteUser(user);
+      
+      setDeleteSuccess(true);
+      setShowDeleteModal(false);
+      
+      // Redirect to signup page after a short delay
+      setTimeout(() => {
+        router.push("/signup");
+      }, 2000);
+      
+    } catch (error: any) {
+      console.error("Account deletion error:", error);
+      alert("Failed to delete account. Please try again.");
+    } finally {
+      setIsDeletingAccount(false);
     }
   };
 
@@ -534,6 +719,15 @@ export default function ProfilePage() {
     }
   };
 
+  // Check if user is a Google user
+  useEffect(() => {
+    if (user) {
+      // Check if user has password provider (not just Google)
+      const hasPasswordProvider = user.providerData.some(provider => provider.providerId === 'password');
+      setIsGoogleUser(!hasPasswordProvider);
+    }
+  }, [user]);
+
   // Fetch data when user changes
   useEffect(() => {
     if (user) {
@@ -745,16 +939,17 @@ export default function ProfilePage() {
                   </p>
                 </div>
 
-                {/* Company Section */}
-                <div className="mt-4">
-                  <h3 className="text-sm font-semibold text-white uppercase tracking-wide mb-2">
-                    Company
-                  </h3>
-                  {isLoadingCompany ? (
-                    <div className="text-gray-400 text-sm">
-                      Loading company information...
-                    </div>
-                  ) : companyInfo ? (
+                {/* Skills Section */}
+                {user?.uid && (
+                  <SkillsSection userId={user.uid} />
+                )}
+
+                {/* Company Section - Only show if user has company information */}
+                {companyInfo && (
+                  <div className="mt-4">
+                    <h3 className="text-sm font-semibold text-white uppercase tracking-wide mb-2">
+                      Company
+                    </h3>
                     <div className="flex items-center gap-3">
                       {companyInfo.logoUrl && (
                         <div className="w-8 h-8 rounded-full overflow-hidden border border-[#454446]">
@@ -805,12 +1000,8 @@ export default function ProfilePage() {
                         </p>
                       </div>
                     </div>
-                  ) : (
-                    <div className="text-gray-400 text-sm">
-                      No company information available
-                    </div>
-                  )}
-                </div>
+                  </div>
+                )}
               </div>
 
               {/* Recent Props Section */}
@@ -1314,15 +1505,210 @@ export default function ProfilePage() {
             </div>
           ) : activeTab === "settings" ? (
             // Settings tab content
-            <div className="max-w-4xl">
-              <div className="bg-[#212327] rounded-lg shadow-sm border border-[#454446] p-6 mb-6">
+            <div className="max-w-4xl space-y-6">
+              {/* Account Information */}
+              <div className="bg-[#212327] rounded-lg shadow-sm border border-[#454446] p-6">
                 <h2 className="text-xl font-bold text-white mb-4">
-                  Profile Settings
+                  Account Information
                 </h2>
-                <p className="text-gray-300">
-                  Profile settings and configuration options will be displayed
-                  here.
-                </p>
+                
+                {/* Current Email Display */}
+                <div className="mb-6">
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                    Current Email
+                  </label>
+                  <div className="bg-[#1A1D21] border border-[#454446] rounded-lg px-3 py-2 text-gray-300">
+                    {user?.email || "No email available"}
+                  </div>
+                </div>
+
+                {/* Email Update Form */}
+                <form onSubmit={handleEmailUpdate} className="mb-6">
+                  <h3 className="text-lg font-semibold text-white mb-4">Update Email</h3>
+                  <div className="mb-4">
+                    <label className="block text-sm font-medium text-gray-300 mb-2">
+                      New Email Address
+                    </label>
+                    <input
+                      type="email"
+                      value={newEmail}
+                      onChange={(e) => setNewEmail(e.target.value)}
+                      className="w-full bg-[#1A1D21] border border-[#454446] rounded-lg px-3 py-2 text-white focus:border-[#00DF71] focus:outline-none"
+                      placeholder="Enter new email address"
+                      required
+                    />
+                  </div>
+                  {emailError && (
+                    <div className="text-red-400 text-sm mb-2">{emailError}</div>
+                  )}
+                  {emailSuccess && (
+                    <div className="text-green-400 text-sm mb-2">{emailSuccess}</div>
+                  )}
+                  <button
+                    type="submit"
+                    disabled={isUpdatingEmail}
+                    className="px-4 py-2 bg-[#00DF71] text-[#212327] rounded-lg hover:bg-[#0AFB84] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {isUpdatingEmail ? "Updating..." : "Update Email"}
+                  </button>
+                </form>
+              </div>
+
+              {/* Password Management */}
+              <div className="bg-[#212327] rounded-lg shadow-sm border border-[#454446] p-6">
+                <h2 className="text-xl font-bold text-white mb-4">
+                  {isGoogleUser ? "Set Password" : "Change Password"}
+                </h2>
+                
+                {isGoogleUser ? (
+                  <div className="mb-4 p-4 bg-blue-900/20 border border-blue-500/30 rounded-lg">
+                    <p className="text-blue-300 text-sm">
+                      You signed up with Google. Set a password to also sign in with your email and password.
+                    </p>
+                  </div>
+                ) : null}
+                
+                <form onSubmit={isGoogleUser ? handleSetPassword : handlePasswordUpdate}>
+                  <div className="space-y-4">
+                    {!isGoogleUser && (
+                      <div>
+                        <label className="block text-sm font-medium text-gray-300 mb-2">
+                          Current Password
+                        </label>
+                        <div className="relative">
+                          <input
+                            type={showCurrentPassword ? "text" : "password"}
+                            value={currentPassword}
+                            onChange={(e) => setCurrentPassword(e.target.value)}
+                            className="w-full bg-[#1A1D21] border border-[#454446] rounded-lg px-3 py-2 pr-10 text-white focus:border-[#00DF71] focus:outline-none"
+                            placeholder="Enter current password"
+                            required
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                            className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-300 transition-colors"
+                          >
+                            {showCurrentPassword ? (
+                              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21" />
+                              </svg>
+                            ) : (
+                              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                              </svg>
+                            )}
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                    
+                    <div>
+                      <label className="block text-sm font-medium text-gray-300 mb-2">
+                        {isGoogleUser ? "New Password" : "New Password"}
+                      </label>
+                      <div className="relative">
+                        <input
+                          type={showNewPassword ? "text" : "password"}
+                          value={newPassword}
+                          onChange={(e) => setNewPassword(e.target.value)}
+                          className="w-full bg-[#1A1D21] border border-[#454446] rounded-lg px-3 py-2 pr-10 text-white focus:border-[#00DF71] focus:outline-none"
+                          placeholder={isGoogleUser ? "Enter new password" : "Enter new password"}
+                          required
+                          minLength={6}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowNewPassword(!showNewPassword)}
+                          className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-300 transition-colors"
+                        >
+                          {showNewPassword ? (
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21" />
+                            </svg>
+                          ) : (
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                            </svg>
+                          )}
+                        </button>
+                      </div>
+                    </div>
+                    
+                    <div>
+                      <label className="block text-sm font-medium text-gray-300 mb-2">
+                        {isGoogleUser ? "Confirm Password" : "Confirm New Password"}
+                      </label>
+                      <div className="relative">
+                        <input
+                          type={showConfirmPassword ? "text" : "password"}
+                          value={confirmPassword}
+                          onChange={(e) => setConfirmPassword(e.target.value)}
+                          className="w-full bg-[#1A1D21] border border-[#454446] rounded-lg px-3 py-2 pr-10 text-white focus:border-[#00DF71] focus:outline-none"
+                          placeholder={isGoogleUser ? "Confirm new password" : "Confirm new password"}
+                          required
+                          minLength={6}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                          className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-300 transition-colors"
+                        >
+                          {showConfirmPassword ? (
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21" />
+                            </svg>
+                          ) : (
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                            </svg>
+                          )}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {passwordError && (
+                    <div className="text-red-400 text-sm mt-2">{passwordError}</div>
+                  )}
+                  {passwordSuccess && (
+                    <div className="text-green-400 text-sm mt-2">{passwordSuccess}</div>
+                  )}
+                  
+                  <button
+                    type="submit"
+                    disabled={isUpdatingPassword}
+                    className="mt-4 px-4 py-2 bg-[#00DF71] text-[#212327] rounded-lg hover:bg-[#0AFB84] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {isUpdatingPassword 
+                      ? (isGoogleUser ? "Setting..." : "Updating...") 
+                      : (isGoogleUser ? "Set Password" : "Update Password")
+                    }
+                  </button>
+                </form>
+              </div>
+
+              {/* Delete Account Section */}
+              <div className="bg-[#212327] rounded-lg shadow-sm border border-[#454446] p-6">
+                <h2 className="text-xl font-bold text-white mb-4">
+                  Delete Account
+                </h2>
+                
+                <div className="mb-4 p-4 bg-red-900/20 border border-red-500/30 rounded-lg">
+                  <p className="text-red-300 text-sm">
+                    <strong>Warning:</strong> This action cannot be undone. Deleting your account will permanently remove all your data, including props, templates, and profile information.
+                  </p>
+                </div>
+                
+                <button
+                  onClick={() => setShowDeleteModal(true)}
+                  className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+                >
+                  Delete Account
+                </button>
               </div>
             </div>
           ) : (
@@ -1366,6 +1752,73 @@ export default function ProfilePage() {
                   {isLoggingOut ? "Signing out..." : "Logout"}
                 </button>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Account Confirmation Modal */}
+      {showDeleteModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-[#212327] rounded-lg p-6 max-w-md w-full mx-4 border border-[#454446]">
+            <div className="text-center">
+              <h3 className="text-lg font-semibold text-white mb-4">
+                Delete Account
+              </h3>
+              <p className="text-gray-300 mb-4">
+                You are deleting your account and all user data. Enter "Delete Account" below to confirm.
+              </p>
+              
+              <div className="mb-4">
+                <input
+                  type="text"
+                  value={deleteConfirmationText}
+                  onChange={(e) => setDeleteConfirmationText(e.target.value)}
+                  className="w-full bg-[#1A1D21] border border-[#454446] rounded-lg px-3 py-2 text-white focus:border-red-500 focus:outline-none"
+                  placeholder="Type 'Delete Account' here"
+                />
+              </div>
+              
+              <div className="flex gap-3 justify-center">
+                <button
+                  onClick={() => {
+                    setShowDeleteModal(false);
+                    setDeleteConfirmationText("");
+                  }}
+                  className="px-4 py-2 text-sm font-medium transition-colors bg-gray-600 text-white rounded hover:bg-gray-500"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleDeleteAccount}
+                  disabled={isDeletingAccount || deleteConfirmationText !== "Delete Account"}
+                  className="px-4 py-2 text-sm font-medium text-white rounded disabled:opacity-50 disabled:cursor-not-allowed hover:opacity-90"
+                  style={{ backgroundColor: "#DC2626" }}
+                >
+                  {isDeletingAccount ? "Deleting..." : "Delete Account"}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Account Deleted Success Modal */}
+      {deleteSuccess && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-[#212327] rounded-lg p-6 max-w-md w-full mx-4 border border-[#454446]">
+            <div className="text-center">
+              <div className="w-16 h-16 mx-auto mb-4 bg-green-100 rounded-full flex items-center justify-center">
+                <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+              </div>
+              <h3 className="text-lg font-semibold text-white mb-2">
+                Account Deleted
+              </h3>
+              <p className="text-gray-300">
+                Your account has been successfully deleted. You will be redirected to the signup page.
+              </p>
             </div>
           </div>
         </div>
