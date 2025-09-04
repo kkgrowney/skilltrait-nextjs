@@ -4,6 +4,7 @@ import NavPrelogin from "@/components/nav_prelogin";
 import { useAuth } from "@/contexts/AuthContext";
 import SideNavigation from "@/components/SideNavigation";
 import ViewTitle from "@/components/ViewTitle";
+import { Toaster } from "react-hot-toast";
 
 const IFRAME_ROUTES = [
   "/",
@@ -52,6 +53,12 @@ export default function ClientLayout({
 
   return (
     <div className={`min-h-screen ${isAuthRoute ? "" : "bg-gray-100"}`}>
+      <Toaster
+        position="top-right"
+        toastOptions={{
+          duration: 4000, // 4s default + 2s
+        }}
+      />
       {shouldShowNavPrelogin && <NavPrelogin />}
       {shouldShowAuthenticatedLayout ? (
         <div
