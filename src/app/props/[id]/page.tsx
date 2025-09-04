@@ -6,6 +6,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import SideNavigation from "@/components/SideNavigation";
 import { db } from "@/lib/firebase";
 import { doc, getDoc, deleteDoc } from "firebase/firestore";
+import { useCustomerIO } from "@/hooks/useCustomerIO";
 import {
   downloadPropAsPNG,
   downloadImageDirectly,
@@ -19,17 +20,14 @@ const getProxiedUrlForPreview = (imageUrl: string): string => {
 };
 
 // EmailRecipients component
-function EmailRecipients({
-  onRecipientNamesChange,
-}: {
-  onRecipientNamesChange?: (names: string) => void;
-}) {
+function EmailRecipients() {
+  const { user } = useAuth();
+  const { updateCustomer, isLoading, error: apiError } = useCustomerIO();
   const [email, setEmail] = useState("");
   const [emails, setEmails] = useState<string[]>([]);
-  const [recipientNames, setRecipientNames] = useState("");
-  const [showRecipientsInput, setShowRecipientsInput] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
+  const [isSending, setIsSending] = useState(false);
 
   const handleAdd = () => {
     if (!email) return;
@@ -51,7 +49,7 @@ function EmailRecipients({
     setEmails(emails.filter((e) => e !== removeEmail));
   };
 
-  const handleSend = () => {
+  const handleSend = async () => {
     if (emails.length === 0) {
       setError("Please add at least one email address");
       return;
@@ -60,18 +58,48 @@ function EmailRecipients({
       setError("Please enter a message");
       return;
     }
+    if (!user?.email) {
+      setError("User email not available");
+      return;
+    }
 
-    // TODO: Implement email sending logic
-    console.log("Sending emails to:", emails);
-    console.log("Message:", message);
-
-    // Clear form after sending
-    setEmails([]);
-    setRecipientNames("");
-    setMessage("");
+    setIsSending(true);
     setError("");
 
-    alert("Emails sent successfully!");
+    try {
+      // Prepare the Customer.io API body according to specifications
+      const customerData = {
+        id: user.email,
+        email: user.email,
+        anonymous_id: "string", // String value as specified
+        sendProps_at: Math.floor(Date.now() / 1000), // Current timestamp as Unix seconds
+        _update: "boolean", // String value as specified
+        unsubscribed: "boolean", // String value as specified
+        consequatfc: "string", // String value as specified
+        propsEmails: emails, // Array of recipient emails
+        propsMessage: message // The message entered by user
+      };
+
+      console.log("Sending to Customer.io:", customerData);
+
+      // Call Customer.io API
+      const success = await updateCustomer(user.email, customerData);
+
+      if (success) {
+        // Clear form after successful sending
+        setEmails([]);
+        setMessage("");
+        setError("");
+        alert("Props sent successfully!");
+      } else {
+        setError("Failed to send props. Please try again.");
+      }
+    } catch (err) {
+      console.error("Error sending props:", err);
+      setError("An error occurred while sending props. Please try again.");
+    } finally {
+      setIsSending(false);
+    }
   };
 
   return (
@@ -119,71 +147,6 @@ function EmailRecipients({
         ))}
       </div>
 
-      {/* Recipient Names field */}
-      <div className="mb-4">
-        <div
-          className="p-4 rounded-sm border"
-          style={{ backgroundColor: "#1B1D21", borderColor: "#454446" }}
-        >
-          {showRecipientsInput ? (
-            <div className="flex items-center space-x-2">
-              <input
-                type="text"
-                placeholder="Add one or more recipient names"
-                value={recipientNames}
-                maxLength={67}
-                onChange={(e) => {
-                  setRecipientNames(e.target.value);
-                  onRecipientNamesChange?.(e.target.value);
-                }}
-                className="flex-1 px-4 py-2 text-sm bg-[#1B1D21] border rounded text-white placeholder-gray-400 focus:outline-none focus:border-[var(--primary-dark)]"
-                style={{
-                  borderColor: "#454446",
-                  fontFamily: "Poppins",
-                  fontSize: "14px",
-                  color: "white",
-                  textAlign: "left",
-                  paddingLeft: "12px",
-                }}
-              />
-              <button
-                onClick={() => {
-                  setShowRecipientsInput(false);
-                }}
-                className="px-4 py-2 text-sm font-medium transition-colors bg-white text-[#212327] rounded hover:bg-gray-100"
-              >
-                Add
-              </button>
-            </div>
-          ) : (
-            <div
-              onClick={() => setShowRecipientsInput(true)}
-              className="w-full px-4 py-2 text-sm bg-[#1B1D21] border rounded text-white placeholder-gray-400 cursor-pointer hover:border-[var(--primary-dark)] transition-colors"
-              style={{
-                borderColor: "#454446",
-                textAlign: "left",
-                paddingLeft: "12px",
-              }}
-            >
-              {recipientNames ? (
-                <span
-                  className="text-white"
-                  style={{ textAlign: "left", display: "block" }}
-                >
-                  {recipientNames}
-                </span>
-              ) : (
-                <span
-                  className="text-gray-400"
-                  style={{ textAlign: "left", display: "block" }}
-                >
-                  Add one or more recipient names
-                </span>
-              )}
-            </div>
-          )}
-        </div>
-      </div>
 
       {/* Message field */}
       <div className="mb-4">
@@ -197,14 +160,22 @@ function EmailRecipients({
         />
       </div>
 
+      {/* Error display */}
+      {(error || apiError) && (
+        <div className="mb-4 p-3 bg-red-900/20 border border-red-500/30 rounded-lg">
+          <p className="text-red-300 text-sm">{error || apiError}</p>
+        </div>
+      )}
+
       {/* Send button */}
       <div className="flex justify-end">
         <button
           type="button"
           onClick={handleSend}
-          className="bg-[#00DF71] text-[#212327] px-6 py-2 rounded font-semibold hover:bg-[#0AFB84] transition-colors"
+          disabled={isSending || isLoading}
+          className="bg-[#00DF71] text-[#212327] px-6 py-2 rounded font-semibold hover:bg-[#0AFB84] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          Send
+          {isSending || isLoading ? "Sending..." : "Send"}
         </button>
       </div>
     </div>
@@ -217,7 +188,6 @@ export default function PropDetailPage() {
   const { user } = useAuth();
   const [prop, setProp] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
-  const [recipientNames, setRecipientNames] = useState("");
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
@@ -433,8 +403,7 @@ export default function PropDetailPage() {
                           prop.achievement?.fromMessage ||
                           prop.achievement?.fromDate) && (
                           <div className="absolute top-20 left-4 z-30 font-semibold">
-                            {(prop.propsRecipients.length > 0 ||
-                              recipientNames) && (
+                            {prop.propsRecipients.length > 0 && (
                               <div
                                 className="prop-inside-box text-white px-3 py-3 rounded-lg shadow-lg max-w-[296px] break-words"
                                 style={{
@@ -448,9 +417,8 @@ export default function PropDetailPage() {
                                 Props:
                                 <br />
                                 <span className="whitespace-normal break-words">
-                                  {recipientNames ||
-                                    (prop.propsRecipients &&
-                                      prop.propsRecipients.join(", "))}
+                                  {prop.propsRecipients &&
+                                    prop.propsRecipients.join(", ")}
                                 </span>
                               </div>
                             )}
@@ -459,8 +427,7 @@ export default function PropDetailPage() {
                               style={{
                                 position: "absolute",
                                 top:
-                                  prop.propsRecipients.length > 0 ||
-                                  recipientNames
+                                  prop.propsRecipients.length > 0
                                     ? "100%"
                                     : "0px",
                                 marginTop: "12px",
@@ -684,9 +651,7 @@ export default function PropDetailPage() {
                     <h3 className="text-lg font-medium text-white mb-3">
                       Email Recipients
                     </h3>
-                    <EmailRecipients
-                      onRecipientNamesChange={setRecipientNames}
-                    />
+                    <EmailRecipients />
                   </div>
                 </div>
               </div>
