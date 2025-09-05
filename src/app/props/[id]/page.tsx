@@ -20,7 +20,7 @@ const getProxiedUrlForPreview = (imageUrl: string): string => {
 };
 
 // EmailRecipients component
-function EmailRecipients() {
+function EmailRecipients({ propId, prop }: { propId: string; prop: any }) {
   const { user } = useAuth();
   const { updateCustomer, isLoading, error: apiError } = useCustomerIO();
   const [email, setEmail] = useState("");
@@ -67,32 +67,56 @@ function EmailRecipients() {
     setError("");
 
     try {
-      // Prepare the Customer.io API body according to specifications
-      const customerData = {
-        id: user.email,
-        email: user.email,
-        anonymous_id: "string", // String value as specified
-        sendProps_at: Math.floor(Date.now() / 1000), // Current timestamp as Unix seconds
-        _update: "boolean", // String value as specified
-        unsubscribed: "boolean", // String value as specified
-        consequatfc: "string", // String value as specified
-        propsEmails: emails, // Array of recipient emails
-        propsMessage: message // The message entered by user
-      };
+      let successCount = 0;
+      let errorCount = 0;
 
-      console.log("Sending to Customer.io:", customerData);
+      // Loop through each recipient email and send individual PUT requests
+      for (const recipientEmail of emails) {
+        try {
+          // Prepare the Customer.io API body for each recipient
+          const customerData = {
+            id: recipientEmail, // Use recipient email as ID
+            email: recipientEmail, // Use recipient email as email
+            anonymous_id: "string", // String value as specified
+            sendProps_at: Math.floor(Date.now() / 1000), // Current timestamp as Unix seconds
+            _update: "boolean", // String value as specified
+            unsubscribed: "boolean", // String value as specified
+            consequatfc: "string", // String value as specified
+            propsMessage: message, // The message entered by user
+            propShareUrl: `${window.location.origin}/share/${propId}`, // Share URL of the prop
+            propImage: prop?.previewImageUrl || prop?.previewImageBase64 || prop?.fullPropImage || "", // Image link of the prop
+            propsSenderName: prop?.achievement?.fromName || prop?.userDisplayName || "" // Name of the sender of the prop
+          };
 
-      // Call Customer.io API
-      const success = await updateCustomer(user.email, customerData);
+          console.log(`Sending to Customer.io for ${recipientEmail}:`, customerData);
 
-      if (success) {
-        // Clear form after successful sending
-        setEmails([]);
-        setMessage("");
-        setError("");
-        alert("Props sent successfully!");
+          // Call Customer.io API for this specific recipient
+          const success = await updateCustomer(recipientEmail, customerData);
+
+          if (success) {
+            successCount++;
+          } else {
+            errorCount++;
+            console.error(`Failed to send to ${recipientEmail}`);
+          }
+        } catch (err) {
+          errorCount++;
+          console.error(`Error sending to ${recipientEmail}:`, err);
+        }
+      }
+
+      // Clear form after processing all emails
+      setEmails([]);
+      setMessage("");
+      setError("");
+
+      // Show appropriate success/error message
+      if (successCount > 0 && errorCount === 0) {
+        alert(`Props sent successfully to all ${successCount} recipients!`);
+      } else if (successCount > 0 && errorCount > 0) {
+        alert(`Props sent to ${successCount} recipients. ${errorCount} failed.`);
       } else {
-        setError("Failed to send props. Please try again.");
+        setError("Failed to send props to any recipients. Please try again.");
       }
     } catch (err) {
       console.error("Error sending props:", err);
@@ -698,7 +722,7 @@ export default function PropDetailPage() {
                     <h3 className="text-lg font-medium text-white mb-3">
                       Email Recipients
                     </h3>
-                    <EmailRecipients />
+                    <EmailRecipients propId={params.id as string} prop={prop} />
                   </div>
                 </div>
               </div>
