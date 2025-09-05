@@ -65,10 +65,8 @@ export default function AwardsStep({
         const allowedFilters = [
           "Free",
           "Creative",
-          "Leadership",
-          "Mentor",
-          "Birthday",
-          "Work Anniversary",
+          "Leader",
+          "Anniversary",
         ];
 
         // Set filters with only the allowed filters as keys and default value of false

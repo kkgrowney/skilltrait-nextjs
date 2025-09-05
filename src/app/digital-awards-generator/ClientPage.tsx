@@ -122,20 +122,9 @@ export default function DigitalAwardsPage() {
     }
     return "";
   });
-  const [filters, setFilters] = useState<{ [tag: string]: boolean }>(() => {
-    if (typeof window !== "undefined") {
-      const saved = localStorage.getItem("digital-awards-filters");
-      return saved ? JSON.parse(saved) : {};
-    }
-    return {};
-  });
+  const [filters, setFilters] = useState<{ [tag: string]: boolean }>({});
   const [filteredTemplates, setFilteredTemplates] = useState<any[]>([]);
-  const [searchQuery, setSearchQuery] = useState(() => {
-    if (typeof window !== "undefined") {
-      return localStorage.getItem("digital-awards-search-query") || "";
-    }
-    return "";
-  });
+  const [searchQuery, setSearchQuery] = useState("");
   const [showAchievementsModal, setShowAchievementsModal] = useState(false);
   const [isStepsSidebarOpen, setIsStepsSidebarOpen] = useState(false);
   const [selectedSidebarStep, setSelectedSidebarStep] =
@@ -198,6 +187,21 @@ export default function DigitalAwardsPage() {
     filters,
     searchQuery,
   ]);
+
+  // Load filters and searchQuery from localStorage on client side
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const savedFilters = localStorage.getItem("digital-awards-filters");
+      if (savedFilters) {
+        setFilters(JSON.parse(savedFilters));
+      }
+      
+      const savedSearchQuery = localStorage.getItem("digital-awards-search-query");
+      if (savedSearchQuery) {
+        setSearchQuery(savedSearchQuery);
+      }
+    }
+  }, []);
 
   // Prefill from query params (logo/bg/company/base, step)
   useEffect(() => {
