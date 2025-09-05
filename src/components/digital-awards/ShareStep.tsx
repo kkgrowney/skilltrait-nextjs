@@ -16,6 +16,7 @@ import {
 import Link from "next/link";
 import AuthModal from "./AuthModal";
 import { uploadToCloudinary } from "@/lib/cloudinary";
+import toast from "react-hot-toast";
 
 interface ShareStepProps {
   onPrevious: () => void;
@@ -1199,7 +1200,13 @@ This digital award recognizes excellence and dedication in professional developm
         setIsOpen={setIsAuthModalOpen}
         onSuccess={() => {
           setIsAuthModalOpen(false);
-          if (onAuthSuccess) onAuthSuccess();
+          if (onAuthSuccess) {
+            toast.success(
+              "✅ Login successful! Click Generate & Save to create prop."
+            );
+
+            onAuthSuccess();
+          }
         }}
       />
 
