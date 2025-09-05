@@ -23,6 +23,7 @@ export default function SignUpPage() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [agreeToTerms, setAgreeToTerms] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const router = useRouter();
 
   useEffect(() => {
@@ -36,7 +37,7 @@ export default function SignUpPage() {
         const result = await getRedirectResult(auth);
         if (result) {
           console.log("Redirect sign-up successful:", result.user.email);
-          
+
           // Check if user already has a profile
           const userDoc = await getDoc(doc(db, "users", result.user.uid));
           if (!userDoc.exists()) {
@@ -59,18 +60,61 @@ export default function SignUpPage() {
     handleRedirectResult();
   }, [router]);
 
+  const validateEmail = (email: string): string | null => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!email.trim()) {
+      return "Email is required";
+    }
+    if (!emailRegex.test(email)) {
+      return "Please enter a valid email address";
+    }
+    return null;
+  };
+
+  const clearError = (field: string) => {
+    setErrors((prev) => {
+      const newErrors = { ...prev };
+      delete newErrors[field];
+      return newErrors;
+    });
+  };
+
   const handleEmailSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    setErrors({}); // Clear previous errors
 
-    if (password !== confirmPassword) {
-      console.error("Passwords do not match");
-      setLoading(false);
-      return;
+    const newErrors: { [key: string]: string } = {};
+
+    // Validate email
+    const emailError = validateEmail(email);
+    if (emailError) {
+      newErrors.email = emailError;
     }
 
+    // Validate password
+    if (!password.trim()) {
+      newErrors.password = "Password is required";
+    } else if (password.length < 6) {
+      newErrors.password = "Password must be at least 6 characters long";
+    }
+
+    // Validate confirm password
+    if (!confirmPassword.trim()) {
+      newErrors.confirmPassword = "Please confirm your password";
+    } else if (password !== confirmPassword) {
+      newErrors.confirmPassword = "Passwords do not match";
+    }
+
+    // Validate terms agreement
     if (!agreeToTerms) {
-      console.error("Please agree to the Terms of Service and Privacy Policy");
+      newErrors.terms =
+        "Please agree to the Terms of Service and Privacy Policy";
+    }
+
+    // If there are validation errors, show them and stop
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
       setLoading(false);
       return;
     }
@@ -87,6 +131,30 @@ export default function SignUpPage() {
       const errorMessage =
         error instanceof Error ? error.message : "An error occurred";
       console.error("Sign up error:", errorMessage);
+
+      // Handle specific Firebase auth errors
+      if (error instanceof Error) {
+        if (error.message.includes("auth/email-already-in-use")) {
+          setErrors({
+            email: "This email is already registered. Please sign in instead.",
+          });
+        } else if (error.message.includes("auth/invalid-email")) {
+          setErrors({ email: "Please enter a valid email address." });
+        } else if (error.message.includes("auth/weak-password")) {
+          setErrors({
+            password:
+              "Password is too weak. Please choose a stronger password.",
+          });
+        } else {
+          setErrors({
+            general: "An error occurred during sign up. Please try again.",
+          });
+        }
+      } else {
+        setErrors({
+          general: "An error occurred during sign up. Please try again.",
+        });
+      }
     } finally {
       setLoading(false);
     }
@@ -98,14 +166,14 @@ export default function SignUpPage() {
     try {
       console.log("Starting Google sign-up process...");
       const provider = new GoogleAuthProvider();
-      
+
       // Add scopes if needed
-      provider.addScope('email');
-      provider.addScope('profile');
-      
+      provider.addScope("email");
+      provider.addScope("profile");
+
       console.log("Calling signInWithPopup...");
       let result;
-      
+
       try {
         result = await signInWithPopup(auth, provider);
       } catch (popupError) {
@@ -114,7 +182,7 @@ export default function SignUpPage() {
         await signInWithRedirect(auth, provider);
         return; // Redirect will handle the rest
       }
-      
+
       console.log("Google sign-up successful:", result.user.email);
 
       // Check if user already has a profile
@@ -138,25 +206,37 @@ export default function SignUpPage() {
       router.push("/onboarding");
     } catch (error: unknown) {
       console.error("Google sign up error details:", error);
-      
+
       if (error instanceof Error) {
         const errorMessage = error.message;
         console.error("Error message:", errorMessage);
-        
+
         // Handle specific Firebase auth errors
-        if (errorMessage.includes('popup-closed-by-user')) {
-          alert("Sign-up was cancelled. Please try again.");
-        } else if (errorMessage.includes('popup-blocked')) {
-          alert("Pop-up was blocked. Please allow pop-ups for this site and try again.");
-        } else if (errorMessage.includes('auth/unauthorized-domain')) {
-          alert("This domain is not authorized for Google sign-in. Please contact support.");
-        } else if (errorMessage.includes('auth/network-request-failed')) {
-          alert("Network error. Please check your internet connection and try again.");
+        if (errorMessage.includes("popup-closed-by-user")) {
+          setErrors({ general: "Sign-up was cancelled. Please try again." });
+        } else if (errorMessage.includes("popup-blocked")) {
+          setErrors({
+            general:
+              "Pop-up was blocked. Please allow pop-ups for this site and try again.",
+          });
+        } else if (errorMessage.includes("auth/unauthorized-domain")) {
+          setErrors({
+            general:
+              "This domain is not authorized for Google sign-in. Please contact support.",
+          });
+        } else if (errorMessage.includes("auth/network-request-failed")) {
+          setErrors({
+            general:
+              "Network error. Please check your internet connection and try again.",
+          });
         } else {
-          alert(`Sign-up failed: ${errorMessage}`);
+          setErrors({ general: `Sign-up failed: ${errorMessage}` });
         }
       } else {
-        alert("An unexpected error occurred during sign-up. Please try again.");
+        setErrors({
+          general:
+            "An unexpected error occurred during sign-up. Please try again.",
+        });
       }
     } finally {
       setLoading(false);
@@ -314,19 +394,34 @@ export default function SignUpPage() {
                   onSubmit={handleEmailSignUp}
                   className="flex flex-col gap-4 items-start justify-start p-0 relative shrink-0 w-full"
                 >
+                  {/* General Error Message */}
+                  {errors.general && (
+                    <div className="w-full p-3 bg-red-900/20 border border-red-500 rounded-lg">
+                      <p className="text-red-500 text-sm">{errors.general}</p>
+                    </div>
+                  )}
+
                   <div className="flex flex-col gap-2 items-start justify-start p-0 relative shrink-0 w-full">
                     <input
                       type="email"
                       placeholder="Email"
                       value={email}
-                      onChange={(e) => setEmail(e.target.value)}
+                      onChange={(e) => {
+                        setEmail(e.target.value);
+                        clearError("email");
+                      }}
                       required
-                      className="h-9 relative rounded-lg shrink-0 w-full border shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] px-3 py-1 text-[14px] text-white focus:outline-none focus:ring-2 focus:border-transparent"
+                      className={`h-9 relative rounded-lg shrink-0 w-full border shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] px-3 py-1 text-[14px] text-white focus:outline-none focus:ring-2 focus:border-transparent`}
                       style={{
                         backgroundColor: "#212327",
-                        borderColor: "#454446",
+                        borderColor: errors.email ? "#ef4444" : "#454446",
                       }}
                     />
+                    {errors.email && (
+                      <p className="text-red-500 text-xs mt-1">
+                        {errors.email}
+                      </p>
+                    )}
                   </div>
 
                   <div className="flex flex-col gap-2 items-start justify-start p-0 relative shrink-0 w-full">
@@ -335,12 +430,15 @@ export default function SignUpPage() {
                         type={showPassword ? "text" : "password"}
                         placeholder="Password"
                         value={password}
-                        onChange={(e) => setPassword(e.target.value)}
+                        onChange={(e) => {
+                          setPassword(e.target.value);
+                          clearError("password");
+                        }}
                         required
-                        className="h-9 relative rounded-lg shrink-0 w-full border shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] px-3 py-1 text-[14px] text-white focus:outline-none focus:ring-2 focus:border-transparent pr-10"
+                        className={`h-9 relative rounded-lg shrink-0 w-full border shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] px-3 py-1 text-[14px] text-white focus:outline-none focus:ring-2 focus:border-transparent pr-10`}
                         style={{
                           backgroundColor: "#212327",
-                          borderColor: "#454446",
+                          borderColor: errors.password ? "#ef4444" : "#454446",
                         }}
                       />
                       <button
@@ -366,6 +464,11 @@ export default function SignUpPage() {
                         </svg>
                       </button>
                     </div>
+                    {errors.password && (
+                      <p className="text-red-500 text-xs mt-1">
+                        {errors.password}
+                      </p>
+                    )}
                   </div>
 
                   <div className="flex flex-col gap-2 items-start justify-start p-0 relative shrink-0 w-full">
@@ -374,12 +477,17 @@ export default function SignUpPage() {
                         type={showConfirmPassword ? "text" : "password"}
                         placeholder="Confirm Password"
                         value={confirmPassword}
-                        onChange={(e) => setConfirmPassword(e.target.value)}
+                        onChange={(e) => {
+                          setConfirmPassword(e.target.value);
+                          clearError("confirmPassword");
+                        }}
                         required
-                        className="h-9 relative rounded-lg shrink-0 w-full border shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] px-3 py-1 text-[14px] text-white focus:outline-none focus:ring-2 focus:border-transparent pr-10"
+                        className={`h-9 relative rounded-lg shrink-0 w-full border shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] px-3 py-1 text-[14px] text-white focus:outline-none focus:ring-2 focus:border-transparent pr-10`}
                         style={{
                           backgroundColor: "#212327",
-                          borderColor: "#454446",
+                          borderColor: errors.confirmPassword
+                            ? "#ef4444"
+                            : "#454446",
                         }}
                       />
                       <button
@@ -407,24 +515,39 @@ export default function SignUpPage() {
                         </svg>
                       </button>
                     </div>
+                    {errors.confirmPassword && (
+                      <p className="text-red-500 text-xs mt-1">
+                        {errors.confirmPassword}
+                      </p>
+                    )}
                   </div>
 
-                  <div className="flex flex-row items-start justify-start p-0 relative shrink-0 w-full">
+                  <div className="flex flex-col gap-2 items-start justify-start p-0 relative shrink-0 w-full">
                     <button
                       type="button"
-                      onClick={() => setAgreeToTerms(!agreeToTerms)}
+                      onClick={() => {
+                        setAgreeToTerms(!agreeToTerms);
+                        clearError("terms");
+                      }}
                       className="flex flex-row gap-2 items-start justify-start cursor-pointer"
                     >
                       <div
                         className={`relative rounded shrink-0 size-4 border ${
                           agreeToTerms ? "bg-green-500" : "bg-transparent"
                         }`}
-                        style={{ borderColor: "#454446" }}
+                        style={{
+                          borderColor: errors.terms ? "#ef4444" : "#454446",
+                        }}
                       ></div>
                       <span className="font-medium text-[14px] text-white">
                         I agree to the Terms of Service and Privacy Policy
                       </span>
                     </button>
+                    {errors.terms && (
+                      <p className="text-red-500 text-xs mt-1">
+                        {errors.terms}
+                      </p>
+                    )}
                   </div>
 
                   <button
@@ -555,19 +678,34 @@ export default function SignUpPage() {
                   onSubmit={handleEmailSignUp}
                   className="flex flex-col gap-4 items-start justify-start p-0 relative shrink-0 w-full"
                 >
+                  {/* General Error Message */}
+                  {errors.general && (
+                    <div className="w-full p-3 bg-red-900/20 border border-red-500 rounded-lg">
+                      <p className="text-red-500 text-sm">{errors.general}</p>
+                    </div>
+                  )}
+
                   <div className="flex flex-col gap-2 items-start justify-start p-0 relative shrink-0 w-full">
                     <input
                       type="email"
                       placeholder="Email"
                       value={email}
-                      onChange={(e) => setEmail(e.target.value)}
+                      onChange={(e) => {
+                        setEmail(e.target.value);
+                        clearError("email");
+                      }}
                       required
-                      className="h-9 relative rounded-lg shrink-0 w-full border shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] px-3 py-1 text-[14px] text-white focus:outline-none focus:ring-2 focus:border-transparent"
+                      className={`h-9 relative rounded-lg shrink-0 w-full border shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] px-3 py-1 text-[14px] text-white focus:outline-none focus:ring-2 focus:border-transparent`}
                       style={{
                         backgroundColor: "#212327",
-                        borderColor: "#454446",
+                        borderColor: errors.email ? "#ef4444" : "#454446",
                       }}
                     />
+                    {errors.email && (
+                      <p className="text-red-500 text-xs mt-1">
+                        {errors.email}
+                      </p>
+                    )}
                   </div>
 
                   <div className="flex flex-col gap-2 items-start justify-start p-0 relative shrink-0 w-full">
@@ -576,12 +714,15 @@ export default function SignUpPage() {
                         type={showPassword ? "text" : "password"}
                         placeholder="Password"
                         value={password}
-                        onChange={(e) => setPassword(e.target.value)}
+                        onChange={(e) => {
+                          setPassword(e.target.value);
+                          clearError("password");
+                        }}
                         required
-                        className="h-9 relative rounded-lg shrink-0 w-full border shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] px-3 py-1 text-[14px] text-white focus:outline-none focus:ring-2 focus:border-transparent pr-10"
+                        className={`h-9 relative rounded-lg shrink-0 w-full border shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] px-3 py-1 text-[14px] text-white focus:outline-none focus:ring-2 focus:border-transparent pr-10`}
                         style={{
                           backgroundColor: "#212327",
-                          borderColor: "#454446",
+                          borderColor: errors.password ? "#ef4444" : "#454446",
                         }}
                       />
                       <button
@@ -607,6 +748,11 @@ export default function SignUpPage() {
                         </svg>
                       </button>
                     </div>
+                    {errors.password && (
+                      <p className="text-red-500 text-xs mt-1">
+                        {errors.password}
+                      </p>
+                    )}
                   </div>
 
                   <div className="flex flex-col gap-2 items-start justify-start p-0 relative shrink-0 w-full">
@@ -615,12 +761,17 @@ export default function SignUpPage() {
                         type={showConfirmPassword ? "text" : "password"}
                         placeholder="Confirm Password"
                         value={confirmPassword}
-                        onChange={(e) => setConfirmPassword(e.target.value)}
+                        onChange={(e) => {
+                          setConfirmPassword(e.target.value);
+                          clearError("confirmPassword");
+                        }}
                         required
-                        className="h-9 relative rounded-lg shrink-0 w-full border shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] px-3 py-1 text-[14px] text-white focus:outline-none focus:ring-2 focus:border-transparent pr-10"
+                        className={`h-9 relative rounded-lg shrink-0 w-full border shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)] px-3 py-1 text-[14px] text-white focus:outline-none focus:ring-2 focus:border-transparent pr-10`}
                         style={{
                           backgroundColor: "#212327",
-                          borderColor: "#454446",
+                          borderColor: errors.confirmPassword
+                            ? "#ef4444"
+                            : "#454446",
                         }}
                       />
                       <button
@@ -648,24 +799,39 @@ export default function SignUpPage() {
                         </svg>
                       </button>
                     </div>
+                    {errors.confirmPassword && (
+                      <p className="text-red-500 text-xs mt-1">
+                        {errors.confirmPassword}
+                      </p>
+                    )}
                   </div>
 
-                  <div className="flex flex-row items-start justify-start p-0 relative shrink-0 w-full">
+                  <div className="flex flex-col gap-2 items-start justify-start p-0 relative shrink-0 w-full">
                     <button
                       type="button"
-                      onClick={() => setAgreeToTerms(!agreeToTerms)}
+                      onClick={() => {
+                        setAgreeToTerms(!agreeToTerms);
+                        clearError("terms");
+                      }}
                       className="flex flex-row gap-2 items-start justify-start cursor-pointer"
                     >
                       <div
                         className={`relative rounded shrink-0 size-4 border ${
                           agreeToTerms ? "bg-green-500" : "bg-transparent"
                         }`}
-                        style={{ borderColor: "#454446" }}
+                        style={{
+                          borderColor: errors.terms ? "#ef4444" : "#454446",
+                        }}
                       ></div>
                       <span className="font-medium text-[14px] text-white">
                         I agree to the Terms of Service and Privacy Policy
                       </span>
                     </button>
+                    {errors.terms && (
+                      <p className="text-red-500 text-xs mt-1">
+                        {errors.terms}
+                      </p>
+                    )}
                   </div>
 
                   <button
