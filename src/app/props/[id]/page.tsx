@@ -606,7 +606,7 @@ export default function PropDetailPage() {
                             navigator.clipboard
                               .writeText(shareUrl)
                               .then(() => {
-                                alert("Share link copied to clipboard!");
+                                toast.success("Share link copied to clipboard!");
                               })
                               .catch(() => {
                                 // Fallback for older browsers
@@ -617,7 +617,7 @@ export default function PropDetailPage() {
                                 textArea.select();
                                 document.execCommand("copy");
                                 document.body.removeChild(textArea);
-                                alert("Share link copied to clipboard!");
+                                toast.success("Share link copied to clipboard!");
                               });
                           },
                         },
@@ -719,7 +719,7 @@ export default function PropDetailPage() {
                             navigator.clipboard
                               .writeText(shareUrl)
                               .then(() => {
-                                alert("Share link copied to clipboard!");
+                                toast.success("Share link copied to clipboard!");
                               })
                               .catch(() => {
                                 const textArea =
@@ -729,7 +729,7 @@ export default function PropDetailPage() {
                                 textArea.select();
                                 document.execCommand("copy");
                                 document.body.removeChild(textArea);
-                                alert("Share link copied to clipboard!");
+                                toast.success("Share link copied to clipboard!");
                               });
                           }}
                           className="px-2 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700"
