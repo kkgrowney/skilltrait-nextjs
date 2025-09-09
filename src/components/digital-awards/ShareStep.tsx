@@ -93,7 +93,7 @@ export default function ShareStep({
       const uploadedAssets = await uploadAssetsAndCreateTemplate(user.uid);
 
       // Step 2: Generate preview image and upload to Cloudinary
-      setProcessStep("Generating preview image and uploading to Cloudinary...");
+      setProcessStep("Generating preview image and uploading to cloud");
       const previewResult = await generatePreviewImage(uploadedAssets);
 
       // Step 3: Save the preview image to database
@@ -1280,7 +1280,7 @@ This digital award recognizes excellence and dedication in professional developm
               </h3>
               {savedPropId && (
                 <div className="text-green-400 text-sm mb-2">
-                  ✓ Award saved successfully! ID: {savedPropId}
+                  ✓ Award saved successfully!
                 </div>
               )}
               {/* Preview Image (Generated Locally) */}
@@ -1310,7 +1310,7 @@ This digital award recognizes excellence and dedication in professional developm
                   </div>
                   {savedPropId && (
                     <div className="mt-2 text-green-400 text-sm">
-                      ✓ Preview image saved to database (ID: {savedPropId})
+                      ✓ Preview image saved to database
                     </div>
                   )}
                 </div>
