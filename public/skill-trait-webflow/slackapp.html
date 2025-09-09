@@ -81,86 +81,6 @@
       }
     }
     
-    /* Overview Section Styles */
-    .overview-section {
-      background-color: #f8f9fa;
-      border-top: 1px solid #e9ecef;
-      border-bottom: 1px solid #e9ecef;
-    }
-    
-    .overview-form {
-      width: 100%;
-      max-width: 600px;
-      margin: 0 auto;
-    }
-    
-    .text-input-wrapper {
-      position: relative;
-      margin-bottom: 1rem;
-    }
-    
-    .overview-textarea {
-      width: 100%;
-      padding: 1rem;
-      border: 2px solid #e1e5e9;
-      border-radius: 8px;
-      font-family: inherit;
-      font-size: 1rem;
-      line-height: 1.5;
-      resize: vertical;
-      min-height: 120px;
-      transition: border-color 0.2s ease;
-    }
-    
-    .overview-textarea:focus {
-      outline: none;
-      border-color: #4d65ff;
-      box-shadow: 0 0 0 3px rgba(77, 101, 255, 0.1);
-    }
-    
-    .overview-textarea.error {
-      border-color: #dc3545;
-    }
-    
-    .character-counter {
-      text-align: right;
-      font-size: 0.875rem;
-      color: #6c757d;
-      margin-top: 0.5rem;
-    }
-    
-    .character-counter.error {
-      color: #dc3545;
-      font-weight: 600;
-    }
-    
-    .button-group {
-      display: flex;
-      gap: 1rem;
-      justify-content: center;
-      flex-wrap: wrap;
-    }
-    
-    .button-group button {
-      min-width: 120px;
-    }
-    
-    .button-group button:disabled {
-      opacity: 0.6;
-      cursor: not-allowed;
-    }
-    
-    @media (max-width: 479px) {
-      .button-group {
-        flex-direction: column;
-        align-items: center;
-      }
-      
-      .button-group button {
-        width: 100%;
-        max-width: 200px;
-      }
-    }
   </style>
 </head>
 <body>
@@ -345,8 +265,9 @@ margin: 0rem !important;
         </a>
         <nav role="navigation" class="navbar1_menu-2 is-page-height-tablet w-nav-menu">
           <a href="index.html" aria-current="page" class="navbar-link is-alternate achievement w-nav-link w--current">Home</a>
-                          <a href="/slackapp" class="navbar-link is-alternate w-nav-link">Slack App</a>
           <a href="achievements.html" class="navbar-link is-alternate w-nav-link">Examples</a>
+          <a href="/digital-awards-generator" class="navbar-link is-alternate w-nav-link">Awards Generator</a>
+                          <a href="/slackapp" class="navbar-link is-alternate w-nav-link">Slack App</a>
           <a href="pricing.html" class="navbar-link is-alternate w-nav-link">Pricing</a>
           <a href="#help" class="navbar-link is-alternate w-nav-link">Help</a>
 
@@ -389,41 +310,6 @@ margin: 0rem !important;
         </div>
       </div>
       
-      <!-- Overview Section -->
-      <section class="overview-section">
-        <div class="padding-global">
-          <div class="container-medium">
-            <div class="padding-section-medium">
-              <div class="max-width-medium align-center">
-                <div class="margin-bottom margin-medium">
-                  <h2 class="heading-style-h2">Overview</h2>
-                  <p class="text-size-medium-3">Share information about your skills and experience. You can enter up to 160 characters.</p>
-                </div>
-                
-                <div class="overview-form">
-                  <div class="text-input-wrapper">
-                    <textarea 
-                      id="overviewTextarea" 
-                      class="overview-textarea" 
-                      placeholder="Enter your overview here..."
-                      maxlength="160"
-                      rows="4"
-                    ></textarea>
-                    <div class="character-counter">
-                      <span id="charCount">160</span> characters remaining
-                    </div>
-                  </div>
-                  
-                  <div class="button-group is-center margin-top margin-medium">
-                    <button id="saveButton" class="buttons-4 is-primary w-button" disabled>Save</button>
-                    <button id="cancelButton" class="buttons-4 is-secondary w-button">Cancel</button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
       
       <section class="work-journey">
         <div id="work-journey" class="padding-global-grey-2">
@@ -633,80 +519,6 @@ margin: 0rem !important;
         playButton.style.display = 'flex';
       });
       
-      // Overview Section Functionality
-      const overviewTextarea = document.getElementById('overviewTextarea');
-      const charCount = document.getElementById('charCount');
-      const saveButton = document.getElementById('saveButton');
-      const cancelButton = document.getElementById('cancelButton');
-      const characterCounter = document.querySelector('.character-counter');
-      
-      let originalText = '';
-      
-      // Initialize the form
-      function initializeOverviewForm() {
-        // Load saved text from localStorage if available
-        const savedText = localStorage.getItem('skilltrait_overview');
-        if (savedText) {
-          overviewTextarea.value = savedText;
-          originalText = savedText;
-          updateCharacterCount();
-          updateButtonStates();
-        }
-      }
-      
-      // Update character count
-      function updateCharacterCount() {
-        const currentLength = overviewTextarea.value.length;
-        const remaining = 160 - currentLength;
-        
-        charCount.textContent = remaining;
-        
-        if (remaining < 0) {
-          charCount.textContent = Math.abs(remaining);
-          characterCounter.classList.add('error');
-          charCount.textContent = Math.abs(remaining) + ' over limit';
-        } else {
-          characterCounter.classList.remove('error');
-        }
-        
-        updateButtonStates();
-      }
-      
-      // Update button states
-      function updateButtonStates() {
-        const currentLength = overviewTextarea.value.length;
-        const hasChanges = overviewTextarea.value !== originalText;
-        const isValidLength = currentLength <= 160;
-        
-        saveButton.disabled = !hasChanges || !isValidLength;
-      }
-      
-      // Handle textarea input
-      overviewTextarea.addEventListener('input', updateCharacterCount);
-      
-      // Handle save button click
-      saveButton.addEventListener('click', function() {
-        const text = overviewTextarea.value;
-        if (text.length <= 160) {
-          // Save to localStorage
-          localStorage.setItem('skilltrait_overview', text);
-          originalText = text;
-          updateButtonStates();
-          
-          // Show success message (you can customize this)
-          alert('Overview saved successfully!');
-        }
-      });
-      
-      // Handle cancel button click
-      cancelButton.addEventListener('click', function() {
-        overviewTextarea.value = originalText;
-        updateCharacterCount();
-        updateButtonStates();
-      });
-      
-      // Initialize the form when page loads
-      initializeOverviewForm();
     });
   </script>
 </body>
