@@ -52,6 +52,32 @@ class CustomerIOClient {
       // Customer.io uses Basic Auth with Site ID and API Key
       const credentials = Buffer.from(`${this.siteId}:${this.apiKey}`).toString('base64');
       
+      // Debug logging for Customer.io data
+      console.log('Customer.io API Request Data:', {
+        url,
+        dataKeys: Object.keys(data),
+        propImageValue: data.propImage,
+        propImageBytes: data.propImage ? new TextEncoder().encode(data.propImage).length : 0,
+        propShareUrlValue: data.propShareUrl,
+        propShareUrlBytes: data.propShareUrl ? new TextEncoder().encode(data.propShareUrl).length : 0,
+        totalDataSize: new TextEncoder().encode(JSON.stringify(data)).length
+      });
+
+      // Additional validation - check if any field exceeds 2000 bytes
+      Object.keys(data).forEach(key => {
+        const value = data[key];
+        if (typeof value === 'string') {
+          const bytes = new TextEncoder().encode(value).length;
+          if (bytes > 2000) {
+            console.error(`Field '${key}' exceeds 2000 bytes:`, {
+              key,
+              value: value.substring(0, 100) + '...',
+              bytes
+            });
+          }
+        }
+      });
+
       const response = await fetch(url, {
         method: 'PUT',
         headers: {

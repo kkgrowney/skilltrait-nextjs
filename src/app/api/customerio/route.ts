@@ -19,6 +19,14 @@ export async function PUT(request: NextRequest) {
       );
     }
 
+    // Debug logging for API route
+    console.log('Customer.io API Route - Received data:', {
+      email,
+      dataKeys: Object.keys(data),
+      propImageValue: data.propImage,
+      propImageBytes: data.propImage ? new TextEncoder().encode(data.propImage).length : 0
+    });
+
     // Update customer in Customer.io
     const result = await customerIO.updateCustomer(email, data);
 

@@ -7,6 +7,7 @@ import SideNavigation from "@/components/SideNavigation";
 import { db } from "@/lib/firebase";
 import { doc, getDoc, deleteDoc } from "firebase/firestore";
 import { useCustomerIO } from "@/hooks/useCustomerIO";
+import toast from "react-hot-toast";
 import {
   downloadPropAsPNG,
   downloadImageDirectly,
@@ -74,6 +75,18 @@ function EmailRecipients({ propId, prop }: { propId: string; prop: any }) {
       for (const recipientEmail of emails) {
         try {
           // Prepare the Customer.io API body for each recipient
+          // Get image URL for Customer.io - prioritize Cloudinary URL, exclude base64 data
+          // If no image URL is available, use the share URL as fallback to ensure Customer.io always has a valid image reference
+          const imageUrl = prop?.previewImageUrl || prop?.fullPropImage || `${window.location.origin}/share/${propId}`;
+
+          // Log image URL for debugging
+          console.log(`Image URL for Customer.io:`, {
+            url: imageUrl,
+            bytes: new TextEncoder().encode(imageUrl).length,
+            isCloudinary: imageUrl.includes('cloudinary.com'),
+            isBase64: imageUrl.startsWith('data:image')
+          });
+
           const customerData = {
             id: recipientEmail, // Use recipient email as ID
             email: recipientEmail, // Use recipient email as email
@@ -84,11 +97,32 @@ function EmailRecipients({ propId, prop }: { propId: string; prop: any }) {
             consequatfc: "string", // String value as specified
             propsMessage: message, // The message entered by user
             propShareUrl: `${window.location.origin}/share/${propId}`, // Share URL of the prop
-            propImage: prop?.previewImageUrl || prop?.previewImageBase64 || prop?.fullPropImage || "", // Image link of the prop
+            propImage: imageUrl, // Cloudinary URL (no base64 data)
             propsSenderName: prop?.achievement?.fromName || prop?.userDisplayName || "" // Name of the sender of the prop
           };
 
+          // Final validation - ensure propImage is within limits
+          const finalPropImageBytes = new TextEncoder().encode(customerData.propImage).length;
+          if (finalPropImageBytes > 2000) {
+            console.error('ERROR: propImage exceeds 2000 bytes!', {
+              value: customerData.propImage,
+              bytes: finalPropImageBytes
+            });
+            // Force it to a safe value
+            customerData.propImage = 'Image URL too large';
+          }
+
           console.log(`Sending to Customer.io for ${recipientEmail}:`, customerData);
+          console.log(`propImage field details:`, {
+            value: customerData.propImage,
+            bytes: new TextEncoder().encode(customerData.propImage).length,
+            type: typeof customerData.propImage
+          });
+          console.log(`propShareUrl field details:`, {
+            value: customerData.propShareUrl,
+            bytes: new TextEncoder().encode(customerData.propShareUrl).length,
+            type: typeof customerData.propShareUrl
+          });
 
           // Call Customer.io API for this specific recipient
           const success = await updateCustomer(recipientEmail, customerData);
@@ -112,9 +146,9 @@ function EmailRecipients({ propId, prop }: { propId: string; prop: any }) {
 
       // Show appropriate success/error message
       if (successCount > 0 && errorCount === 0) {
-        alert(`Props sent successfully to all ${successCount} recipients!`);
+        toast.success(`Props sent successfully to all ${successCount} recipients!`);
       } else if (successCount > 0 && errorCount > 0) {
-        alert(`Props sent to ${successCount} recipients. ${errorCount} failed.`);
+        toast.success(`Props sent to ${successCount} recipients. ${errorCount} failed.`);
       } else {
         setError("Failed to send props to any recipients. Please try again.");
       }
