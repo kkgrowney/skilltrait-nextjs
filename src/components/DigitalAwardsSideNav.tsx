@@ -25,7 +25,7 @@ export default function DigitalAwardsSideNav({
   }, []);
 
   const steps: { key: StepType; label: string; icon: string }[] = [
-    { key: "awards", label: "Awards", icon: "/awards.svg" },
+    { key: "awards", label: "Templates", icon: "/awards.svg" },
     { key: "company", label: "Company", icon: "/company.svg" },
     { key: "background", label: "Background", icon: "/background.svg" },
     { key: "props-details", label: "Details", icon: "/details.svg" },

@@ -1140,7 +1140,7 @@ export default function DigitalAwardsView() {
               {/* Steps Navigation */}
               <div className="space-y-3">
                 {[
-                  { step: "awards" as const, label: "Awards", icon: "🏆" },
+                  { step: "awards" as const, label: "Templates", icon: "🏆" },
                   { step: "company" as const, label: "Company", icon: "🏢" },
                   {
                     step: "background" as const,
@@ -1152,7 +1152,7 @@ export default function DigitalAwardsView() {
                     label: "Details",
                     icon: "📝",
                   },
-                  { step: "share" as const, label: "Share", icon: "📤" },
+                  { step: "share" as const, label: "Save", icon: "📤" },
                 ].map(({ step, label, icon }) => (
                   <button
                     key={step}

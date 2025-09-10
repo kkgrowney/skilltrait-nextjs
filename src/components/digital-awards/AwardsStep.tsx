@@ -233,7 +233,7 @@ export default function AwardsStep({
       >
         <div className="h-full overflow-y-auto p-4">
           <div className="text-center mb-6">
-            <h1 className="text-[24px] font-bold text-white mb-4">Awards</h1>
+            <h1 className="text-[24px] font-bold text-white mb-4">Templates</h1>
             <p className="text-md text-gray-300 mb-0">
               Create professional digital awards and certificates to recognize
               achievements and milestones.
@@ -368,11 +368,11 @@ export default function AwardsStep({
           {/* Steps Navigation */}
           <div className="space-y-3">
             {[
-              { step: "awards" as const, label: "Awards", icon: "🏆" },
+              { step: "awards" as const, label: "Templates", icon: "🏆" },
               { step: "company" as const, label: "Company", icon: "🏢" },
               { step: "background" as const, label: "Background", icon: "🖼️" },
               { step: "props-details" as const, label: "Details", icon: "📝" },
-              { step: "share" as const, label: "Share", icon: "📤" },
+              { step: "share" as const, label: "Save", icon: "📤" },
             ].map(({ step, label, icon }) => (
               <button
                 key={step}
@@ -432,7 +432,7 @@ export default function AwardsStep({
           }}
         >
           <h1 className="awards-title text-[30px] font-bold text-white mb-4">
-            Awards
+            Templates
           </h1>
           <p className="awards-description text-md text-gray-300 mb-0">
             Create professional digital awards and certificates to recognize
