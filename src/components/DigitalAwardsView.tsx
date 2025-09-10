@@ -17,6 +17,12 @@ import DigitalAwardsSideNav, {
   StepType,
 } from "@/components/DigitalAwardsSideNav";
 
+// Helper function to get proxied image URLs
+const getProxiedUrlForPreview = (imageUrl: string): string => {
+  if (!imageUrl) return "";
+  return `/api/proxy-image?url=${encodeURIComponent(imageUrl)}`;
+};
+
 export default function DigitalAwardsView() {
   // Function to get consistent company name based on template index
   const getCompanyName = (templateIndex: number) => {
@@ -573,8 +579,8 @@ export default function DigitalAwardsView() {
                               src={
                                 uploadedBackgroundFile
                                   ? URL.createObjectURL(uploadedBackgroundFile)
-                                  : selectedTemplate?.achievement
-                                      ?.backgroundImage || ""
+                                  : getProxiedUrlForPreview(selectedTemplate?.achievement
+                                      ?.backgroundImage || "")
                               }
                               alt="Background"
                               className="w-full h-full object-cover rounded"
@@ -589,7 +595,7 @@ export default function DigitalAwardsView() {
                           </div>
                         )}
                         <img
-                          src={selectedTemplate?.achievement?.props || ""}
+                          src={getProxiedUrlForPreview(selectedTemplate?.achievement?.props || "")}
                           alt="Selected Template"
                           className="object-contain rounded relative z-20 w-full h-full"
                           style={{
@@ -781,7 +787,7 @@ export default function DigitalAwardsView() {
                             className="relative w-full h-full"
                           >
                             <img
-                              src={temp.achievement.props}
+                              src={getProxiedUrlForPreview(temp.achievement.props)}
                               alt="Props Template 1"
                               className="w-full h-full object-cover"
                               style={{ borderRadius: "4px" }}
@@ -808,7 +814,7 @@ export default function DigitalAwardsView() {
                                 }}
                               >
                                 <img
-                                  src={temp.achievement.logoImage}
+                                  src={getProxiedUrlForPreview(temp.achievement.logoImage)}
                                   alt="Instagram Logo"
                                   className="h-full max-h-full w-auto object-contain"
                                 />

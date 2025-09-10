@@ -8,6 +8,12 @@ import SideNavigation, { useSideNavMargin } from "@/components/SideNavigation";
 import { useNavigation } from "@/contexts/NavigationContext";
 
 import { useEffect, useState } from "react";
+
+// Helper function to get proxied image URLs
+const getProxiedUrlForPreview = (imageUrl: string): string => {
+  if (!imageUrl) return "";
+  return `/api/proxy-image?url=${encodeURIComponent(imageUrl)}`;
+};
 import {
   doc,
   getDoc,
@@ -743,7 +749,7 @@ export default function Home() {
                             {/* Background layer */}
                             {prop.achievement?.backgroundImage && (
                               <img
-                                src={prop.achievement.backgroundImage}
+                                src={getProxiedUrlForPreview(prop.achievement.backgroundImage)}
                                 alt="Background"
                                 className="absolute inset-0 w-full h-full object-cover"
                                 style={{ borderRadius: "4px" }}
@@ -752,7 +758,7 @@ export default function Home() {
                             {/* Props/illustration layer */}
                             {prop.achievement?.props && (
                               <img
-                                src={prop.achievement.props}
+                                src={getProxiedUrlForPreview(prop.achievement.props)}
                                 alt="Props"
                                 className="absolute inset-0 w-full h-full object-contain"
                                 style={{ borderRadius: "4px" }}
@@ -762,7 +768,7 @@ export default function Home() {
                             {prop.achievement?.logoImage && (
                               <div className="absolute top-2 left-2 z-30">
                                 <img
-                                  src={prop.achievement.logoImage}
+                                  src={getProxiedUrlForPreview(prop.achievement.logoImage)}
                                   alt="Logo"
                                   className="h-8 w-auto object-contain"
                                 />
@@ -901,7 +907,7 @@ export default function Home() {
                           style={{ borderRadius: "4px" }}
                         >
                           <img
-                            src={t.backgroundUrl || "/liquid_death_props.png"}
+                            src={getProxiedUrlForPreview(t.backgroundUrl) || "/liquid_death_props.png"}
                             alt={t.company || ""}
                             className="w-full h-full object-cover"
                             style={{
@@ -913,7 +919,7 @@ export default function Home() {
                         </div>
                         {/* Foreground props image */}
                         <img
-                          src={t.basePropsUrl || ""}
+                          src={getProxiedUrlForPreview(t.basePropsUrl) || ""}
                           alt={t.company || ""}
                           className="object-contain relative z-20 w-full h-full"
                           style={{

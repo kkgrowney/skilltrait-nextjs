@@ -16,6 +16,12 @@ import { db } from "@/lib/firebase";
 import DigitalAwardsLayout from "@/components/DigitalAwardsLayout";
 import { StepType } from "@/components/DigitalAwardsSideNav";
 
+// Helper function to get proxied image URLs (same as in other components)
+const getProxiedUrlForPreview = (imageUrl: string): string => {
+  if (!imageUrl) return "";
+  return `/api/proxy-image?url=${encodeURIComponent(imageUrl)}`;
+};
+
 export default function DigitalAwardsPage() {
   const searchParams = useSearchParams();
   // Function to get consistent company name based on template index
@@ -679,7 +685,7 @@ export default function DigitalAwardsPage() {
                           src={
                             uploadedLogoFile
                               ? URL.createObjectURL(uploadedLogoFile)
-                              : selectedTemplate?.achievement?.logoImage || ""
+                              : getProxiedUrlForPreview(selectedTemplate?.achievement?.logoImage || "")
                           }
                           alt="Logo"
                           className="h-full max-h-[40px] w-auto object-contain"
@@ -727,7 +733,7 @@ export default function DigitalAwardsPage() {
                       src={
                         uploadedBackgroundFile
                           ? URL.createObjectURL(uploadedBackgroundFile)
-                          : selectedTemplate?.achievement?.backgroundImage || ""
+                          : getProxiedUrlForPreview(selectedTemplate?.achievement?.backgroundImage || "")
                       }
                       alt="Background"
                       className="w-full h-full object-cover rounded"
@@ -742,7 +748,7 @@ export default function DigitalAwardsPage() {
                   </div>
                 )}
                 <img
-                  src={selectedTemplate?.achievement?.props || ""}
+                  src={getProxiedUrlForPreview(selectedTemplate?.achievement?.props || "")}
                   alt="Selected Template"
                   className="object-contain rounded relative z-20 w-full h-full"
                   style={{
@@ -903,7 +909,7 @@ export default function DigitalAwardsPage() {
                     className="relative w-full h-full"
                   >
                     <img
-                      src={temp.achievement.props}
+                      src={getProxiedUrlForPreview(temp.achievement.props)}
                       alt="Props Template 1"
                       className="w-full h-full object-cover"
                       style={{ borderRadius: "4px" }}
@@ -928,7 +934,7 @@ export default function DigitalAwardsPage() {
                         }}
                       >
                         <img
-                          src={temp.achievement.logoImage}
+                          src={getProxiedUrlForPreview(temp.achievement.logoImage)}
                           alt="Instagram Logo"
                           className="h-full max-h-full w-auto object-contain"
                         />

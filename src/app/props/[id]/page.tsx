@@ -13,11 +13,131 @@ import {
   downloadImageDirectly,
   downloadFirebaseImage,
 } from "@/lib/downloadUtils";
+import { uploadToCloudinary } from "@/lib/cloudinary";
 
 // Helper function to get proxied image URLs (same as in profile page)
 const getProxiedUrlForPreview = (imageUrl: string): string => {
   if (!imageUrl) return "";
   return `/api/proxy-image?url=${encodeURIComponent(imageUrl)}`;
+};
+
+// Function to generate preview image for templates (similar to ShareStep)
+const generateTemplatePreviewImage = async (template: any): Promise<string> => {
+  return new Promise(async (resolve, reject) => {
+    try {
+      // Create a canvas to composite the images
+      const canvas = document.createElement("canvas");
+      const ctx = canvas.getContext("2d");
+      if (!ctx) {
+        throw new Error("Could not get canvas context");
+      }
+
+      // Set canvas size to match prop detail page
+      canvas.width = 600;
+      canvas.height = 480;
+
+      // Load background image
+      const backgroundImg = new Image();
+      backgroundImg.crossOrigin = "anonymous";
+
+      backgroundImg.onload = () => {
+        console.log("Background image loaded successfully");
+        // Draw background with object-fit: cover behavior
+        const canvasAspectRatio = canvas.width / canvas.height;
+        const imageAspectRatio = backgroundImg.width / backgroundImg.height;
+
+        let drawWidth, drawHeight, drawX, drawY;
+
+        if (imageAspectRatio > canvasAspectRatio) {
+          // Image is wider than canvas - fit to height, crop width
+          drawHeight = canvas.height;
+          drawWidth = backgroundImg.width * (canvas.height / backgroundImg.height);
+          drawX = (canvas.width - drawWidth) / 2;
+          drawY = 0;
+        } else {
+          // Image is taller than canvas - fit to width, crop height
+          drawWidth = canvas.width;
+          drawHeight = backgroundImg.height * (canvas.width / backgroundImg.width);
+          drawX = 0;
+          drawY = (canvas.height - drawHeight) / 2;
+        }
+
+        ctx.drawImage(backgroundImg, drawX, drawY, drawWidth, drawHeight);
+
+        // Load props image (main illustration)
+        const propsImg = new Image();
+        propsImg.crossOrigin = "anonymous";
+
+        propsImg.onload = () => {
+          console.log("Props image loaded successfully");
+          // Draw props image on top of background
+          const propsAspectRatio = propsImg.width / propsImg.height;
+          let propsDrawWidth, propsDrawHeight, propsDrawX, propsDrawY;
+
+          if (propsAspectRatio > canvasAspectRatio) {
+            // Props image is wider - fit to height, crop width
+            propsDrawHeight = canvas.height;
+            propsDrawWidth = propsImg.width * (canvas.height / propsImg.height);
+            propsDrawX = (canvas.width - propsDrawWidth) / 2;
+            propsDrawY = 0;
+          } else {
+            // Props image is taller - fit to width, crop height
+            propsDrawWidth = canvas.width;
+            propsDrawHeight = propsImg.height * (canvas.width / propsImg.width);
+            propsDrawX = 0;
+            propsDrawY = (canvas.height - propsDrawHeight) / 2;
+          }
+
+          ctx.drawImage(propsImg, propsDrawX, propsDrawY, propsDrawWidth, propsDrawHeight);
+
+          // Convert canvas to base64
+          const previewDataUrl = canvas.toDataURL("image/png");
+          
+          // Upload to Cloudinary
+          try {
+            console.log("Uploading generated preview to Cloudinary...");
+            uploadToCloudinary(previewDataUrl).then((cloudinaryUrl) => {
+              console.log("Successfully uploaded to Cloudinary:", cloudinaryUrl);
+              resolve(cloudinaryUrl);
+            }).catch((error) => {
+              console.error("Cloudinary upload failed, using base64:", error);
+              resolve(previewDataUrl);
+            });
+          } catch (error) {
+            console.error("Error uploading to Cloudinary:", error);
+            resolve(previewDataUrl);
+          }
+        };
+
+        propsImg.onerror = () => {
+          console.error("Failed to load props image");
+          resolve("");
+        };
+
+        propsImg.src = propsUrl;
+      };
+
+      backgroundImg.onerror = () => {
+        console.error("Failed to load background image");
+        resolve("");
+      };
+
+      const backgroundUrl = getProxiedUrlForPreview(template.achievement?.backgroundImage || "");
+      const propsUrl = getProxiedUrlForPreview(template.achievement?.props || "");
+      
+      console.log("Generated URLs for template preview:", {
+        backgroundUrl,
+        propsUrl,
+        originalBackground: template.achievement?.backgroundImage,
+        originalProps: template.achievement?.props
+      });
+      
+      backgroundImg.src = backgroundUrl;
+    } catch (error) {
+      console.error("Error generating template preview:", error);
+      reject(error);
+    }
+  });
 };
 
 // EmailRecipients component
@@ -248,6 +368,7 @@ export default function PropDetailPage() {
   const [loading, setLoading] = useState(true);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [generatedPreviewUrl, setGeneratedPreviewUrl] = useState<string | null>(null);
 
   // Download function for preview image
   const handleDownloadProp = async () => {
@@ -256,6 +377,7 @@ export default function PropDetailPage() {
     // Prioritize previewImageUrl (Cloudinary) over other image sources
     const imageUrl =
       prop.previewImageUrl ||
+      generatedPreviewUrl ||
       prop.previewImageBase64 ||
       prop.fullPropImage ||
       "/liquid_death_props.png";
@@ -345,7 +467,30 @@ export default function PropDetailPage() {
       const ref = doc(db, "users", user.uid, "props", params.id as string);
       const snap = await getDoc(ref);
       if (snap.exists()) {
-        setProp({ id: snap.id, ...snap.data() });
+        const propData = { id: snap.id, ...snap.data() };
+        setProp(propData);
+        
+        // Generate preview image for free templates that don't have previewImageUrl
+        console.log("Prop data for preview generation:", {
+          hasPreviewImageUrl: !!(propData as any).previewImageUrl,
+          hasPreviewImageBase64: !!(propData as any).previewImageBase64,
+          hasBackgroundImage: !!(propData as any).achievement?.backgroundImage,
+          hasProps: !!(propData as any).achievement?.props
+        });
+        
+        if (!(propData as any).previewImageUrl && !(propData as any).previewImageBase64 && 
+            (propData as any).achievement?.backgroundImage && (propData as any).achievement?.props) {
+          console.log("Generating template preview image...");
+          try {
+            const previewUrl = await generateTemplatePreviewImage(propData);
+            console.log("Generated preview URL:", previewUrl);
+            setGeneratedPreviewUrl(previewUrl);
+          } catch (error) {
+            console.error("Failed to generate template preview:", error);
+          }
+        } else {
+          console.log("Skipping preview generation - conditions not met");
+        }
       }
       setLoading(false);
     };
@@ -399,9 +544,18 @@ export default function PropDetailPage() {
                     }}
                   >
                     {/* Use the saved Cloudinary preview image - this should match exactly what was generated in ShareStep */}
-                    {prop.previewImageUrl ? (
+                    {(() => {
+                      console.log("Image rendering decision:", {
+                        hasPropPreviewImageUrl: !!prop.previewImageUrl,
+                        hasGeneratedPreviewUrl: !!generatedPreviewUrl,
+                        hasPropPreviewImageBase64: !!prop.previewImageBase64,
+                        hasAchievementBackground: !!prop.achievement?.backgroundImage,
+                        hasAchievementProps: !!prop.achievement?.props
+                      });
+                      return prop.previewImageUrl || generatedPreviewUrl;
+                    })() ? (
                       <img
-                        src={prop.previewImageUrl}
+                        src={prop.previewImageUrl || generatedPreviewUrl}
                         alt={prop.propsTitle || "Prop"}
                         className="relative z-20 w-full h-full"
                         style={{

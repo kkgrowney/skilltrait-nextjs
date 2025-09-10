@@ -2,6 +2,12 @@
 
 import { useState, useEffect } from "react";
 
+// Helper function to get proxied image URLs
+const getProxiedUrlForPreview = (imageUrl: string): string => {
+  if (!imageUrl) return "";
+  return `/api/proxy-image?url=${encodeURIComponent(imageUrl)}`;
+};
+
 interface BackgroundStepProps {
   onNext: () => void;
   onPrevious: () => void;
@@ -201,7 +207,7 @@ export default function BackgroundStep({
                 >
                   <div className="relative w-full h-full">
                     <img
-                      src={selectedTemplate?.achievement?.props || ""}
+                      src={getProxiedUrlForPreview(selectedTemplate?.achievement?.props || "")}
                       alt="Selected Template"
                       className="w-full h-full object-cover"
                       style={{ borderRadius: "4px" }}
