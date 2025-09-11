@@ -127,7 +127,6 @@ export default function BackgroundStep({
     setShowDeleteModal(true);
   };
 
-  console.log({ selectedTemplate });
 
   return (
     <div className="h-full flex flex-col" style={{ marginLeft: "8px", marginRight: "8px" }}>
@@ -154,90 +153,69 @@ export default function BackgroundStep({
             onDragLeave={handleDragLeave}
             onDrop={handleDrop}
           >
-            {!backgroundDeleted &&
-              (uploadedFile ? (
-                <div className="relative w-[300px] h-[200px] rounded-none flex items-center justify-center overflow-hidden">
-                  <img
-                    src={URL.createObjectURL(uploadedFile)}
-                    alt="Uploaded background"
-                    className="w-[300px] h-[200px] object-cover rounded"
-                    style={{
-                      minWidth: "300px",
-                      minHeight: "200px",
-                      objectFit: "cover",
-                      objectPosition: "center",
-                    }}
-                  />
-                  <button
-                    onClick={() => handleShowDeleteModal("background")}
-                    className="absolute w-4 h-4 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center text-xs font-bold transition-colors"
-                    style={{ top: "12px", right: "12px" }}
-                  >
-                    ×
-                  </button>
-                </div>
-              ) : uploadedBackgroundFile ? (
-                <div className="relative w-[300px] h-[200px] rounded-none flex items-center justify-center overflow-hidden">
-                  <img
-                    src={URL.createObjectURL(uploadedBackgroundFile)}
-                    alt="Uploaded background"
-                    className="w-[300px] h-[200px] object-cover rounded"
-                    style={{
-                      minWidth: "300px",
-                      minHeight: "200px",
-                      objectFit: "cover",
-                      objectPosition: "center",
-                    }}
-                  />
-                  <button
-                    onClick={() => handleShowDeleteModal("background")}
-                    className="absolute w-4 h-4 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center text-xs font-bold transition-colors"
-                    style={{ top: "12px", right: "12px" }}
-                  >
-                    ×
-                  </button>
-                </div>
-              ) : defaultBackgroundUrl ? (
-                <div
-                  className="w-full cursor-pointer hover:opacity-80 transition-opacity bg-white rounded"
+            {!backgroundDeleted && (uploadedFile || uploadedBackgroundFile) ? (
+              <div className="relative w-[300px] h-[200px] rounded-none flex items-center justify-center overflow-hidden">
+                <img
+                  key={uploadedFile ? uploadedFile.name + uploadedFile.lastModified : uploadedBackgroundFile?.name + uploadedBackgroundFile?.lastModified}
+                  src={uploadedFile || uploadedBackgroundFile ? URL.createObjectURL(uploadedFile || uploadedBackgroundFile!) : ""}
+                  alt="Uploaded background"
+                  className="w-[300px] h-[200px] object-cover rounded"
                   style={{
-                    borderRadius: "4px",
-                    aspectRatio: "600/400",
+                    minWidth: "300px",
+                    minHeight: "200px",
+                    objectFit: "cover",
+                    objectPosition: "center",
                   }}
+                />
+                <button
+                  onClick={() => handleShowDeleteModal("background")}
+                  className="absolute w-4 h-4 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center text-xs font-bold transition-colors"
+                  style={{ top: "12px", right: "12px" }}
                 >
-                  <div className="relative w-full h-full">
-                    <img
-                      src={getProxiedUrlForPreview(selectedTemplate?.achievement?.props || "")}
-                      alt="Selected Template"
-                      className="w-full h-full object-cover"
-                      style={{ borderRadius: "4px" }}
-                    />
+                  ×
+                </button>
+              </div>
+            ) : defaultBackgroundUrl ? (
+              <div
+                className="w-full cursor-pointer hover:opacity-80 transition-opacity bg-white rounded"
+                style={{
+                  borderRadius: "4px",
+                  aspectRatio: "600/400",
+                }}
+              >
+                <div className="relative w-full h-full">
+                  <img
+                    src={getProxiedUrlForPreview(selectedTemplate?.achievement?.props || "")}
+                    alt="Selected Template"
+                    className="w-full h-full object-cover"
+                    style={{ borderRadius: "4px" }}
+                  />
 
-                    {/* Delete Button */}
-                    <button
-                      onClick={() => handleShowDeleteModal("background")}
-                      className="absolute w-4 h-4 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center text-xs font-bold transition-colors"
-                      style={{ top: "12px", right: "12px", zIndex: 60 }}
-                    >
-                      ×
-                    </button>
-                  </div>
+                  {/* Delete Button */}
+                  <button
+                    onClick={() => handleShowDeleteModal("background")}
+                    className="absolute w-4 h-4 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center text-xs font-bold transition-colors"
+                    style={{ top: "12px", right: "12px", zIndex: 60 }}
+                  >
+                    ×
+                  </button>
                 </div>
-              ) : (
-                <div className="flex items-center justify-center">
-                  <label className="cursor-pointer">
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={handleFileSelect}
-                      className="hidden"
-                    />
-                    <span className="text-gray-800 text-sm">
-                      Click to upload or drag and drop
-                    </span>
-                  </label>
-                </div>
-              ))}
+              </div>
+            ) : (
+              <div className="flex items-center justify-center">
+                <label className="cursor-pointer">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleFileSelect}
+                    className="hidden"
+                  />
+                  <span className="text-gray-800 text-sm">
+                    Click to upload or drag and drop
+                  </span>
+                </label>
+              </div>
+            )}
           </div>
           <p className="text-white text-sm mt-2">
             Background dimensions: 400 px (H) X 600 px (W)
