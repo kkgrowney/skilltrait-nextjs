@@ -12,6 +12,13 @@ export default function VerificationsPage() {
   const [selectedSource, setSelectedSource] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'props' | 'image' | 'link'>('props');
   const [isPublic, setIsPublic] = useState(false);
+  const [currentStep, setCurrentStep] = useState<'props' | 'tags'>('props');
+  const [skillsSearchQuery, setSkillsSearchQuery] = useState('');
+  const [availableSkills, setAvailableSkills] = useState<string[]>([]);
+  const [selectedSkills, setSelectedSkills] = useState<string[]>([]);
+  const [unselectedSkills, setUnselectedSkills] = useState<string[]>([]);
+  const [showSkillsDropdown, setShowSkillsDropdown] = useState(false);
+  const [selectedSkillIndex, setSelectedSkillIndex] = useState(-1);
 
   const handleAddTitle = () => {
     if (newTitle.trim()) {
@@ -32,6 +39,90 @@ export default function VerificationsPage() {
 
   const handleCloseSourceDetail = () => {
     setSelectedSource(null);
+  };
+
+  const handleNext = () => {
+    setCurrentStep('tags');
+  };
+
+  const handleAddSkill = (skill: string) => {
+    if (!selectedSkills.includes(skill)) {
+      const newSelectedSkills = [skill, ...selectedSkills];
+      setSelectedSkills(newSelectedSkills);
+    }
+    setSkillsSearchQuery('');
+    setShowSkillsDropdown(false);
+  };
+
+  const handleRemoveSkill = (skill: string) => {
+    setSelectedSkills(selectedSkills.filter(s => s !== skill));
+    setUnselectedSkills(unselectedSkills.filter(s => s !== skill));
+  };
+
+  const handleUnselectSkill = (skill: string) => {
+    setSelectedSkills(selectedSkills.filter(s => s !== skill));
+    if (!unselectedSkills.includes(skill)) {
+      setUnselectedSkills([...unselectedSkills, skill]);
+    }
+  };
+
+  const handleReselectSkill = (skill: string) => {
+    setUnselectedSkills(unselectedSkills.filter(s => s !== skill));
+    if (!selectedSkills.includes(skill)) {
+      setSelectedSkills([...selectedSkills, skill]);
+    }
+  };
+
+  const handleSkillSearch = (query: string) => {
+    setSkillsSearchQuery(query);
+    setSelectedSkillIndex(-1); // Reset selection when search changes
+    if (query.trim()) {
+      // Mock skills data - in real app, this would come from an API
+      const mockSkills = [
+        'JavaScript', 'React', 'TypeScript', 'Node.js', 'Python', 'Java', 'C++', 'SQL',
+        'HTML', 'CSS', 'Vue.js', 'Angular', 'Express.js', 'MongoDB', 'PostgreSQL',
+        'AWS', 'Docker', 'Git', 'Linux', 'Machine Learning', 'Data Analysis'
+      ];
+      const filteredSkills = mockSkills.filter(skill => 
+        skill.toLowerCase().includes(query.toLowerCase()) && 
+        !selectedSkills.includes(skill) &&
+        !unselectedSkills.includes(skill)
+      );
+      setAvailableSkills(filteredSkills);
+      setShowSkillsDropdown(true);
+    } else {
+      setShowSkillsDropdown(false);
+    }
+  };
+
+  const handleSkillsKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      if (selectedSkillIndex >= 0 && availableSkills[selectedSkillIndex]) {
+        // Add selected skill from dropdown
+        handleAddSkill(availableSkills[selectedSkillIndex]);
+      } else if (skillsSearchQuery.trim()) {
+        // Add current search query as new skill
+        handleAddSkill(skillsSearchQuery.trim());
+      }
+    } else if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      if (showSkillsDropdown && availableSkills.length > 0) {
+        setSelectedSkillIndex(prev => 
+          prev < availableSkills.length - 1 ? prev + 1 : 0
+        );
+      }
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      if (showSkillsDropdown && availableSkills.length > 0) {
+        setSelectedSkillIndex(prev => 
+          prev > 0 ? prev - 1 : availableSkills.length - 1
+        );
+      }
+    } else if (e.key === 'Escape') {
+      setShowSkillsDropdown(false);
+      setSelectedSkillIndex(-1);
+    }
   };
 
   return (
@@ -171,7 +262,14 @@ export default function VerificationsPage() {
                         </div>
                         
                         {/* Source Detail Content */}
-                        <div className="space-y-6">
+                        <div className="relative overflow-hidden">
+                          <div 
+                            className={`flex transition-transform duration-300 ease-in-out ${
+                              currentStep === 'tags' ? '-translate-x-full' : 'translate-x-0'
+                            }`}
+                          >
+                            {/* Props Step Content */}
+                            <div className="w-full flex-shrink-0 space-y-6">
                           <div className="bg-[#212327] rounded-lg border border-[#454446] p-4">
                             <h5 className="text-md font-semibold text-white mb-3">Description</h5>
                             <div className="space-y-3">
@@ -213,9 +311,110 @@ export default function VerificationsPage() {
                             </div>
                           </div>
                           
-                          {/* Next Button */}
+                            </div>
+                            
+                            {/* Tags Step Content */}
+                            <div className="w-full flex-shrink-0 space-y-6">
+                              <div className="bg-[#212327] rounded-lg border border-[#454446] p-4">
+                                <h5 className="text-md font-semibold text-white mb-3">Add Skills</h5>
+                                <div className="relative">
+                                  <input
+                                    type="text"
+                                    placeholder="Search for skills..."
+                                    value={skillsSearchQuery}
+                                    onChange={(e) => handleSkillSearch(e.target.value)}
+                                    onFocus={() => setShowSkillsDropdown(skillsSearchQuery.trim() !== '')}
+                                    onKeyDown={handleSkillsKeyDown}
+                                    className="w-full bg-[#1A1D21] border border-[#454446] rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:border-[#00DF71] transition-colors"
+                                  />
+                                  
+                                  {/* Skills Dropdown */}
+                                  {showSkillsDropdown && availableSkills.length > 0 && (
+                                    <div className="absolute top-full left-0 right-0 mt-1 bg-[#1A1D21] border border-[#454446] rounded-lg shadow-lg z-10 max-h-48 overflow-y-auto">
+                                      {availableSkills.map((skill, index) => (
+                                        <button
+                                          key={index}
+                                          onClick={() => handleAddSkill(skill)}
+                                          className={`w-full text-left px-4 py-2 text-white transition-colors ${
+                                            index === selectedSkillIndex 
+                                              ? 'bg-[#2a2e32] text-white' 
+                                              : 'hover:bg-[#2a2e32]'
+                                          }`}
+                                        >
+                                          {skill}
+                                        </button>
+                                      ))}
+                                    </div>
+                                  )}
+                                </div>
+                                
+                                {/* My Skills Section */}
+                                {(selectedSkills.length > 0 || unselectedSkills.length > 0) && (
+                                  <div className="mt-4">
+                                    <h6 className="text-sm font-medium text-gray-300 mb-2">My Skills</h6>
+                                    <div className="flex flex-wrap gap-2">
+                                      {/* Selected Skills */}
+                                      {selectedSkills.map((skill, index) => (
+                                        <div
+                                          key={`selected-${index}`}
+                                          className="flex items-center gap-2 bg-[#00DF71] text-[#212327] px-3 py-1 rounded-full text-sm font-medium"
+                                        >
+                                          <span 
+                                            className="cursor-pointer"
+                                            onClick={() => handleUnselectSkill(skill)}
+                                          >
+                                            {skill}
+                                          </span>
+                                          <button
+                                            onClick={() => handleRemoveSkill(skill)}
+                                            className="hover:border hover:border-[#212327] rounded-full w-5 h-5 flex items-center justify-center transition-colors"
+                                          >
+                                            ×
+                                          </button>
+                                        </div>
+                                      ))}
+                                      
+                                      {/* Unselected Skills */}
+                                      {unselectedSkills.map((skill, index) => (
+                                        <div
+                                          key={`unselected-${index}`}
+                                          className="flex items-center gap-2 bg-[#2a2e32] text-gray-400 px-3 py-1 rounded-full text-sm font-medium border border-[#454446]"
+                                        >
+                                          <span 
+                                            className="cursor-pointer hover:text-white transition-colors"
+                                            onClick={() => handleReselectSkill(skill)}
+                                          >
+                                            {skill}
+                                          </span>
+                                          <button
+                                            onClick={() => handleRemoveSkill(skill)}
+                                            className="hover:border hover:border-gray-400 rounded-full w-5 h-5 flex items-center justify-center transition-colors"
+                                          >
+                                            ×
+                                          </button>
+                                        </div>
+                                      ))}
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
+                              
+                              <div className="bg-[#212327] rounded-lg border border-[#454446] p-4">
+                                <h5 className="text-md font-semibold text-white mb-3">Date</h5>
+                                <input
+                                  type="date"
+                                  className="w-full bg-[#1A1D21] border border-[#454446] rounded-lg px-4 py-3 text-white focus:outline-none focus:border-[#00DF71] transition-colors"
+                                />
+                              </div>
+                            </div>
+                          </div>
+                          
+                          {/* Next Button - Fixed Position */}
                           <div className="flex justify-end pt-4">
-                            <button className="px-6 py-3 text-sm font-medium transition-colors bg-[#00DF71] text-[#212327] rounded hover:bg-[#0AFB84]">
+                            <button 
+                              onClick={handleNext}
+                              className="px-6 py-3 text-sm font-medium transition-colors bg-[#00DF71] text-[#212327] rounded hover:bg-[#0AFB84]"
+                            >
                               Next
                             </button>
                           </div>
