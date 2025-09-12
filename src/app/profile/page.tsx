@@ -1974,7 +1974,7 @@ export default function ProfilePage() {
 
       {/* Logout Modal */}
       {showLogoutModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="fixed inset-0 style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }} flex items-center justify-center z-50">
           <div className="bg-[#212327] rounded-lg p-6 max-w-md w-full mx-4 border border-[#454446]">
             <div className="text-center">
               <h3 className="text-lg font-semibold text-white mb-4">
@@ -2006,7 +2006,7 @@ export default function ProfilePage() {
 
       {/* Delete Account Confirmation Modal */}
       {showDeleteModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="fixed inset-0 style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }} flex items-center justify-center z-50">
           <div className="bg-[#212327] rounded-lg p-6 max-w-md w-full mx-4 border border-[#454446]">
             <div className="text-center">
               <h3 className="text-lg font-semibold text-white mb-4">
@@ -2056,7 +2056,7 @@ export default function ProfilePage() {
 
       {/* Account Deleted Success Modal */}
       {deleteSuccess && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="fixed inset-0 style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }} flex items-center justify-center z-50">
           <div className="bg-[#212327] rounded-lg p-6 max-w-md w-full mx-4 border border-[#454446]">
             <div className="text-center">
               <div className="w-16 h-16 mx-auto mb-4 bg-green-100 rounded-full flex items-center justify-center">

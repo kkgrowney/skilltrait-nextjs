@@ -980,7 +980,7 @@ export default function Home() {
 
       {/* Logout Modal */}
       {showLogoutModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="fixed inset-0 style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }} flex items-center justify-center z-50">
           <div className="bg-[#212327] rounded-lg p-6 max-w-md w-full mx-4 border border-[#454446]">
             <div className="text-center">
               <h3 className="text-lg font-semibold text-white mb-4">
@@ -1012,7 +1012,7 @@ export default function Home() {
 
       {/* Company Debug Modal */}
       {showCompanyDebugModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="fixed inset-0 style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }} flex items-center justify-center z-50">
           <div className="bg-[#212327] rounded-lg p-6 max-w-4xl w-full mx-4 border border-[#454446] max-h-[80vh] overflow-y-auto">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-semibold text-white">

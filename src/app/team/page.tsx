@@ -1804,7 +1804,7 @@ export default function Team() {
 
           {/* Remove Confirmation Dialog */}
           {showRemoveConfirmation && (
-            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="fixed inset-0 style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }} flex items-center justify-center z-50">
               <div className="bg-[#212327] border border-[#454446] rounded-lg p-6 max-w-md mx-4">
                 <h3 className="text-lg font-semibold text-white mb-4">Confirm Removal</h3>
                 <p className="text-gray-300 mb-6">
