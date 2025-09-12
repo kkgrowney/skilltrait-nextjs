@@ -43,6 +43,7 @@ export default function SkillsPage() {
   const [pendingAction, setPendingAction] = useState<(() => void) | null>(null);
   const [originalProficiencyLevel, setOriginalProficiencyLevel] = useState<string>('');
   const [originalMotivationLevel, setOriginalMotivationLevel] = useState<string>('');
+  const [isSavingFromModal, setIsSavingFromModal] = useState(false);
 
   // Helper function to map proficiency level to integer (1-6)
   const mapProficiencyToInt = (level: string): number => {
@@ -137,6 +138,15 @@ export default function SkillsPage() {
         selectedProficiencyLevel !== originalProficiencyLevel ||
         selectedMotivationLevel !== originalMotivationLevel;
       
+      console.log('Change detection:', {
+        overviewText,
+        originalOverviewText,
+        selectedProficiencyLevel,
+        originalProficiencyLevel,
+        selectedMotivationLevel,
+        originalMotivationLevel,
+        hasChanges
+      });
       
       setHasUnsavedChanges(hasChanges);
     } else {
@@ -262,6 +272,53 @@ export default function SkillsPage() {
       setSkillDocumentId(null);
       setHasUnsavedChanges(false);
     } else {
+      // Check for unsaved changes before switching to a different skill
+      if (hasUnsavedChanges) {
+        setPendingAction(() => async () => {
+          setSelectedSkillDetail(skill);
+          // Load the new skill data
+          const existingSkillId = await findSkillDocument(skill);
+          setSkillDocumentId(existingSkillId);
+          
+          if (existingSkillId) {
+            try {
+              const skillDocRef = doc(db, 'skills', existingSkillId);
+              const skillDoc = await getDoc(skillDocRef);
+            
+              if (skillDoc.exists()) {
+                const skillData = skillDoc.data();
+                setOverviewText(skillData.description || '');
+                setOriginalOverviewText(skillData.description || '');
+                
+                // Map proficiency back from integer
+                const proficiencyMap = { 1: 'Beginner', 2: 'Intermediate', 3: 'Advanced', 4: 'Expert', 5: 'Master' };
+                const proficiencyLevel = proficiencyMap[skillData.proficiency as keyof typeof proficiencyMap] || '';
+                setSelectedProficiencyLevel(proficiencyLevel);
+                setOriginalProficiencyLevel(proficiencyLevel);
+                
+                // Map motivation back from integer
+                const motivationMap = { 1: 'Very Low', 2: 'Low', 3: 'Moderate', 4: 'High', 5: 'Very High' };
+                const motivationLevel = motivationMap[skillData.motivation as keyof typeof motivationMap] || '';
+                setSelectedMotivationLevel(motivationLevel);
+                setOriginalMotivationLevel(motivationLevel);
+              }
+            } catch (error) {
+              console.error('Error loading skill data:', error);
+            }
+          } else {
+            // Reset form for new skill
+            setOverviewText('');
+            setOriginalOverviewText('');
+            setSelectedProficiencyLevel('');
+            setOriginalProficiencyLevel('');
+            setSelectedMotivationLevel('');
+            setOriginalMotivationLevel('');
+          }
+          setHasUnsavedChanges(false);
+        });
+        setShowUnsavedChangesModal(true);
+        return;
+      }
       setSelectedSkillDetail(skill);
       
               // Try to find existing skill document
@@ -308,8 +365,10 @@ export default function SkillsPage() {
 
   // Handle closing skill detail
   const handleCloseSkillDetail = () => {
+    console.log('Closing skill detail, hasUnsavedChanges:', hasUnsavedChanges);
     // Check for unsaved changes before closing
     if (hasUnsavedChanges) {
+      console.log('Showing unsaved changes modal');
       setPendingAction(() => () => {
         setSelectedSkillDetail(null);
         setSkillDocumentId(null);
@@ -322,6 +381,7 @@ export default function SkillsPage() {
         setHasUnsavedChanges(false);
       });
       setShowUnsavedChangesModal(true);
+      console.log('Modal state set to true');
       return;
     }
     setSelectedSkillDetail(null);
@@ -337,21 +397,19 @@ export default function SkillsPage() {
 
   // Handle unsaved changes modal actions
   const handleSaveAndContinue = async () => {
-    await handleSaveSkillDetails();
-    if (pendingAction) {
-      pendingAction();
+    setIsSavingFromModal(true);
+    try {
+      await handleSaveSkillDetails();
+      // Don't close the skill detail view, just close the modal
+      setShowUnsavedChangesModal(false);
       setPendingAction(null);
+    } catch (error) {
+      console.error('Error saving from modal:', error);
+    } finally {
+      setIsSavingFromModal(false);
     }
-    setShowUnsavedChangesModal(false);
   };
 
-  const handleDiscardChanges = () => {
-    if (pendingAction) {
-      pendingAction();
-      setPendingAction(null);
-    }
-    setShowUnsavedChangesModal(false);
-  };
 
   const handleCancelModal = () => {
     setPendingAction(null);
@@ -761,6 +819,7 @@ export default function SkillsPage() {
       </div>
 
       {/* Unsaved Changes Modal */}
+      {console.log('Rendering modal, showUnsavedChangesModal:', showUnsavedChangesModal)}
       {showUnsavedChangesModal && (
         <div className="fixed inset-0 flex items-center justify-center z-[9999] bg-black bg-opacity-30">
           <div className="bg-[#212327] border border-[#454446] rounded-lg p-6 max-w-sm w-full mx-4 shadow-2xl">
@@ -773,23 +832,28 @@ export default function SkillsPage() {
             <div className="flex space-x-3">
               <button
                 onClick={handleCancelModal}
-                className="flex-1 px-4 py-2 text-sm font-medium transition-colors border rounded text-gray-300 hover:text-white"
+                disabled={isSavingFromModal}
+                className="flex-1 px-4 py-2 text-sm font-medium transition-colors border rounded text-gray-300 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed"
                 style={{ borderColor: "#454446" }}
               >
                 Cancel
               </button>
               <button
-                onClick={handleDiscardChanges}
-                className="flex-1 px-4 py-2 text-sm font-medium transition-colors border rounded text-gray-300 hover:text-white"
-                style={{ borderColor: "#454446" }}
-              >
-                Discard
-              </button>
-              <button
                 onClick={handleSaveAndContinue}
-                className="flex-1 px-4 py-2 text-sm font-medium transition-colors bg-[#00DF71] text-[#212327] rounded hover:bg-[#0AFB84]"
+                disabled={isSavingFromModal}
+                className="flex-1 px-4 py-2 text-sm font-medium transition-colors bg-[#00DF71] text-[#212327] rounded hover:bg-[#0AFB84] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
               >
-                Save
+                {isSavingFromModal ? (
+                  <>
+                    <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-[#212327]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Saving...
+                  </>
+                ) : (
+                  'Save'
+                )}
               </button>
             </div>
           </div>
