@@ -22,6 +22,7 @@ export default function VerificationsPage() {
   const [selectedDateTab, setSelectedDateTab] = useState<'none' | 'range' | 'milestone' | 'current'>('none');
   const [rangeStartDate, setRangeStartDate] = useState<string>(new Date().toISOString().split('T')[0]);
   const [rangeEndDate, setRangeEndDate] = useState<string>('');
+  const [milestoneDate, setMilestoneDate] = useState<string>('');
   const [selectedCalendarDate, setSelectedCalendarDate] = useState<Date | null>(null);
   const [currentMonth, setCurrentMonth] = useState<Date>(new Date());
 
@@ -99,16 +100,21 @@ export default function VerificationsPage() {
     const newDate = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), day);
     setSelectedCalendarDate(newDate);
     
-    // If no start date is set, set it as start date
-    if (!rangeStartDate) {
-      setRangeStartDate(formatDate(newDate));
-    } else if (!rangeEndDate) {
-      // If start date is set but no end date, set as end date
-      setRangeEndDate(formatDate(newDate));
-    } else {
-      // If both are set, reset and set new start date
-      setRangeStartDate(formatDate(newDate));
-      setRangeEndDate('');
+    if (selectedDateTab === 'milestone') {
+      // For milestone, just set the milestone date
+      setMilestoneDate(formatDate(newDate));
+    } else if (selectedDateTab === 'range') {
+      // If no start date is set, set it as start date
+      if (!rangeStartDate) {
+        setRangeStartDate(formatDate(newDate));
+      } else if (!rangeEndDate) {
+        // If start date is set but no end date, set as end date
+        setRangeEndDate(formatDate(newDate));
+      } else {
+        // If both are set, reset and set new start date
+        setRangeStartDate(formatDate(newDate));
+        setRangeEndDate('');
+      }
     }
   };
 
@@ -476,7 +482,7 @@ export default function VerificationsPage() {
                                     readOnly
                                     className="w-full bg-[#2a2e32] border border-[#454446] rounded-lg px-4 py-3 text-gray-500 cursor-not-allowed"
                                   />
-                                ) : selectedDateTab === 'range' ? (
+                                ) : (selectedDateTab === 'range' || selectedDateTab === 'milestone') ? (
                                   <div className="space-y-4">
                                     {/* Calendar Component */}
                                     <div className="bg-[#1A1D21] border border-[#454446] rounded-lg p-4">
@@ -524,6 +530,7 @@ export default function VerificationsPage() {
                                           const isSelected = selectedCalendarDate && formatDate(selectedCalendarDate) === dateString;
                                           const isStartDate = rangeStartDate === dateString;
                                           const isEndDate = rangeEndDate === dateString;
+                                          const isMilestoneDate = milestoneDate === dateString;
                                           const isToday = dateString === new Date().toISOString().split('T')[0];
                                           
                                           return (
@@ -531,7 +538,7 @@ export default function VerificationsPage() {
                                               key={day}
                                               onClick={() => handleDateClick(day)}
                                               className={`p-2 text-sm rounded-lg transition-colors ${
-                                                isSelected || isStartDate || isEndDate
+                                                isSelected || isStartDate || isEndDate || isMilestoneDate
                                                   ? 'bg-[#00DF71] text-[#212327] font-semibold'
                                                   : isToday
                                                   ? 'bg-[#2a2e32] text-white font-semibold'
@@ -545,15 +552,51 @@ export default function VerificationsPage() {
                                       </div>
                                     </div>
                                     
-                                    {/* Start and End Date Fields */}
-                                    <div className="grid grid-cols-2 gap-4">
+                                    {/* Date Fields - Different for Range vs Milestone */}
+                                    {selectedDateTab === 'range' ? (
+                                      <div className="grid grid-cols-2 gap-4">
+                                        <div>
+                                          <label className="block text-sm font-medium text-gray-300 mb-2">Start Date</label>
+                                          <div className="relative">
+                                            <input
+                                              type="date"
+                                              value={rangeStartDate}
+                                              onChange={(e) => setRangeStartDate(e.target.value)}
+                                              className="w-full bg-[#1A1D21] border border-[#454446] rounded-lg px-4 py-3 pr-10 text-white focus:outline-none focus:border-[#00DF71] transition-colors [&::-webkit-calendar-picker-indicator]:opacity-0 [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:right-0 [&::-webkit-calendar-picker-indicator]:w-full [&::-webkit-calendar-picker-indicator]:h-full [&::-webkit-calendar-picker-indicator]:cursor-pointer"
+                                            />
+                                            <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                                              <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                              </svg>
+                                            </div>
+                                          </div>
+                                        </div>
+                                        <div>
+                                          <label className="block text-sm font-medium text-gray-300 mb-2">End Date</label>
+                                          <div className="relative">
+                                            <input
+                                              type="date"
+                                              value={rangeEndDate}
+                                              onChange={(e) => setRangeEndDate(e.target.value)}
+                                              placeholder="Choose date"
+                                              className="w-full bg-[#1A1D21] border border-[#454446] rounded-lg px-4 py-3 pr-10 text-white focus:outline-none focus:border-[#00DF71] transition-colors [&::-webkit-calendar-picker-indicator]:opacity-0 [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:right-0 [&::-webkit-calendar-picker-indicator]:w-full [&::-webkit-calendar-picker-indicator]:h-full [&::-webkit-calendar-picker-indicator]:cursor-pointer"
+                                            />
+                                            <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                                              <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                              </svg>
+                                            </div>
+                                          </div>
+                                        </div>
+                                      </div>
+                                    ) : selectedDateTab === 'milestone' ? (
                                       <div>
-                                        <label className="block text-sm font-medium text-gray-300 mb-2">Start Date</label>
+                                        <label className="block text-sm font-medium text-gray-300 mb-2">Milestone</label>
                                         <div className="relative">
                                           <input
                                             type="date"
-                                            value={rangeStartDate}
-                                            onChange={(e) => setRangeStartDate(e.target.value)}
+                                            value={milestoneDate}
+                                            onChange={(e) => setMilestoneDate(e.target.value)}
                                             className="w-full bg-[#1A1D21] border border-[#454446] rounded-lg px-4 py-3 pr-10 text-white focus:outline-none focus:border-[#00DF71] transition-colors [&::-webkit-calendar-picker-indicator]:opacity-0 [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:right-0 [&::-webkit-calendar-picker-indicator]:w-full [&::-webkit-calendar-picker-indicator]:h-full [&::-webkit-calendar-picker-indicator]:cursor-pointer"
                                           />
                                           <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
@@ -563,24 +606,7 @@ export default function VerificationsPage() {
                                           </div>
                                         </div>
                                       </div>
-                                      <div>
-                                        <label className="block text-sm font-medium text-gray-300 mb-2">End Date</label>
-                                        <div className="relative">
-                                          <input
-                                            type="date"
-                                            value={rangeEndDate}
-                                            onChange={(e) => setRangeEndDate(e.target.value)}
-                                            placeholder="Choose date"
-                                            className="w-full bg-[#1A1D21] border border-[#454446] rounded-lg px-4 py-3 pr-10 text-white focus:outline-none focus:border-[#00DF71] transition-colors [&::-webkit-calendar-picker-indicator]:opacity-0 [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:right-0 [&::-webkit-calendar-picker-indicator]:w-full [&::-webkit-calendar-picker-indicator]:h-full [&::-webkit-calendar-picker-indicator]:cursor-pointer"
-                                          />
-                                          <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-                                            <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                                            </svg>
-                                          </div>
-                                        </div>
-                                      </div>
-                                    </div>
+                                    ) : null}
                                   </div>
                                 ) : (
                                   <input
