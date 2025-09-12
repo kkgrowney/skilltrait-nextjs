@@ -45,6 +45,10 @@ export default function VerificationsPage() {
     setCurrentStep('tags');
   };
 
+  const handleBack = () => {
+    setCurrentStep('props');
+  };
+
   const handleAddSkill = (skill: string) => {
     if (!selectedSkills.includes(skill)) {
       const newSelectedSkills = [skill, ...selectedSkills];
@@ -409,13 +413,21 @@ export default function VerificationsPage() {
                             </div>
                           </div>
                           
-                          {/* Next Button - Fixed Position */}
-                          <div className="flex justify-end pt-4">
+                          {/* Navigation Buttons - Fixed Position */}
+                          <div className={`flex pt-4 ${currentStep === 'tags' ? 'justify-between' : 'justify-end'}`}>
+                            {currentStep === 'tags' && (
+                              <button 
+                                onClick={handleBack}
+                                className="px-6 py-3 text-sm font-medium transition-colors bg-[#454446] text-white rounded hover:bg-[#5a5c5e]"
+                              >
+                                Back
+                              </button>
+                            )}
                             <button 
                               onClick={handleNext}
                               className="px-6 py-3 text-sm font-medium transition-colors bg-[#00DF71] text-[#212327] rounded hover:bg-[#0AFB84]"
                             >
-                              Next
+                              {currentStep === 'tags' ? 'Save' : 'Next'}
                             </button>
                           </div>
                         </div>
