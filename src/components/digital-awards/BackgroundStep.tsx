@@ -223,8 +223,14 @@ export default function BackgroundStep({
         </div>
       </div>
 
-      {/* Next button - right justified below container */}
-      <div className="flex justify-end flex-shrink-0" style={{ marginTop: "24px" }}>
+      {/* Back and Next buttons - right justified below container */}
+      <div className="flex justify-end flex-shrink-0 gap-3" style={{ marginTop: "24px", padding: "20px" }}>
+        <button
+          onClick={onPrevious}
+          className="px-6 py-3 text-sm font-medium transition-colors bg-gray-600 text-white rounded hover:bg-gray-500"
+        >
+          Back
+        </button>
         <button
           onClick={onNext}
           className="px-6 py-3 text-sm font-medium transition-colors bg-[var(--primary-dark)] text-[#212327] rounded hover:bg-[#0AFB84]"

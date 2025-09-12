@@ -1402,7 +1402,7 @@ This digital award recognizes excellence and dedication in professional developm
       {/* Navigation buttons */}
       <div
         className="flex justify-between flex-shrink-0"
-        style={{ marginTop: "12px" }}
+        style={{ marginTop: "12px", padding: "20px" }}
       >
         <button
           onClick={onPrevious}

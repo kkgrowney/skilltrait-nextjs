@@ -961,6 +961,7 @@ export default function DigitalAwardsPage() {
                           fontSize: "25px",
                           maxWidth: "250px",
                           color: "black",
+                          lineHeight: "1.1",
                         }}
                       >
                         {propsTitle}
@@ -1220,6 +1221,7 @@ export default function DigitalAwardsPage() {
                           maxWidth: "250px",
                           color: "black",
                           textAlign: "right",
+                          lineHeight: "1.1",
                         }}
                       >
                         {propsTitle}

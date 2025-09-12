@@ -44,6 +44,7 @@ export default function PropsDetailsStep({
   const [name, setName] = useState(fromName || "");
   const [date, setDate] = useState(fromDate || "");
   const [message, setMessage] = useState(fromMessage || "");
+  const [showValidationError, setShowValidationError] = useState(false);
 
   const handleAddRecipient = () => {
     if (newRecipient.trim() && !recipients.includes(newRecipient.trim())) {
@@ -65,9 +66,11 @@ export default function PropsDetailsStep({
   };
 
   const handleNext = () => {
-    // Validate that a date is selected
-    if (!date) {
-      alert("Please select a date before proceeding.");
+    // Validate required fields
+    if (!date || !name.trim() || recipients.length === 0) {
+      setShowValidationError(true);
+      // Hide the notification after 3 seconds
+      setTimeout(() => setShowValidationError(false), 3000);
       return;
     }
     
@@ -85,6 +88,18 @@ export default function PropsDetailsStep({
 
   return (
     <div className="h-full flex flex-col" style={{ marginLeft: "8px", marginRight: "8px" }}>
+      {/* Validation Error Notification */}
+      {showValidationError && (
+        <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50">
+          <div 
+            className="px-4 py-2 rounded-md text-white text-sm font-medium"
+            style={{ backgroundColor: "#ED6568" }}
+          >
+            Enter all required fields.
+          </div>
+        </div>
+      )}
+      
       <div className="text-center mb-6 flex-shrink-0" style={{ marginTop: "24px" }}>
         <h1 className="text-[30px] font-bold text-white mb-1">Details</h1>
         <p className="text-md text-gray-300 mb-[-2]">
@@ -95,7 +110,9 @@ export default function PropsDetailsStep({
       <div className="space-y-6 flex-1 overflow-y-auto">
         {/* Props Title Section */}
         <div>
-          <h3 className="text-lg font-medium text-white mb-4">Props Title *</h3>
+          <h3 className="text-lg font-medium text-white mb-4">
+            Props Title <span style={{ color: "#ED6568" }}>*</span>
+          </h3>
           <div
             className="p-4 rounded-sm border"
             style={{ backgroundColor: "#1B1D21", borderColor: "#454446" }}
@@ -107,25 +124,15 @@ export default function PropsDetailsStep({
                   placeholder="Enter props title"
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
-                  maxLength={22}
+                  maxLength={44}
                   className="flex-1 px-4 py-2 text-sm bg-[#1B1D21] border rounded text-white placeholder-gray-400 focus:outline-none focus:border-[var(--primary-dark)]"
                   style={{
                     borderColor: "#454446",
                     fontFamily: "Poppins",
                     fontSize: "14px",
                     color: "white",
-                    textAlign: "right",
-                    paddingRight: "12px",
-                    whiteSpace: "nowrap",
-                    overflow: "hidden",
-                    textOverflow: "ellipsis",
                   }}
                 />
-                <style jsx>{`
-                  input::placeholder {
-                    text-align: right;
-                  }
-                `}</style>
                 <button
                   onClick={() => {
                     if (setPropsTitle) {
@@ -162,7 +169,7 @@ export default function PropsDetailsStep({
         {/* Props Recipients Section */}
         <div>
           <h3 className="text-lg font-medium text-white mb-4">
-            Props Recipients
+            Props Recipients <span style={{ color: "#ED6568" }}>*</span>
           </h3>
           <div
             className="p-4 rounded-sm border"
@@ -221,7 +228,9 @@ export default function PropsDetailsStep({
               {/* Name and Calendar on the same row */}
               <div className="flex gap-2">
                 <div className="basis-2/3">
-                  <label className="block text-white text-sm mb-2">Name</label>
+                  <label className="block text-white text-sm mb-2">
+                    Name <span style={{ color: "#ED6568" }}>*</span>
+                  </label>
                   <input
                     type="text"
                     placeholder="Your name"
@@ -238,7 +247,9 @@ export default function PropsDetailsStep({
                   />
                 </div>
                 <div className="basis-1/3">
-                  <label className="block text-white text-sm mb-2">Date *</label>
+                  <label className="block text-white text-sm mb-2">
+                    Date <span style={{ color: "#ED6568" }}>*</span>
+                  </label>
                   <input
                     type="date"
                     value={date}
@@ -316,8 +327,14 @@ export default function PropsDetailsStep({
         </div>
       </div>
 
-      {/* Next button - right justified below container */}
-      <div className="flex justify-end flex-shrink-0" style={{ marginTop: "24px" }}>
+      {/* Back and Next buttons - right justified below container */}
+      <div className="flex justify-end flex-shrink-0 gap-3" style={{ marginTop: "24px", padding: "20px" }}>
+        <button
+          onClick={onPrevious}
+          className="px-6 py-3 text-sm font-medium transition-colors bg-gray-600 text-white rounded hover:bg-gray-500"
+        >
+          Back
+        </button>
         <button
           onClick={handleNext}
           className="px-6 py-3 text-sm font-medium transition-colors bg-[var(--primary-dark)] text-[#212327] rounded hover:bg-[#0AFB84]"
