@@ -13,7 +13,8 @@
  */
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
+import toast from 'react-hot-toast';
 import SideNavigation, { useSideNavMargin } from '@/components/SideNavigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { doc, getDoc, updateDoc, collection, addDoc, query, where, getDocs, deleteDoc } from 'firebase/firestore';
@@ -24,6 +25,7 @@ export default function SkillsPage() {
   const { user } = useAuth();
   const router = useRouter();
   const sideNavMargin = useSideNavMargin();
+  const searchParams = useSearchParams();
   const [userProfile, setUserProfile] = useState<any>(null);
   const [isLoadingProfile, setIsLoadingProfile] = useState(true);
   const [showSearchDropdown, setShowSearchDropdown] = useState(false);
@@ -36,6 +38,11 @@ export default function SkillsPage() {
   const [selectedMotivationLevel, setSelectedMotivationLevel] = useState('');
   const [skillDocumentId, setSkillDocumentId] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [showUnsavedChangesModal, setShowUnsavedChangesModal] = useState(false);
+  const [pendingAction, setPendingAction] = useState<(() => void) | null>(null);
+  const [originalProficiencyLevel, setOriginalProficiencyLevel] = useState<string>('');
+  const [originalMotivationLevel, setOriginalMotivationLevel] = useState<string>('');
 
   // Helper function to map proficiency level to integer (1-6)
   const mapProficiencyToInt = (level: string): number => {
@@ -113,6 +120,30 @@ export default function SkillsPage() {
     }
   };
 
+  // Handle URL parameter for skill selection
+  useEffect(() => {
+    const selectParam = searchParams.get('select');
+    if (selectParam && selectedSkills.includes(selectParam)) {
+      // Auto-select the skill for detail view
+      handleSkillSelect(selectParam);
+    }
+  }, [searchParams, selectedSkills]);
+
+  // Track changes to determine if save button should be active
+  useEffect(() => {
+    if (selectedSkillDetail) {
+      const hasChanges = 
+        overviewText !== originalOverviewText ||
+        selectedProficiencyLevel !== originalProficiencyLevel ||
+        selectedMotivationLevel !== originalMotivationLevel;
+      
+      
+      setHasUnsavedChanges(hasChanges);
+    } else {
+      setHasUnsavedChanges(false);
+    }
+  }, [overviewText, originalOverviewText, selectedProficiencyLevel, originalProficiencyLevel, selectedMotivationLevel, originalMotivationLevel, selectedSkillDetail]);
+
   // Fetch user profile data
   const fetchUserProfile = async () => {
     if (!user?.uid) return;
@@ -179,7 +210,7 @@ export default function SkillsPage() {
       });
     } catch (error) {
       console.error('Error adding skill:', error);
-      alert('Failed to add skill.');
+      toast.error('Failed to add skill.');
     }
   };
 
@@ -210,15 +241,26 @@ export default function SkillsPage() {
       });
     } catch (error) {
       console.error('Error removing skill:', error);
-      alert('Failed to remove skill.');
+      toast.error('Failed to remove skill.');
     }
   };
 
   // Handle skill selection for detail view
   const handleSkillSelect = async (skill: string) => {
     if (selectedSkillDetail === skill) {
+      // Check for unsaved changes before closing
+      if (hasUnsavedChanges) {
+        setPendingAction(() => () => {
+          setSelectedSkillDetail(null);
+          setSkillDocumentId(null);
+          setHasUnsavedChanges(false);
+        });
+        setShowUnsavedChangesModal(true);
+        return;
+      }
       setSelectedSkillDetail(null);
       setSkillDocumentId(null);
+      setHasUnsavedChanges(false);
     } else {
       setSelectedSkillDetail(skill);
       
@@ -239,12 +281,15 @@ export default function SkillsPage() {
             
             // Map proficiency back from integer
             const proficiencyMap = { 1: 'Beginner', 2: 'Intermediate', 3: 'Advanced', 4: 'Expert', 5: 'Master' };
-            setSelectedProficiencyLevel(proficiencyMap[skillData.proficiency as keyof typeof proficiencyMap] || '');
+            const proficiencyLevel = proficiencyMap[skillData.proficiency as keyof typeof proficiencyMap] || '';
+            setSelectedProficiencyLevel(proficiencyLevel);
+            setOriginalProficiencyLevel(proficiencyLevel);
             
             // Map motivation back from integer
             const motivationMap = { 1: 'Very Low', 2: 'Low', 3: 'Moderate', 4: 'High', 5: 'Very High' };
             const motivationLevel = motivationMap[skillData.motivation as keyof typeof motivationMap] || '';
             setSelectedMotivationLevel(motivationLevel);
+            setOriginalMotivationLevel(motivationLevel);
           }
         } catch (error) {
           console.error('Error loading skill data:', error);
@@ -254,19 +299,63 @@ export default function SkillsPage() {
         setOverviewText('');
         setOriginalOverviewText('');
         setSelectedProficiencyLevel('');
+        setOriginalProficiencyLevel('');
         setSelectedMotivationLevel('');
+        setOriginalMotivationLevel('');
       }
     }
   };
 
   // Handle closing skill detail
   const handleCloseSkillDetail = () => {
+    // Check for unsaved changes before closing
+    if (hasUnsavedChanges) {
+      setPendingAction(() => () => {
+        setSelectedSkillDetail(null);
+        setSkillDocumentId(null);
+        setOverviewText('');
+        setOriginalOverviewText('');
+        setSelectedProficiencyLevel('');
+        setOriginalProficiencyLevel('');
+        setSelectedMotivationLevel('');
+        setOriginalMotivationLevel('');
+        setHasUnsavedChanges(false);
+      });
+      setShowUnsavedChangesModal(true);
+      return;
+    }
     setSelectedSkillDetail(null);
     setSkillDocumentId(null);
     setOverviewText('');
     setOriginalOverviewText('');
     setSelectedProficiencyLevel('');
+    setOriginalProficiencyLevel('');
     setSelectedMotivationLevel('');
+    setOriginalMotivationLevel('');
+    setHasUnsavedChanges(false);
+  };
+
+  // Handle unsaved changes modal actions
+  const handleSaveAndContinue = async () => {
+    await handleSaveSkillDetails();
+    if (pendingAction) {
+      pendingAction();
+      setPendingAction(null);
+    }
+    setShowUnsavedChangesModal(false);
+  };
+
+  const handleDiscardChanges = () => {
+    if (pendingAction) {
+      pendingAction();
+      setPendingAction(null);
+    }
+    setShowUnsavedChangesModal(false);
+  };
+
+  const handleCancelModal = () => {
+    setPendingAction(null);
+    setShowUnsavedChangesModal(false);
   };
 
   const handleSaveSkillDetails = async () => {
@@ -328,16 +417,24 @@ export default function SkillsPage() {
             });
           }
         }
-        alert('Skill details saved successfully!');
+        toast.success('Skill details saved successfully!');
+        // Update original values to match current values after successful save
+        setOriginalOverviewText(overviewText);
+        setOriginalProficiencyLevel(selectedProficiencyLevel);
+        setOriginalMotivationLevel(selectedMotivationLevel);
       } else {
         // API route failed but local save succeeded
         console.log('API route failed, but data saved locally');
-        alert('Skill details saved locally. Cloud function unavailable.');
+        toast.success('Skill details saved locally. Cloud function unavailable.');
+        // Update original values to match current values after successful save
+        setOriginalOverviewText(overviewText);
+        setOriginalProficiencyLevel(selectedProficiencyLevel);
+        setOriginalMotivationLevel(selectedMotivationLevel);
       }
       
     } catch (error) {
       console.error('Error saving skill details:', error);
-      alert('Failed to save skill details.');
+      toast.error('Failed to save skill details.');
     } finally {
       setIsSaving(false);
     }
@@ -549,7 +646,7 @@ export default function SkillsPage() {
                           </button>
                           <button
                             onClick={handleSaveSkillDetails}
-                            disabled={overviewText.length > 160 || isSaving}
+                            disabled={overviewText.length > 160 || isSaving || !hasUnsavedChanges}
                             className="px-4 py-2 text-sm bg-[#00DF71] text-[#212327] rounded-lg font-medium hover:bg-[#0AFB84] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                           >
                             {isSaving ? 'Saving...' : 'Save All Changes'}
@@ -662,6 +759,42 @@ export default function SkillsPage() {
           </div>
         </div>
       </div>
+
+      {/* Unsaved Changes Modal */}
+      {showUnsavedChangesModal && (
+        <div className="fixed inset-0 flex items-center justify-center z-[9999] bg-black bg-opacity-30">
+          <div className="bg-[#212327] border border-[#454446] rounded-lg p-6 max-w-sm w-full mx-4 shadow-2xl">
+            <h3 className="text-lg font-medium text-white mb-4">
+              Unsaved Changes
+            </h3>
+            <p className="text-gray-300 mb-6">
+              You have unsaved changes. Do you want to save them before continuing?
+            </p>
+            <div className="flex space-x-3">
+              <button
+                onClick={handleCancelModal}
+                className="flex-1 px-4 py-2 text-sm font-medium transition-colors border rounded text-gray-300 hover:text-white"
+                style={{ borderColor: "#454446" }}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleDiscardChanges}
+                className="flex-1 px-4 py-2 text-sm font-medium transition-colors border rounded text-gray-300 hover:text-white"
+                style={{ borderColor: "#454446" }}
+              >
+                Discard
+              </button>
+              <button
+                onClick={handleSaveAndContinue}
+                className="flex-1 px-4 py-2 text-sm font-medium transition-colors bg-[#00DF71] text-[#212327] rounded hover:bg-[#0AFB84]"
+              >
+                Save
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

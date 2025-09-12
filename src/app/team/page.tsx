@@ -2497,12 +2497,9 @@ export default function Team() {
           ) : activeTab === 'employees' ? (
             // Employees tab content
             <div className="w-full h-full">
-              {/* Employees Header with Count Badge */}
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-xl font-bold text-white">Employees</h2>
-                <div className="bg-white text-[#212327] px-3 py-1 rounded-full text-sm font-medium">
-                  {totalEmployeeCount}
-                </div>
+              {/* Employees Header */}
+              <div className="mb-6">
+                <h2 className="text-xl font-bold text-white">Employees ({totalEmployeeCount})</h2>
               </div>
               <EmployeesContent />
             </div>

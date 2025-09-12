@@ -346,24 +346,32 @@ export default function ProfileSnapshot({ employee }: ProfileSnapshotProps) {
                   const skill = userSkills.find(s => (s.id || `skill-${userSkills.indexOf(s)}`) === skillId);
                   if (!skill) return null;
                   
+                  const skillName = skill.name || skill.skill || 'Unknown Skill';
+                  
                   return (
                     <div 
                       key={`${skillId}-${expandedSkills.size}`} 
                       className="w-full mt-2 p-3 bg-[#1F2327] border border-[#454446] rounded-lg animate-in fade-in-0 slide-in-from-top-2 duration-300"
                     >
-                                              <div className="space-y-2">
-                                                    <div className="flex items-center gap-2">
-                            <span className="text-white text-xs">Proficiency:</span>
-                            <span className="text-[#00DF71] text-xs font-medium">
-                              {skill.proficiency || 'Not specified'}
-                            </span>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <span className="text-white text-xs">Motivation:</span>
-                            <span className="text-[#00DF71] text-xs font-medium">
-                              {skill.motivation || 'Not specified'}
-                            </span>
-                          </div>
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-2">
+                          <span className="text-white text-xs">Skill:</span>
+                          <span className="text-[#00DF71] text-xs font-medium">
+                            {skillName}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-white text-xs">Proficiency:</span>
+                          <span className="text-[#00DF71] text-xs font-medium">
+                            {skill.proficiency || 'Not specified'}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-white text-xs">Motivation:</span>
+                          <span className="text-[#00DF71] text-xs font-medium">
+                            {skill.motivation || 'Not specified'}
+                          </span>
+                        </div>
                           <div className="pt-2 border-t border-[#454446]">
                             <p className="text-[#aeaeae] text-xs leading-relaxed">
                               {skill.description || 'No description available for this skill.'}
