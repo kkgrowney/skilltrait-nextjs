@@ -10,6 +10,8 @@ export default function VerificationsPage() {
   const [verificationTitles, setVerificationTitles] = useState<string[]>([]);
   const [newTitle, setNewTitle] = useState('');
   const [selectedSource, setSelectedSource] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<'props' | 'image' | 'link'>('props');
+  const [isPublic, setIsPublic] = useState(false);
 
   const handleAddTitle = () => {
     if (newTitle.trim()) {
@@ -96,7 +98,27 @@ export default function VerificationsPage() {
                       /* Source Detail Container */
                       <div className="bg-[#1e2327] rounded-lg border border-[#454446] h-full p-6">
                         <div className="flex items-center justify-between mb-6">
-                          <h4 className="text-xl font-semibold text-white">{selectedSource}</h4>
+                          <div className="flex items-center space-x-4">
+                            <h4 className="text-xl font-semibold text-white">{selectedSource}</h4>
+                            {/* Public Toggle */}
+                            <div className="flex items-center space-x-3">
+                              <button
+                                onClick={() => setIsPublic(!isPublic)}
+                                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-[#00DF71] focus:ring-offset-2 focus:ring-offset-[#1e2327] ${
+                                  isPublic ? 'bg-[#00DF71]' : 'bg-[#454446]'
+                                }`}
+                              >
+                                <span
+                                  className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                                    isPublic ? 'translate-x-6' : 'translate-x-1'
+                                  }`}
+                                />
+                              </button>
+                              <span className={`text-sm font-medium ${isPublic ? 'text-[#00DF71]' : 'text-gray-300'}`}>
+                                Public
+                              </span>
+                            </div>
+                          </div>
                           <button
                             onClick={handleCloseSourceDetail}
                             className="flex items-center justify-center w-8 h-8 border border-[#454446] hover:border-[#00DF71] text-white hover:text-[#00DF71] rounded-full transition-colors text-lg font-bold"
@@ -105,32 +127,97 @@ export default function VerificationsPage() {
                           </button>
                         </div>
                         
+                        {/* Tabs */}
+                        <div className="flex border-b border-[#454446] mb-6">
+                          <button
+                            onClick={() => setActiveTab('props')}
+                            className={`px-4 py-2 text-sm font-medium transition-colors relative ${
+                              activeTab === 'props'
+                                ? 'text-white border-b-2'
+                                : 'text-gray-300 hover:text-white'
+                            }`}
+                            style={{
+                              borderBottomColor: activeTab === 'props' ? '#00DF71' : 'transparent',
+                            }}
+                          >
+                            Props
+                          </button>
+                          <button
+                            onClick={() => setActiveTab('image')}
+                            className={`px-4 py-2 text-sm font-medium transition-colors relative ${
+                              activeTab === 'image'
+                                ? 'text-white border-b-2'
+                                : 'text-gray-300 hover:text-white'
+                            }`}
+                            style={{
+                              borderBottomColor: activeTab === 'image' ? '#00DF71' : 'transparent',
+                            }}
+                          >
+                            Image
+                          </button>
+                          <button
+                            onClick={() => setActiveTab('link')}
+                            className={`px-4 py-2 text-sm font-medium transition-colors relative ${
+                              activeTab === 'link'
+                                ? 'text-white border-b-2'
+                                : 'text-gray-300 hover:text-white'
+                            }`}
+                            style={{
+                              borderBottomColor: activeTab === 'link' ? '#00DF71' : 'transparent',
+                            }}
+                          >
+                            Link
+                          </button>
+                        </div>
+                        
                         {/* Source Detail Content */}
                         <div className="space-y-6">
                           <div className="bg-[#212327] rounded-lg border border-[#454446] p-4">
                             <h5 className="text-md font-semibold text-white mb-3">Description</h5>
-                            <textarea
-                              placeholder="Enter description for this verification source..."
-                              rows={4}
-                              className="w-full bg-[#1A1D21] border border-[#454446] rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:border-[#00DF71] transition-colors resize-none"
-                            />
+                            <div className="space-y-3">
+                              <textarea
+                                placeholder="Enter description for this verification source..."
+                                maxLength={160}
+                                rows={3}
+                                className="w-full bg-[#1A1D21] border border-[#454446] rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:border-[#00DF71] transition-colors resize-none"
+                              />
+                              <div className="text-sm text-gray-400">
+                                <span className="text-gray-400">
+                                  160 characters maximum
+                                </span>
+                              </div>
+                            </div>
                           </div>
                           
                           <div className="bg-[#212327] rounded-lg border border-[#454446] p-4">
-                            <h5 className="text-md font-semibold text-white mb-3">URL/Link</h5>
-                            <input
-                              type="url"
-                              placeholder="Enter verification URL or link..."
-                              className="w-full bg-[#1A1D21] border border-[#454446] rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:border-[#00DF71] transition-colors"
-                            />
+                            <div className="flex items-center space-x-4">
+                              <h5 className="text-md font-semibold text-white flex-shrink-0">URL/Link</h5>
+                              <input
+                                type="url"
+                                placeholder="Enter verification URL or link..."
+                                className="flex-1 bg-[#1A1D21] border border-[#454446] rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:border-[#00DF71] transition-colors"
+                              />
+                            </div>
                           </div>
                           
                           <div className="bg-[#212327] rounded-lg border border-[#454446] p-4">
-                            <h5 className="text-md font-semibold text-white mb-3">Date Verified</h5>
-                            <input
-                              type="date"
-                              className="w-full bg-[#1A1D21] border border-[#454446] rounded-lg px-4 py-3 text-white focus:outline-none focus:border-[#00DF71] transition-colors"
-                            />
+                            <h5 className="text-md font-semibold text-white mb-3">Upload Image</h5>
+                            <div className="border-2 border-dashed border-[#454446] rounded-lg p-5 text-center hover:border-[#00DF71] transition-colors cursor-pointer">
+                              <div className="text-gray-400 mb-2">
+                                <svg className="mx-auto h-12 w-12" stroke="currentColor" fill="none" viewBox="0 0 48 48">
+                                  <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                                </svg>
+                              </div>
+                              <p className="text-gray-300 text-sm">Drag to upload</p>
+                              <p className="text-gray-500 text-xs mt-1">or click to browse</p>
+                            </div>
+                          </div>
+                          
+                          {/* Next Button */}
+                          <div className="flex justify-end pt-4">
+                            <button className="px-6 py-3 text-sm font-medium transition-colors bg-[#00DF71] text-[#212327] rounded hover:bg-[#0AFB84]">
+                              Next
+                            </button>
                           </div>
                         </div>
                       </div>
