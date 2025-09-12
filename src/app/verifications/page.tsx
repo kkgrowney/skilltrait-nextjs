@@ -19,6 +19,11 @@ export default function VerificationsPage() {
   const [unselectedSkills, setUnselectedSkills] = useState<string[]>([]);
   const [showSkillsDropdown, setShowSkillsDropdown] = useState(false);
   const [selectedSkillIndex, setSelectedSkillIndex] = useState(-1);
+  const [selectedDateTab, setSelectedDateTab] = useState<'none' | 'range' | 'milestone' | 'current'>('none');
+  const [rangeStartDate, setRangeStartDate] = useState<string>(new Date().toISOString().split('T')[0]);
+  const [rangeEndDate, setRangeEndDate] = useState<string>('');
+  const [selectedCalendarDate, setSelectedCalendarDate] = useState<Date | null>(null);
+  const [currentMonth, setCurrentMonth] = useState<Date>(new Date());
 
   const handleAddTitle = () => {
     if (newTitle.trim()) {
@@ -75,6 +80,48 @@ export default function VerificationsPage() {
     if (!selectedSkills.includes(skill)) {
       setSelectedSkills([...selectedSkills, skill]);
     }
+  };
+
+  // Calendar functions
+  const getDaysInMonth = (date: Date) => {
+    return new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
+  };
+
+  const getFirstDayOfMonth = (date: Date) => {
+    return new Date(date.getFullYear(), date.getMonth(), 1).getDay();
+  };
+
+  const formatDate = (date: Date) => {
+    return date.toISOString().split('T')[0];
+  };
+
+  const handleDateClick = (day: number) => {
+    const newDate = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), day);
+    setSelectedCalendarDate(newDate);
+    
+    // If no start date is set, set it as start date
+    if (!rangeStartDate) {
+      setRangeStartDate(formatDate(newDate));
+    } else if (!rangeEndDate) {
+      // If start date is set but no end date, set as end date
+      setRangeEndDate(formatDate(newDate));
+    } else {
+      // If both are set, reset and set new start date
+      setRangeStartDate(formatDate(newDate));
+      setRangeEndDate('');
+    }
+  };
+
+  const navigateMonth = (direction: 'prev' | 'next') => {
+    setCurrentMonth(prev => {
+      const newMonth = new Date(prev);
+      if (direction === 'prev') {
+        newMonth.setMonth(prev.getMonth() - 1);
+      } else {
+        newMonth.setMonth(prev.getMonth() + 1);
+      }
+      return newMonth;
+    });
   };
 
   const handleSkillSearch = (query: string) => {
@@ -404,11 +451,143 @@ export default function VerificationsPage() {
                               </div>
                               
                               <div className="bg-[#212327] rounded-lg border border-[#454446] p-4">
-                                <h5 className="text-md font-semibold text-white mb-3">Date</h5>
-                                <input
-                                  type="date"
-                                  className="w-full bg-[#1A1D21] border border-[#454446] rounded-lg px-4 py-3 text-white focus:outline-none focus:border-[#00DF71] transition-colors"
-                                />
+                                <div className="flex items-center justify-between mb-3">
+                                  <h5 className="text-md font-semibold text-white">Date</h5>
+                                  <div className="flex space-x-1">
+                                    {['None', 'Range', 'Milestone', 'Current'].map((tab) => (
+                                      <button
+                                        key={tab}
+                                        onClick={() => setSelectedDateTab(tab.toLowerCase() as 'none' | 'range' | 'milestone' | 'current')}
+                                        className={`px-3 py-1 text-xs font-medium rounded transition-colors ${
+                                          selectedDateTab === tab.toLowerCase()
+                                            ? 'bg-[#00DF71] text-[#212327]'
+                                            : 'bg-[#454446] text-gray-300 hover:text-white'
+                                        }`}
+                                      >
+                                        {tab}
+                                      </button>
+                                    ))}
+                                  </div>
+                                </div>
+                                {selectedDateTab === 'none' ? (
+                                  <input
+                                    type="text"
+                                    value="No date for source"
+                                    readOnly
+                                    className="w-full bg-[#2a2e32] border border-[#454446] rounded-lg px-4 py-3 text-gray-500 cursor-not-allowed"
+                                  />
+                                ) : selectedDateTab === 'range' ? (
+                                  <div className="space-y-4">
+                                    {/* Calendar Component */}
+                                    <div className="bg-[#1A1D21] border border-[#454446] rounded-lg p-4">
+                                      {/* Calendar Header */}
+                                      <div className="flex items-center justify-between mb-4">
+                                        <button
+                                          onClick={() => navigateMonth('prev')}
+                                          className="p-2 hover:bg-[#2a2e32] rounded-lg transition-colors"
+                                        >
+                                          <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                                          </svg>
+                                        </button>
+                                        <h3 className="text-lg font-semibold text-white">
+                                          {currentMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+                                        </h3>
+                                        <button
+                                          onClick={() => navigateMonth('next')}
+                                          className="p-2 hover:bg-[#2a2e32] rounded-lg transition-colors"
+                                        >
+                                          <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                                          </svg>
+                                        </button>
+                                      </div>
+                                      
+                                      {/* Calendar Grid */}
+                                      <div className="grid grid-cols-7 gap-1">
+                                        {/* Day Headers */}
+                                        {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
+                                          <div key={day} className="p-2 text-center text-sm font-medium text-gray-400">
+                                            {day}
+                                          </div>
+                                        ))}
+                                        
+                                        {/* Calendar Days */}
+                                        {Array.from({ length: getFirstDayOfMonth(currentMonth) }, (_, i) => (
+                                          <div key={`empty-${i}`} className="p-2"></div>
+                                        ))}
+                                        
+                                        {Array.from({ length: getDaysInMonth(currentMonth) }, (_, i) => {
+                                          const day = i + 1;
+                                          const date = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), day);
+                                          const dateString = formatDate(date);
+                                          const isSelected = selectedCalendarDate && formatDate(selectedCalendarDate) === dateString;
+                                          const isStartDate = rangeStartDate === dateString;
+                                          const isEndDate = rangeEndDate === dateString;
+                                          const isToday = dateString === new Date().toISOString().split('T')[0];
+                                          
+                                          return (
+                                            <button
+                                              key={day}
+                                              onClick={() => handleDateClick(day)}
+                                              className={`p-2 text-sm rounded-lg transition-colors ${
+                                                isSelected || isStartDate || isEndDate
+                                                  ? 'bg-[#00DF71] text-[#212327] font-semibold'
+                                                  : isToday
+                                                  ? 'bg-[#2a2e32] text-white font-semibold'
+                                                  : 'text-white hover:bg-[#2a2e32]'
+                                              }`}
+                                            >
+                                              {day}
+                                            </button>
+                                          );
+                                        })}
+                                      </div>
+                                    </div>
+                                    
+                                    {/* Start and End Date Fields */}
+                                    <div className="grid grid-cols-2 gap-4">
+                                      <div>
+                                        <label className="block text-sm font-medium text-gray-300 mb-2">Start Date</label>
+                                        <div className="relative">
+                                          <input
+                                            type="date"
+                                            value={rangeStartDate}
+                                            onChange={(e) => setRangeStartDate(e.target.value)}
+                                            className="w-full bg-[#1A1D21] border border-[#454446] rounded-lg px-4 py-3 pr-10 text-white focus:outline-none focus:border-[#00DF71] transition-colors [&::-webkit-calendar-picker-indicator]:opacity-0 [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:right-0 [&::-webkit-calendar-picker-indicator]:w-full [&::-webkit-calendar-picker-indicator]:h-full [&::-webkit-calendar-picker-indicator]:cursor-pointer"
+                                          />
+                                          <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                                            <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                            </svg>
+                                          </div>
+                                        </div>
+                                      </div>
+                                      <div>
+                                        <label className="block text-sm font-medium text-gray-300 mb-2">End Date</label>
+                                        <div className="relative">
+                                          <input
+                                            type="date"
+                                            value={rangeEndDate}
+                                            onChange={(e) => setRangeEndDate(e.target.value)}
+                                            placeholder="Choose date"
+                                            className="w-full bg-[#1A1D21] border border-[#454446] rounded-lg px-4 py-3 pr-10 text-white focus:outline-none focus:border-[#00DF71] transition-colors [&::-webkit-calendar-picker-indicator]:opacity-0 [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:right-0 [&::-webkit-calendar-picker-indicator]:w-full [&::-webkit-calendar-picker-indicator]:h-full [&::-webkit-calendar-picker-indicator]:cursor-pointer"
+                                          />
+                                          <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                                            <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                            </svg>
+                                          </div>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  </div>
+                                ) : (
+                                  <input
+                                    type="date"
+                                    className="w-full bg-[#1A1D21] border border-[#454446] rounded-lg px-4 py-3 text-white focus:outline-none focus:border-[#00DF71] transition-colors"
+                                  />
+                                )}
                               </div>
                             </div>
                           </div>
