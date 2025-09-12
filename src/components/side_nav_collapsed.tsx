@@ -50,8 +50,8 @@ export default function SideNavCollapsed() {
             <div className="flex items-center justify-center w-full h-full">
               {/* Home Icon */}
               <img
-                src="/home_nav.svg"
-                alt="Home"
+                src="/profile.svg"
+                alt="Profile"
                 className="h-7 w-7"
                 style={{
                   filter: currentView === "home" 

@@ -62,7 +62,7 @@ export default function SideNavAuth({
             <div className="flex items-center gap-3 pl-2">
               {/* Home Icon */}
               <img
-                src="/home_nav.svg"
+                src="/profile.svg"
                 alt="Home"
                 className="h-7 w-7 flex-shrink-0"
                 style={{
@@ -77,7 +77,7 @@ export default function SideNavAuth({
                   currentView === "home" ? "text-[#00df71]" : "text-[#79828a]"
                 }`}
               >
-                Home
+                Profile
               </span>
             </div>
           </div>
