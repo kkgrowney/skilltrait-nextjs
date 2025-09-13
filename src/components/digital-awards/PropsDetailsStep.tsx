@@ -37,6 +37,11 @@ export default function PropsDetailsStep({
 }: PropsDetailsStepProps) {
   const [mounted, setMounted] = useState(false);
   
+  // Set mounted state to prevent hydration mismatch
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+  
   const [title, setTitle] = useState(propsTitle || "");
   const [showTitleInput, setShowTitleInput] = useState(false);
   const [recipients, setRecipients] = useState<string[]>(propsRecipients || []);
@@ -45,6 +50,27 @@ export default function PropsDetailsStep({
   const [date, setDate] = useState(fromDate || "");
   const [message, setMessage] = useState(fromMessage || "");
   const [showValidationError, setShowValidationError] = useState(false);
+
+  // Sync local state with props when they change
+  useEffect(() => {
+    setTitle(propsTitle || "");
+  }, [propsTitle]);
+
+  useEffect(() => {
+    setRecipients(propsRecipients || []);
+  }, [propsRecipients]);
+
+  useEffect(() => {
+    setName(fromName || "");
+  }, [fromName]);
+
+  useEffect(() => {
+    setDate(fromDate || "");
+  }, [fromDate]);
+
+  useEffect(() => {
+    setMessage(fromMessage || "");
+  }, [fromMessage]);
 
   const handleAddRecipient = () => {
     if (newRecipient.trim() && !recipients.includes(newRecipient.trim())) {

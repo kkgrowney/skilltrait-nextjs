@@ -5,6 +5,11 @@ import { useState, useEffect } from "react";
 // Helper function to get proxied image URLs
 const getProxiedUrlForPreview = (imageUrl: string): string => {
   if (!imageUrl) return "";
+  // If it's a local file (starts with /), use it directly
+  if (imageUrl.startsWith('/')) {
+    return imageUrl;
+  }
+  // Otherwise, proxy through the API
   return `/api/proxy-image?url=${encodeURIComponent(imageUrl)}`;
 };
 

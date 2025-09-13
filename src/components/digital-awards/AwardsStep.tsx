@@ -43,6 +43,12 @@ export default function AwardsStep({
   const [templates, setTemplates] = useState<any[]>([]);
   const [filteredTemplates, setFilteredTemplates] = useState<any[]>([]);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
+
+  // Set mounted state to prevent hydration mismatch
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   useEffect(() => {
     const fetchTemplates = async () => {
@@ -63,6 +69,7 @@ export default function AwardsStep({
 
         // Define the specific filters we want to show
         const allowedFilters = [
+          "Custom",
           "Free",
           "Creative",
           "Leader",
@@ -184,7 +191,7 @@ export default function AwardsStep({
       </div>
 
       {/* Change Template and Generate Award Buttons - Only visible when template is selected on mobile */}
-      {selectedTemplate && (
+      {isMounted && selectedTemplate && (
         <div className="lg:hidden fixed top-4 right-4 z-50 flex flex-col space-y-2">
           <button
             onClick={toggleStepsSidebar}

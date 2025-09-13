@@ -19,11 +19,30 @@ import { StepType } from "@/components/DigitalAwardsSideNav";
 // Helper function to get proxied image URLs (same as in other components)
 const getProxiedUrlForPreview = (imageUrl: string): string => {
   if (!imageUrl) return "";
+  // Handle local files (starting with /)
+  if (imageUrl.startsWith('/')) {
+    return imageUrl;
+  }
   return `/api/proxy-image?url=${encodeURIComponent(imageUrl)}`;
 };
 
 export default function DigitalAwardsPage() {
   const searchParams = useSearchParams();
+  
+  // Create Custom template
+  const createCustomTemplate = () => {
+    return {
+      id: "custom-template",
+      isCustom: true,
+      achievement: {
+        props: "/custombackground_2x.png",
+        backgroundImage: "/custombackground_2x.png", 
+        logoImage: "/a_custom_2x.png",
+        tags: ["Custom"]
+      }
+    };
+  };
+
   // Function to get consistent company name based on template index
   const getCompanyName = (templateIndex: number) => {
     return companyNames[templateIndex % companyNames.length];
@@ -337,18 +356,31 @@ export default function DigitalAwardsPage() {
 
   const handleTemplateSelect = (templateObj: any) => {
     setSelectedTemplate(templateObj);
-    setShowTemplateDetail(true);
-    setLogoVisible(true); // Reset logo visibility for new template
-    setUploadedLogoFile(null); // Reset uploaded logo for new template
-    setCompanyNameText(""); // Reset company name for new template
-    // Clear form data when new template is selected
-    setPropsTitle("");
-    setPropsRecipients([]);
-    setFromName("");
-    setFromDate("");
-    setFromMessage("");
-    setBackgroundNameText("");
-    setUploadedBackgroundFile(null);
+    
+    // Skip template detail view for Custom template and go directly to Company step
+    if (templateObj.isCustom) {
+      setCurrentStep("company");
+      setShowTemplateDetail(false);
+      // For Custom template, don't clear existing form data - preserve user's work
+      setLogoVisible(true); // Reset logo visibility for new template
+      setUploadedLogoFile(null); // Reset uploaded logo for new template
+      setCompanyNameText(""); // Reset company name for new template
+      setBackgroundNameText("");
+      setUploadedBackgroundFile(null);
+    } else {
+      setShowTemplateDetail(true);
+      // For regular templates, clear all form data
+      setLogoVisible(true); // Reset logo visibility for new template
+      setUploadedLogoFile(null); // Reset uploaded logo for new template
+      setCompanyNameText(""); // Reset company name for new template
+      setPropsTitle("");
+      setPropsRecipients([]);
+      setFromName("");
+      setFromDate("");
+      setFromMessage("");
+      setBackgroundNameText("");
+      setUploadedBackgroundFile(null);
+    }
   };
 
   // Function to clear all localStorage data
@@ -554,8 +586,12 @@ export default function DigitalAwardsPage() {
           (t: any) => t.achievement && t.achievement.props
         );
 
-        setPropsTemplates(templatesWithProps);
-        setFilteredTemplates(templatesWithProps);
+        // Add Custom template as the first item
+        const customTemplate = createCustomTemplate();
+        const templatesWithCustom = [customTemplate, ...templatesWithProps];
+
+        setPropsTemplates(templatesWithCustom);
+        setFilteredTemplates(templatesWithCustom);
       } catch (error) {
         console.error("Error fetching templates:", error);
       } finally {
@@ -651,7 +687,10 @@ export default function DigitalAwardsPage() {
                       src={getProxiedUrlForPreview(temp.achievement.props)}
                       alt="Props Template"
                       className="w-full h-full object-cover"
-                      style={{ borderRadius: "4px" }}
+                      style={{ 
+                        borderRadius: "4px",
+                        objectPosition: temp.isCustom ? "bottom" : "center"
+                      }}
                     />
                     <div
                       className="absolute top-0 left-0 right-0 bg-white border-b-2 border-gray-200"
@@ -1116,7 +1155,7 @@ export default function DigitalAwardsPage() {
           </div>
         </div>
       ) : selectedTemplate ? (
-        /* Template Detail View */
+        /* Template Detail View or Preview for Non-Awards Steps */
         <div className="h-full flex flex-col items-center justify-start pt-6">
           {/* Back Button */}
           <div className="w-full mb-6">
@@ -1334,6 +1373,18 @@ export default function DigitalAwardsPage() {
                     )}
                   </div>
                 ) : null}
+
+                {/* SkillTrait Mark - Bottom Right Corner */}
+                <div 
+                  className="absolute bottom-0 right-0 z-50"
+                  style={{ zIndex: 9999 }}
+                >
+                  <img
+                    src="/skilltrait_mark.svg"
+                    alt="SkillTrait Mark"
+                    className="w-full h-full opacity-80"
+                  />
+                </div>
               </div>
             </div>
           )}
