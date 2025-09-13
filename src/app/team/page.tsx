@@ -493,6 +493,8 @@ export default function Team() {
   const [editingSkill, setEditingSkill] = useState<string | null>(null);
   const [editingSkillValue, setEditingSkillValue] = useState<string>('');
   const [rankedEmployeeResults, setRankedEmployeeResults] = useState<any[]>([]);
+  const [allSkillsRankedResults, setAllSkillsRankedResults] = useState<any[]>([]);
+  const [allSkillsEmployeesRanked, setAllSkillsEmployeesRanked] = useState(false);
   const [isRankingLoading, setIsRankingLoading] = useState(false);
 
   // Handle adding a skill to required skills
@@ -820,7 +822,7 @@ export default function Team() {
     setEditingSkillValue('');
   };
 
-  // Handle rank employees action
+  // Handle rank employees action from Required Skills tab
   const handleRankEmployees = () => {
     const skillsToRank = selectedSkillsForAction.map(skill => {
       // Get the most current value: pending changes first, then saved values, then defaults
@@ -840,6 +842,109 @@ export default function Team() {
     setPendingChanges({});
     
     // Don't start the ranking process automatically - let user click individual skill buttons
+  };
+
+  // Handle rank employees action from All Skills container
+  const handleAllSkillsRankEmployees = async () => {
+    // Use the already populated rankEmployeesSkills
+    const skillsToRank = rankEmployeesSkills;
+    
+    if (!skillsToRank || skillsToRank.length === 0) {
+      setNotification('No skills selected for ranking');
+      setTimeout(() => setNotification(null), 3000);
+      return;
+    }
+    
+    // Call the multiple skills API
+    try {
+      setIsRankingLoading(true);
+      setNotification('Ranking employees based on selected skills...');
+      
+      // Get company ID using the same logic as individual skills
+      let companyId: string = '';
+      console.log('🔍 Debug: teamProfile:', teamProfile);
+      console.log('🔍 Debug: teamProfile.companyReference:', teamProfile?.companyReference);
+      console.log('🔍 Debug: typeof teamProfile.companyReference:', typeof teamProfile?.companyReference);
+      
+      if (teamProfile && teamProfile.companyReference) {
+        if (typeof teamProfile.companyReference === 'string') {
+          companyId = teamProfile.companyReference;
+          console.log('🔍 Debug: Using string company ID:', companyId);
+        } else if (teamProfile.companyReference && typeof teamProfile.companyReference === 'object') {
+          // Handle Firestore document reference object
+          if ('path' in teamProfile.companyReference) {
+            companyId = teamProfile.companyReference.path.split('/').pop() || '';
+            console.log('🔍 Debug: Using path company ID:', companyId);
+            console.log('🔍 Debug: Full path:', teamProfile.companyReference.path);
+          } else if ('referencePath' in teamProfile.companyReference) {
+            companyId = teamProfile.companyReference.referencePath.split('/').pop() || '';
+            console.log('🔍 Debug: Using referencePath company ID:', companyId);
+            console.log('🔍 Debug: Full referencePath:', teamProfile.companyReference.referencePath);
+          }
+        }
+      }
+      
+      // If teamProfile doesn't have companyReference, try to get it from the user's active connection
+      if (!companyId) {
+        console.log('🔄 teamProfile missing companyReference, checking user connections...');
+        
+        try {
+          // Query user connections directly to get company ID
+          const userConnectionsQuery = query(
+            collection(db, 'connectedCompanies'),
+            where('userRef', '==', doc(db, 'users', user!.uid)),
+            where('active', '==', true),
+            where('verified', '==', true)
+          );
+          
+          const userConnectionsSnapshot = await getDocs(userConnectionsQuery);
+          
+          if (!userConnectionsSnapshot.empty) {
+            const userConnection = userConnectionsSnapshot.docs[0];
+            const companyData = userConnection.data();
+            
+            if (companyData.companyReference) {
+              if (typeof companyData.companyReference === 'string') {
+                companyId = companyData.companyReference;
+                console.log('🔍 Debug: From user connection - Using string company ID:', companyId);
+              } else if (companyData.companyReference && typeof companyData.companyReference === 'object') {
+                if ('path' in companyData.companyReference) {
+                  companyId = companyData.companyReference.path.split('/').pop() || '';
+                  console.log('🔍 Debug: From user connection - Using path company ID:', companyId);
+                } else if ('referencePath' in companyData.companyReference) {
+                  companyId = companyData.companyReference.referencePath.split('/').pop() || '';
+                  console.log('🔍 Debug: From user connection - Using referencePath company ID:', companyId);
+                }
+              }
+            }
+          }
+        } catch (connectionError) {
+          console.error('Error fetching user connections:', connectionError);
+        }
+      }
+      
+      if (!companyId) {
+        throw new Error('Company reference not found');
+      }
+      
+      // Call the multiple skills API
+      const rankedEmployees = await callMultipleSkillsVectorSearchAPI(skillsToRank, companyId);
+      
+      // Store results in separate All Skills state (not individual skills)
+      setAllSkillsRankedResults(rankedEmployees);
+      setAllSkillsEmployeesRanked(true);
+      setNotification('Employee ranking completed successfully!');
+      
+      // Clear notification after 3 seconds
+      setTimeout(() => setNotification(null), 3000);
+      
+    } catch (error) {
+      console.error('Error ranking employees:', error);
+      setNotification('Error ranking employees. Please try again.');
+      setTimeout(() => setNotification(null), 3000);
+    } finally {
+      setIsRankingLoading(false);
+    }
   };
 
   // Start employee ranking process
@@ -965,6 +1070,118 @@ export default function Team() {
     } finally {
       setIsRankingLoading(false);
     }
+  };
+
+  // Call the vectorSearch cloud function for multiple skills
+  const callMultipleSkillsVectorSearchAPI = async (skillsData: any[], companyId: string) => {
+    console.log('🎯 callMultipleSkillsVectorSearchAPI called with:');
+    console.log('  - skillsData:', skillsData);
+    console.log('  - companyId:', companyId);
+    
+    // Validate skillsData structure
+    if (!skillsData || !Array.isArray(skillsData) || skillsData.length === 0) {
+      throw new Error('Invalid skillsData: must be a non-empty array');
+    }
+    
+    // Create the query array in the required format
+    const queryArray = skillsData.map(skill => ({ skill: skill.skill }));
+    
+    const requestBody = {
+      query: JSON.stringify(queryArray),
+      comp: companyId
+    };
+    
+    console.log('📤 Sending multiple skills request to cloud function with body:', JSON.stringify(requestBody, null, 2));
+    
+    // Use our Next.js API route to avoid CORS issues
+    const apiUrl = '/api/vector-search';
+    
+    console.log('🌐 Making request to Next.js API route:', apiUrl);
+    
+    const response = await fetch(apiUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(requestBody)
+    });
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
+    const result = await response.json();
+    console.log('Multiple skills vector search result:', result);
+    
+    // Extract the results array from the response
+    const results = result.results || [];
+    console.log('Extracted results for multiple skills:', results);
+    
+    // Process the results to get user information
+    const processedEmployees = await Promise.all(
+      results.map(async (item: any) => {
+        try {
+          // Extract user ID from userRef (now a string)
+          const userId = item.userRef;
+          
+          if (!userId) {
+            console.warn('No user ID found in userRef:', item.userRef);
+            return null;
+          }
+          
+          // Fetch user data from Firestore
+          const userDoc = await getDoc(doc(db, 'users', userId));
+          
+          if (!userDoc.exists()) {
+            console.warn('User document not found for ID:', userId);
+            return null;
+          }
+          
+          const userData = userDoc.data();
+          
+          // Map motivation and proficiency from numbers to strings
+          const motivationMap: { [key: number]: string } = {
+            1: 'Very Low',
+            2: 'Low',
+            3: 'Moderate',
+            4: 'High',
+            5: 'Very High'
+          };
+          
+          const proficiencyMap: { [key: number]: string } = {
+            1: 'Beginner',
+            2: 'Intermediate',
+            3: 'Advanced',
+            4: 'Expert',
+            5: 'Master'
+          };
+          
+          return {
+            id: userId,
+            name: userData.name || 'Unknown',
+            email: userData.email || '',
+            skills: userData.skills || [],
+            profileImage: userData.profileImage || '',
+            company: userData.company || '',
+            title: userData.title || '',
+            location: userData.location || '',
+            motivation: motivationMap[item.motivation] || 'Moderate',
+            proficiency: proficiencyMap[item.proficiency] || 'Intermediate',
+            score: item.score || 0,
+            userRef: userId
+          };
+        } catch (error) {
+          console.error('Error processing employee data:', error);
+          return null;
+        }
+      })
+    );
+    
+    // Filter out null results
+    const validEmployees = processedEmployees.filter(emp => emp !== null);
+    console.log('Processed employees for multiple skills:', validEmployees);
+    
+    return validEmployees;
   };
 
   // Call the vectorSearch cloud function
@@ -2351,7 +2568,7 @@ export default function Team() {
                               </div>
                               <div className="flex items-center gap-2">
                                                         <button 
-                          onClick={handleRankEmployees}
+                          onClick={handleAllSkillsRankEmployees}
                           disabled={rankEmployeesSkills.length === 0 || !teamProfile?.companyReference}
                           className={`ml-5 flex items-center gap-2 px-3 py-2 rounded-lg transition-all ${
                             rankEmployeesSkills.length > 0 && teamProfile?.companyReference
@@ -2414,15 +2631,64 @@ export default function Team() {
                                   </div>
                                   <div className="space-y-2">
                                     <div className="text-gray-400">Average Motivation: {rankEmployeesSkills.length > 0 ? 'Calculating...' : 'N/A'}</div>
-                                    <div className="text-gray-400">Status: {employeesRanked ? 'Ranked' : 'Pending'}</div>
+                                    <div className="text-gray-400">Status: {allSkillsEmployeesRanked ? 'Ranked' : 'Pending'}</div>
                                   </div>
                                 </div>
+                                
+                                {/* All Skills Ranking Results */}
+                                {allSkillsEmployeesRanked && allSkillsRankedResults.length > 0 && (
+                                  <div className="mt-4">
+                                    <div className="text-sm text-gray-300 font-medium mb-3">Ranked Employees</div>
+                                    <div className="space-y-2 max-h-64 overflow-y-auto">
+                                      {allSkillsRankedResults.map((employee, index) => (
+                                        <div key={employee.id || index} className="flex items-center justify-between p-3 bg-gray-700 rounded-lg">
+                                          <div className="flex items-center gap-3">
+                                            <div className="w-8 h-8 bg-gray-600 rounded-full flex items-center justify-center text-sm font-medium text-white">
+                                              {index + 1}
+                                            </div>
+                                            <div className="flex items-center gap-2">
+                                              {employee.profileImage ? (
+                                                <img 
+                                                  src={employee.profileImage} 
+                                                  alt={employee.name}
+                                                  className="w-8 h-8 rounded-full object-cover"
+                                                />
+                                              ) : (
+                                                <div className="w-8 h-8 bg-gray-500 rounded-full flex items-center justify-center text-xs text-white">
+                                                  {employee.name?.charAt(0) || '?'}
+                                                </div>
+                                              )}
+                                              <div>
+                                                <div className="text-white font-medium text-sm">{employee.name}</div>
+                                                <div className="text-gray-400 text-xs">{employee.title || 'No title'}</div>
+                                              </div>
+                                            </div>
+                                          </div>
+                                          <div className="flex items-center gap-4 text-xs">
+                                            <div className="text-center">
+                                              <div className="text-gray-400">Score</div>
+                                              <div className="text-[#00DF71] font-medium">{employee.score?.toFixed(1) || '0.0'}</div>
+                                            </div>
+                                            <div className="text-center">
+                                              <div className="text-gray-400">Proficiency</div>
+                                              <div className="text-white">{employee.proficiency || 'N/A'}</div>
+                                            </div>
+                                            <div className="text-center">
+                                              <div className="text-gray-400">Motivation</div>
+                                              <div className="text-white">{employee.motivation || 'N/A'}</div>
+                                            </div>
+                                          </div>
+                                        </div>
+                                      ))}
+                                    </div>
+                                  </div>
+                                )}
                               </div>
                             </div>
                           )}
                         </div>
 
-                        {/* Rank Employees Container */}
+                        {/* Individual Skills Containers */}
                         <div className="space-y-4">
                           {rankEmployeesSkills.length > 0 ? (
                             rankEmployeesSkills.map((skillData, index) => (
