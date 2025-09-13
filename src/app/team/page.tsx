@@ -933,6 +933,7 @@ export default function Team() {
       // Store results in separate All Skills state (not individual skills)
       setAllSkillsRankedResults(rankedEmployees);
       setAllSkillsEmployeesRanked(true);
+      setIsAllSkillsExpanded(true); // Automatically expand to show results
       setNotification('Employee ranking completed successfully!');
       
       // Clear notification after 3 seconds
