@@ -11,6 +11,25 @@ import ViewTitleTab from '@/components/ViewTitleTab';
 import EmployeesContent from '@/components/EmployeesContent';
 import DragDropUpload from '@/components/DragDropUpload';
 import ProfileSnapshot from '@/components/ProfileSnapshot';
+import {
+  Chart as ChartJS,
+  RadialLinearScale,
+  PointElement,
+  LineElement,
+  Filler,
+  Tooltip,
+  Legend,
+} from 'chart.js';
+import { Radar } from 'react-chartjs-2';
+
+ChartJS.register(
+  RadialLinearScale,
+  PointElement,
+  LineElement,
+  Filler,
+  Tooltip,
+  Legend
+);
 
 // SkillRankSection Component
 interface SkillRankSectionProps {
@@ -499,6 +518,7 @@ export default function Team() {
   const [selectedAllSkillsEmployee, setSelectedAllSkillsEmployee] = useState<any>(null);
   const [showAllSkillsProfileModal, setShowAllSkillsProfileModal] = useState(false);
   const [isAllSkillsModalClosing, setIsAllSkillsModalClosing] = useState(false);
+  const [skillFulfillmentData, setSkillFulfillmentData] = useState<any[]>([]);
 
   // Handle adding a skill to required skills
   const handleAddSkill = (skill: string) => {
@@ -931,10 +951,12 @@ export default function Team() {
       }
       
       // Call the multiple skills API
-      const rankedEmployees = await callMultipleSkillsVectorSearchAPI(skillsToRank, companyId);
+      const result = await callMultipleSkillsVectorSearchAPI(skillsToRank, companyId);
       
       // Store results in separate All Skills state (not individual skills)
-      setAllSkillsRankedResults(rankedEmployees);
+      setAllSkillsRankedResults(result.employees);
+      setSkillFulfillmentData(result.skillFulfillment);
+      console.log('Setting skillFulfillmentData state:', result.skillFulfillment);
       setAllSkillsEmployeesRanked(true);
       setIsAllSkillsExpanded(true); // Automatically expand to show results
       setNotification('Employee ranking completed successfully!');
@@ -1121,6 +1143,12 @@ export default function Team() {
     const results = result.results || [];
     console.log('Extracted results for multiple skills:', results);
     
+    // Extract skillFulfillment data from the first result (assuming all results have the same skillFulfillment)
+    const skillFulfillment = results.length > 0 ? results[0].skillFulfillment || [] : [];
+    console.log('Extracted skillFulfillment data:', skillFulfillment);
+    console.log('skillFulfillment length:', skillFulfillment.length);
+    console.log('skillFulfillment structure:', JSON.stringify(skillFulfillment, null, 2));
+    
     // Process the results to get user information
     const processedEmployees = await Promise.all(
       results.map(async (item: any) => {
@@ -1167,12 +1195,15 @@ export default function Team() {
             location: userData.location || 'Unknown Location',
             email: userData.email || '',
             skills: userData.skills || [],
-            profileImage: userData.profileImage || '',
+            photo: userData.photo_url || userData.photoURL || userData.photo || userData.profilePicture,
             company: userData.company || '',
             motivation: motivationMap[item.motivation] || 'Moderate',
             proficiency: proficiencyMap[item.proficiency] || 'Intermediate',
             score: item.score || 0,
             confidence: item.confidence || 0,
+            reason: item.reason || 'No reason provided',
+            summary: item.reason || 'No reason provided',
+            skillFulfillment: item.skillFulfillment || [],
             userRef: userId
           };
         } catch (error) {
@@ -1187,7 +1218,10 @@ export default function Team() {
     const sortedEmployees = validEmployees.sort((a, b) => (b.confidence || 0) - (a.confidence || 0));
     console.log('Processed employees for multiple skills:', sortedEmployees);
     
-    return sortedEmployees;
+    return {
+      employees: sortedEmployees,
+      skillFulfillment: skillFulfillment
+    };
   };
 
   // Call the vectorSearch cloud function
@@ -2706,6 +2740,7 @@ export default function Team() {
                                         Rankings based on confidence scores (highest to lowest)
                                       </p>
                                     </div>
+
                                   </div>
                                 )}
                               </div>

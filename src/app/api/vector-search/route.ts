@@ -10,10 +10,10 @@ export async function POST(request: NextRequest) {
     // Validate required fields
     const { query, comp, mot, prof } = requestBody;
     
-    if (!query || !comp || mot === undefined || prof === undefined) {
+    if (!query || !comp) {
       return NextResponse.json(
         {
-          error: "Missing required parameters: query, comp, mot, prof",
+          error: "Missing required parameters: query, comp",
           received: { query, comp, mot, prof }
         },
         { status: 400 }
@@ -35,8 +35,14 @@ export async function POST(request: NextRequest) {
     const urlencoded = new URLSearchParams();
     urlencoded.append("query", requestBody.query);
     urlencoded.append("comp", requestBody.comp);
-    urlencoded.append("mot", requestBody.mot.toString());
-    urlencoded.append("prof", requestBody.prof.toString());
+    
+    // Only append mot and prof if they exist (for single skill requests)
+    if (mot !== undefined) {
+      urlencoded.append("mot", mot.toString());
+    }
+    if (prof !== undefined) {
+      urlencoded.append("prof", prof.toString());
+    }
     
     console.log("Form-encoded body:", urlencoded.toString());
     

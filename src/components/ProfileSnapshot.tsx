@@ -3,6 +3,25 @@
 import React, { useState, useEffect } from 'react';
 import { collection, getDocs, query, where, doc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
+import {
+  Chart as ChartJS,
+  RadialLinearScale,
+  PointElement,
+  LineElement,
+  Filler,
+  Tooltip,
+  Legend,
+} from 'chart.js';
+import { Radar } from 'react-chartjs-2';
+
+ChartJS.register(
+  RadialLinearScale,
+  PointElement,
+  LineElement,
+  Filler,
+  Tooltip,
+  Legend
+);
 
 interface Employee {
   id: string;
@@ -18,6 +37,10 @@ interface Employee {
   role?: string;
   skills?: string[];
   reason?: string;
+  skillFulfillment?: Array<{
+    inputSkill: string;
+    bestSim: number;
+  }>;
 }
 
 interface ProfileSnapshotProps {
@@ -181,6 +204,90 @@ export default function ProfileSnapshot({ employee }: ProfileSnapshotProps) {
             </div>
             <div className="font-['Poppins:Regular',_sans-serif] text-[#aeaeae] text-[11px] text-left leading-[1.3] w-full break-words">
               <p className="block">{employee.reason}</p>
+            </div>
+          </div>
+        )}
+
+        {/* Skills Matrix */}
+        {employee.skillFulfillment && employee.skillFulfillment.length > 0 && (
+          <div className="box-border content-stretch flex flex-col gap-2 items-start justify-start overflow-hidden px-3 py-[18px] relative shrink-0 w-full max-w-full">
+            <div className="font-['Poppins:Medium',_sans-serif] text-[#ffffff] text-[12px] text-left tracking-[0.24px]">
+              <p className="block leading-[1.2]">Skills Matrix</p>
+            </div>
+            <div className="w-full h-64">
+              <Radar
+                data={{
+                  labels: employee.skillFulfillment.map(skill => skill.inputSkill),
+                  datasets: [
+                    {
+                      label: 'Skill Fulfillment',
+                      data: employee.skillFulfillment.map(skill => skill.bestSim),
+                      backgroundColor: 'rgba(0, 223, 113, 0.2)',
+                      borderColor: '#00DF71',
+                      borderWidth: 2,
+                      pointBackgroundColor: '#00DF71',
+                      pointBorderColor: '#00DF71',
+                      pointHoverBackgroundColor: '#0AFB84',
+                      pointHoverBorderColor: '#0AFB84',
+                    },
+                  ],
+                }}
+                options={{
+                  responsive: true,
+                  maintainAspectRatio: false,
+                  plugins: {
+                    legend: {
+                      labels: {
+                        color: '#ffffff',
+                        font: {
+                          size: 10
+                        }
+                      }
+                    },
+                    tooltip: {
+                      backgroundColor: '#1A1D21',
+                      titleColor: '#ffffff',
+                      bodyColor: '#ffffff',
+                      borderColor: '#00DF71',
+                      borderWidth: 1,
+                      callbacks: {
+                        label: function(context) {
+                          return `${context.dataset.label}: ${(context.parsed.r * 100).toFixed(1)}%`;
+                        }
+                      }
+                    }
+                  },
+                  scales: {
+                    r: {
+                      beginAtZero: true,
+                      min: 0,
+                      max: 1,
+                      ticks: {
+                        stepSize: 0.2,
+                        color: '#9CA3AF',
+                        font: {
+                          size: 8
+                        },
+                        callback: function(value) {
+                          return `${(value * 100).toFixed(0)}%`;
+                        }
+                      },
+                      grid: {
+                        color: '#374151'
+                      },
+                      angleLines: {
+                        color: '#374151'
+                      },
+                      pointLabels: {
+                        color: '#ffffff',
+                        font: {
+                          size: 9
+                        }
+                      }
+                    }
+                  }
+                }}
+              />
             </div>
           </div>
         )}
