@@ -2768,7 +2768,7 @@ export default function Team() {
                               className={`absolute right-0 top-0 h-full bg-[#1A1D21] transform transition-transform duration-500 ease-in-out ${
                                 isAllSkillsModalClosing ? 'translate-x-full' : 'translate-x-0'
                               }`}
-                              style={{ width: '400px' }}
+                              style={{ width: '670px' }}
                               onClick={(e) => e.stopPropagation()}
                             >
                               <ProfileSnapshot 

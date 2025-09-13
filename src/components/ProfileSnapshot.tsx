@@ -214,7 +214,7 @@ export default function ProfileSnapshot({ employee }: ProfileSnapshotProps) {
             <div className="font-['Poppins:Medium',_sans-serif] text-[#ffffff] text-[12px] text-left tracking-[0.24px]">
               <p className="block leading-[1.2]">Skills Matrix</p>
             </div>
-            <div className="w-full h-64">
+            <div className="w-full h-80 px-0">
               <Radar
                 data={{
                   labels: employee.skillFulfillment.map(skill => skill.inputSkill),
@@ -235,14 +235,17 @@ export default function ProfileSnapshot({ employee }: ProfileSnapshotProps) {
                 options={{
                   responsive: true,
                   maintainAspectRatio: false,
+                  layout: {
+                    padding: {
+                      left: 0,
+                      right: 0,
+                      top: 0,
+                      bottom: 0
+                    }
+                  },
                   plugins: {
                     legend: {
-                      labels: {
-                        color: '#ffffff',
-                        font: {
-                          size: 10
-                        }
-                      }
+                      display: false
                     },
                     tooltip: {
                       backgroundColor: '#1A1D21',
@@ -270,7 +273,10 @@ export default function ProfileSnapshot({ employee }: ProfileSnapshotProps) {
                         },
                         callback: function(value) {
                           return `${(value * 100).toFixed(0)}%`;
-                        }
+                        },
+                        backdropColor: 'transparent',
+                        backdropPadding: 0,
+                        z: 10
                       },
                       grid: {
                         color: '#374151'
