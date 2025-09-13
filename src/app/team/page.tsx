@@ -519,6 +519,8 @@ export default function Team() {
   const [showAllSkillsProfileModal, setShowAllSkillsProfileModal] = useState(false);
   const [isAllSkillsModalClosing, setIsAllSkillsModalClosing] = useState(false);
   const [skillFulfillmentData, setSkillFulfillmentData] = useState<any[]>([]);
+  const [selectedEmployees, setSelectedEmployees] = useState<Set<string>>(new Set());
+  const [showCompareModal, setShowCompareModal] = useState(false);
 
   // Handle adding a skill to required skills
   const handleAddSkill = (skill: string) => {
@@ -2666,7 +2668,23 @@ export default function Team() {
                                 {/* All Skills Ranking Results */}
                                 {allSkillsEmployeesRanked && allSkillsRankedResults.length > 0 && (
                                   <div className="mt-4">
-                                    <div className="text-sm text-gray-300 font-medium mb-3">Ranked Employees</div>
+                                    <div className="flex justify-between items-center mb-3">
+                                      <div className="text-sm text-gray-300 font-medium">Ranked Employees</div>
+                                      <button
+                                        onClick={() => {
+                                          console.log('Compare button clicked with selected employees:', Array.from(selectedEmployees));
+                                          alert(`Compare functionality coming soon! Selected ${selectedEmployees.size} employees.`);
+                                        }}
+                                        disabled={selectedEmployees.size < 2}
+                                        className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                                          selectedEmployees.size >= 2
+                                            ? 'bg-[#00DF71] text-black hover:bg-[#0AFB84]'
+                                            : 'bg-gray-600 text-gray-400 cursor-not-allowed'
+                                        }`}
+                                      >
+                                        Compare ({selectedEmployees.size})
+                                      </button>
+                                    </div>
                                     
                                     {/* Employee Table */}
                                     <div className="bg-[#1e2327] rounded-lg border border-[#454446] overflow-hidden">
@@ -2680,6 +2698,14 @@ export default function Team() {
                                               <div className="w-[40px] py-3 flex justify-center">
                                                 <input
                                                   type="checkbox"
+                                                  checked={selectedEmployees.size === allSkillsRankedResults.length && allSkillsRankedResults.length > 0}
+                                                  onChange={(e) => {
+                                                    if (e.target.checked) {
+                                                      setSelectedEmployees(new Set(allSkillsRankedResults.map(emp => emp.id)));
+                                                    } else {
+                                                      setSelectedEmployees(new Set());
+                                                    }
+                                                  }}
                                                   className="h-4 w-4 text-[#00DF71] focus:ring-[#00DF71] border-gray-600 rounded bg-[#1B1D21]"
                                                   style={{ accentColor: '#00DF71' }}
                                                 />
@@ -2704,6 +2730,16 @@ export default function Team() {
                                                   <div className="w-[40px] py-4 flex justify-center">
                                                     <input
                                                       type="checkbox"
+                                                      checked={selectedEmployees.has(employee.id)}
+                                                      onChange={(e) => {
+                                                        const newSelected = new Set(selectedEmployees);
+                                                        if (e.target.checked) {
+                                                          newSelected.add(employee.id);
+                                                        } else {
+                                                          newSelected.delete(employee.id);
+                                                        }
+                                                        setSelectedEmployees(newSelected);
+                                                      }}
                                                       className="h-4 w-4 text-[#00DF71] focus:ring-[#00DF71] border-gray-600 rounded bg-[#1B1D21]"
                                                       style={{ accentColor: '#00DF71' }}
                                                       onClick={(e) => e.stopPropagation()}
@@ -3029,6 +3065,7 @@ export default function Team() {
           )}
         </div>
       </div>
+
     </div>
   );
 }

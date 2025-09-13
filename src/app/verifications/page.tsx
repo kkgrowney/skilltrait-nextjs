@@ -642,10 +642,10 @@ export default function VerificationsPage() {
                                     ) : null}
                                   </div>
                                 ) : (
-                                  <input
-                                    type="date"
-                                    className="w-full bg-[#1A1D21] border border-[#454446] rounded-lg px-4 py-3 text-white focus:outline-none focus:border-[#00DF71] transition-colors"
-                                  />
+                                <input
+                                  type="date"
+                                  className="w-full bg-[#1A1D21] border border-[#454446] rounded-lg px-4 py-3 text-white focus:outline-none focus:border-[#00DF71] transition-colors"
+                                />
                                 )}
                               </div>
                             </div>
