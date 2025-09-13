@@ -2624,63 +2624,76 @@ export default function Team() {
                           {isAllSkillsExpanded && (
                             <div className="px-4 pb-4 border-t border-gray-500">
                               <div className="pt-4 space-y-3">
-                                <div className="text-sm text-gray-300 font-medium">Skills Summary</div>
-                                <div className="grid grid-cols-2 gap-4 text-xs">
-                                  <div className="space-y-2">
-                                    <div className="text-gray-400">Total Skills: {rankEmployeesSkills.length}</div>
-                                    <div className="text-gray-400">Average Proficiency: {rankEmployeesSkills.length > 0 ? 'Calculating...' : 'N/A'}</div>
-                                  </div>
-                                  <div className="space-y-2">
-                                    <div className="text-gray-400">Average Motivation: {rankEmployeesSkills.length > 0 ? 'Calculating...' : 'N/A'}</div>
-                                    <div className="text-gray-400">Status: {allSkillsEmployeesRanked ? 'Ranked' : 'Pending'}</div>
-                                  </div>
-                                </div>
-                                
                                 {/* All Skills Ranking Results */}
                                 {allSkillsEmployeesRanked && allSkillsRankedResults.length > 0 && (
                                   <div className="mt-4">
                                     <div className="text-sm text-gray-300 font-medium mb-3">Ranked Employees</div>
-                                    <div className="space-y-2 max-h-64 overflow-y-auto">
-                                      {allSkillsRankedResults.map((employee, index) => (
-                                        <div key={employee.id || index} className="flex items-center justify-between p-3 bg-gray-700 rounded-lg">
-                                          <div className="flex items-center gap-3">
-                                            <div className="w-8 h-8 bg-gray-600 rounded-full flex items-center justify-center text-sm font-medium text-white">
-                                              {index + 1}
-                                            </div>
-                                            <div className="flex items-center gap-2">
-                                              {employee.profileImage ? (
-                                                <img 
-                                                  src={employee.profileImage} 
-                                                  alt={employee.name}
-                                                  className="w-8 h-8 rounded-full object-cover"
+                                    
+                                    {/* Employee Table */}
+                                    <div className="bg-[#1e2327] rounded-lg border border-[#454446] overflow-hidden">
+                                      {/* Horizontal Scrollable Container */}
+                                      <div className="overflow-x-auto">
+                                        {/* Table with Fixed Column Widths */}
+                                        <div className="min-w-[600px]">
+                                          {/* Table Header */}
+                                          <div className="bg-[#1B1D21] border-b border-[#3D3C3E] p-0">
+                                            <div className="flex">
+                                              <div className="w-[40px] py-3 flex justify-center">
+                                                <input
+                                                  type="checkbox"
+                                                  className="h-4 w-4 text-[#00DF71] focus:ring-[#00DF71] border-gray-600 rounded bg-[#1B1D21]"
+                                                  style={{ accentColor: '#00DF71' }}
                                                 />
-                                              ) : (
-                                                <div className="w-8 h-8 bg-gray-500 rounded-full flex items-center justify-center text-xs text-white">
-                                                  {employee.name?.charAt(0) || '?'}
-                                                </div>
-                                              )}
-                                              <div>
-                                                <div className="text-white font-medium text-sm">{employee.name}</div>
-                                                <div className="text-gray-400 text-xs">{employee.title || 'No title'}</div>
                                               </div>
+
+                                              <div className="pl-3 pr-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider flex-1">NAME</div>
+                                              <div className="pl-3 pr-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider flex-1">TITLE</div>
+                                              <div className="pl-3 pr-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider flex-1">LOCATION</div>
+                                              <div className="pl-3 pr-20 py-3 text-center text-xs font-medium text-gray-300 uppercase tracking-wider flex-1">CONFIDENCE (1-100)</div>
                                             </div>
                                           </div>
-                                          <div className="flex items-center gap-4 text-xs">
-                                            <div className="text-center">
-                                              <div className="text-gray-400">Score</div>
-                                              <div className="text-[#00DF71] font-medium">{employee.score?.toFixed(1) || '0.0'}</div>
-                                            </div>
-                                            <div className="text-center">
-                                              <div className="text-gray-400">Proficiency</div>
-                                              <div className="text-white">{employee.proficiency || 'N/A'}</div>
-                                            </div>
-                                            <div className="text-center">
-                                              <div className="text-gray-400">Motivation</div>
-                                              <div className="text-white">{employee.motivation || 'N/A'}</div>
-                                            </div>
+
+                                          {/* Table Body */}
+                                          <div className="divide-y divide-[#3D3C3E]">
+                                            {allSkillsRankedResults
+                                              .slice(0, 10) // Show top 10 employees
+                                              .map((employee: any, index: number) => (
+                                                <div 
+                                                  key={employee.id || index} 
+                                                  className="flex cursor-pointer transition-all duration-200 bg-[#191D21] hover:bg-[#202327]"
+                                                >
+                                                  <div className="w-[40px] py-4 flex justify-center">
+                                                    <input
+                                                      type="checkbox"
+                                                      className="h-4 w-4 text-[#00DF71] focus:ring-[#00DF71] border-gray-600 rounded bg-[#1B1D21]"
+                                                      style={{ accentColor: '#00DF71' }}
+                                                      onClick={(e) => e.stopPropagation()}
+                                                    />
+                                                  </div>
+
+                                                  <div className="pl-3 pr-6 py-4 whitespace-nowrap text-sm text-white font-medium flex-1 underline hover:text-gray-300 transition-colors">
+                                                    {employee.name}
+                                                  </div>
+                                                  <div className="pl-3 pr-6 py-4 whitespace-nowrap text-sm text-gray-300 flex-1">{employee.title || 'No title'}</div>
+                                                  <div className="pl-3 pr-6 py-4 whitespace-nowrap text-sm text-gray-300 flex-1">{employee.location || 'No location'}</div>
+                                                  <div className="pl-3 pr-20 py-4 whitespace-nowrap text-sm text-gray-300 flex-1 text-center">
+                                                    {employee.score ? Math.round(employee.score * 100) : '0'}
+                                                  </div>
+                                                </div>
+                                              ))}
                                           </div>
                                         </div>
-                                      ))}
+                                      </div>
+                                    </div>
+
+                                    {/* Results Info */}
+                                    <div className="mt-4 text-center">
+                                      <p className="text-sm text-gray-400">
+                                        Showing top {Math.min(allSkillsRankedResults.length, 10)} employees ranked by All Skills confidence
+                                      </p>
+                                      <p className="text-xs text-gray-500 mt-1">
+                                        Rankings based on confidence scores (highest to lowest)
+                                      </p>
                                     </div>
                                   </div>
                                 )}
