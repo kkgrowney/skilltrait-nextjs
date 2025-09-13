@@ -496,6 +496,9 @@ export default function Team() {
   const [allSkillsRankedResults, setAllSkillsRankedResults] = useState<any[]>([]);
   const [allSkillsEmployeesRanked, setAllSkillsEmployeesRanked] = useState(false);
   const [isRankingLoading, setIsRankingLoading] = useState(false);
+  const [selectedAllSkillsEmployee, setSelectedAllSkillsEmployee] = useState<any>(null);
+  const [showAllSkillsProfileModal, setShowAllSkillsProfileModal] = useState(false);
+  const [isAllSkillsModalClosing, setIsAllSkillsModalClosing] = useState(false);
 
   // Handle adding a skill to required skills
   const handleAddSkill = (skill: string) => {
@@ -1159,16 +1162,17 @@ export default function Team() {
           
           return {
             id: userId,
-            name: userData.name || 'Unknown',
+            name: userData.display_name || userData.displayName || userData.name || 'Unknown User',
+            title: userData.currentRole || userData.title || userData.jobTitle || 'Unknown Title',
+            location: userData.location || 'Unknown Location',
             email: userData.email || '',
             skills: userData.skills || [],
             profileImage: userData.profileImage || '',
             company: userData.company || '',
-            title: userData.title || '',
-            location: userData.location || '',
             motivation: motivationMap[item.motivation] || 'Moderate',
             proficiency: proficiencyMap[item.proficiency] || 'Intermediate',
             score: item.score || 0,
+            confidence: item.confidence || 0,
             userRef: userId
           };
         } catch (error) {
@@ -1178,11 +1182,12 @@ export default function Team() {
       })
     );
     
-    // Filter out null results
+    // Filter out null results and sort by confidence (highest to lowest)
     const validEmployees = processedEmployees.filter(emp => emp !== null);
-    console.log('Processed employees for multiple skills:', validEmployees);
+    const sortedEmployees = validEmployees.sort((a, b) => (b.confidence || 0) - (a.confidence || 0));
+    console.log('Processed employees for multiple skills:', sortedEmployees);
     
-    return validEmployees;
+    return sortedEmployees;
   };
 
   // Call the vectorSearch cloud function
@@ -2671,13 +2676,19 @@ export default function Team() {
                                                     />
                                                   </div>
 
-                                                  <div className="pl-3 pr-6 py-4 whitespace-nowrap text-sm text-white font-medium flex-1 underline hover:text-gray-300 transition-colors">
+                                                  <div 
+                                                    className="pl-3 pr-6 py-4 whitespace-nowrap text-sm text-white font-medium flex-1 underline hover:text-gray-300 transition-colors cursor-pointer"
+                                                    onClick={() => {
+                                                      setSelectedAllSkillsEmployee(employee);
+                                                      setShowAllSkillsProfileModal(true);
+                                                    }}
+                                                  >
                                                     {employee.name}
                                                   </div>
                                                   <div className="pl-3 pr-6 py-4 whitespace-nowrap text-sm text-gray-300 flex-1">{employee.title || 'No title'}</div>
                                                   <div className="pl-3 pr-6 py-4 whitespace-nowrap text-sm text-gray-300 flex-1">{employee.location || 'No location'}</div>
                                                   <div className="pl-3 pr-20 py-4 whitespace-nowrap text-sm text-gray-300 flex-1 text-center">
-                                                    {employee.score ? Math.round(employee.score * 100) : '0'}
+                                                    {employee.confidence || '0'}
                                                   </div>
                                                 </div>
                                               ))}
@@ -2701,6 +2712,44 @@ export default function Team() {
                             </div>
                           )}
                         </div>
+
+                        {/* All Skills ProfileSnapshot Modal */}
+                        {showAllSkillsProfileModal && selectedAllSkillsEmployee && (
+                          <div 
+                            className="fixed inset-0 z-50 transition-all duration-500"
+                            style={{
+                              backgroundColor: isAllSkillsModalClosing ? 'rgba(0, 0, 0, 0)' : 'rgba(0, 0, 0, 0.3)'
+                            }}
+                            onClick={() => {
+                              setIsAllSkillsModalClosing(true);
+                              setTimeout(() => {
+                                setShowAllSkillsProfileModal(false);
+                                setSelectedAllSkillsEmployee(null);
+                                setIsAllSkillsModalClosing(false);
+                              }, 500);
+                            }}
+                          >
+                            <div 
+                              className={`absolute right-0 top-0 h-full bg-[#1A1D21] transform transition-transform duration-500 ease-in-out ${
+                                isAllSkillsModalClosing ? 'translate-x-full' : 'translate-x-0'
+                              }`}
+                              style={{ width: '400px' }}
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              <ProfileSnapshot 
+                                employee={selectedAllSkillsEmployee}
+                                onClose={() => {
+                                  setIsAllSkillsModalClosing(true);
+                                  setTimeout(() => {
+                                    setShowAllSkillsProfileModal(false);
+                                    setSelectedAllSkillsEmployee(null);
+                                    setIsAllSkillsModalClosing(false);
+                                  }, 500);
+                                }}
+                              />
+                            </div>
+                          </div>
+                        )}
 
                         {/* Individual Skills Containers */}
                         <div className="space-y-4">
