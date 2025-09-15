@@ -12,7 +12,7 @@
  * The system will fallback to local Firebase storage if the cloud function fails.
  */
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import toast from 'react-hot-toast';
 import SideNavigation, { useSideNavMargin } from '@/components/SideNavigation';
@@ -21,7 +21,7 @@ import { doc, getDoc, updateDoc, collection, addDoc, query, where, getDocs, dele
 import { db } from '@/lib/firebase';
 import Link from 'next/link';
 
-export default function SkillsPage() {
+function SkillsPageContent() {
   const { user } = useAuth();
   const router = useRouter();
   const sideNavMargin = useSideNavMargin();
@@ -819,7 +819,6 @@ export default function SkillsPage() {
       </div>
 
       {/* Unsaved Changes Modal */}
-      {console.log('Rendering modal, showUnsavedChangesModal:', showUnsavedChangesModal)}
       {showUnsavedChangesModal && (
         <div className="fixed inset-0 flex items-center justify-center z-[9999]" style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }}>
           <div className="bg-[#212327] border border-[#454446] rounded-lg p-6 max-w-sm w-full mx-4 shadow-2xl">
@@ -860,5 +859,20 @@ export default function SkillsPage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function SkillsPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen" style={{ backgroundColor: "#1B1D21" }}>
+        <SideNavigation />
+        <div className="flex items-center justify-center h-screen">
+          <div className="text-white">Loading...</div>
+        </div>
+      </div>
+    }>
+      <SkillsPageContent />
+    </Suspense>
   );
 }
