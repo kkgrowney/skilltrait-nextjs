@@ -159,10 +159,21 @@ export default function DigitalAwardsPage() {
   // Debug logging for production
   useEffect(() => {
     console.log("ClientPage: State updated", {
-      propsRecipients: propsRecipients?.length || 0,
-      fromName,
-      fromDate,
-      fromMessage
+      propsRecipients: propsRecipients || [],
+      propsRecipientsLength: propsRecipients?.length || 0,
+      fromName: fromName || "undefined",
+      fromDate: fromDate || "undefined", 
+      fromMessage: fromMessage || "undefined"
+    });
+    
+    // Check if we should render the overlay
+    const shouldShow = (propsRecipients && propsRecipients.length > 0) || (fromName || fromDate || fromMessage);
+    console.log("ClientPage: Should show overlay?", {
+      shouldShow,
+      propsRecipientsLength: propsRecipients?.length || 0,
+      hasFromName: !!fromName,
+      hasFromDate: !!fromDate,
+      hasFromMessage: !!fromMessage
     });
   }, [propsRecipients, fromName, fromDate, fromMessage]);
 

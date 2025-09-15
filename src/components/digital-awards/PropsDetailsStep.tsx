@@ -55,11 +55,11 @@ export default function PropsDetailsStep({
   useEffect(() => {
     if (mounted) {
       console.log("PropsDetailsStep: Syncing state with props", {
-        propsTitle,
-        propsRecipients,
-        fromName,
-        fromDate,
-        fromMessage
+        propsTitle: propsTitle || "undefined",
+        propsRecipients: propsRecipients || [],
+        fromName: fromName || "undefined", 
+        fromDate: fromDate || "undefined",
+        fromMessage: fromMessage || "undefined"
       });
       setTitle(propsTitle || "");
       setRecipients(propsRecipients || []);
