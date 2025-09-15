@@ -36,14 +36,25 @@ export default function PropsDetailsStep({
   setFromMessage,
 }: PropsDetailsStepProps) {
   
-  const [title, setTitle] = useState(propsTitle || "");
+  const [mounted, setMounted] = useState(false);
+  const [title, setTitle] = useState("");
   const [showTitleInput, setShowTitleInput] = useState(false);
-  const [recipients, setRecipients] = useState<string[]>(propsRecipients || []);
+  const [recipients, setRecipients] = useState<string[]>([]);
   const [newRecipient, setNewRecipient] = useState("");
-  const [name, setName] = useState(fromName || "");
-  const [date, setDate] = useState(fromDate || "");
-  const [message, setMessage] = useState(fromMessage || "");
+  const [name, setName] = useState("");
+  const [date, setDate] = useState("");
+  const [message, setMessage] = useState("");
   const [showValidationError, setShowValidationError] = useState(false);
+
+  // Initialize state after mounting to prevent hydration issues
+  useEffect(() => {
+    setMounted(true);
+    setTitle(propsTitle || "");
+    setRecipients(propsRecipients || []);
+    setName(fromName || "");
+    setDate(fromDate || "");
+    setMessage(fromMessage || "");
+  }, [propsTitle, propsRecipients, fromName, fromDate, fromMessage]);
 
   // Sync local state with props when they change
   useEffect(() => {
@@ -101,6 +112,14 @@ export default function PropsDetailsStep({
     onNext();
   };
 
+
+  if (!mounted) {
+    return (
+      <div className="h-full flex flex-col items-center justify-center">
+        <div className="text-white">Loading...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="h-full flex flex-col" style={{ marginLeft: "8px", marginRight: "8px" }}>
