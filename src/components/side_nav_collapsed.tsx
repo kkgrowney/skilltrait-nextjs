@@ -134,13 +134,9 @@ export default function SideNavCollapsed() {
             </div>
           </div>
 
-          {/* Verifications - Active/Inactive State */}
+          {/* Verifications - Hidden but functional */}
           <div
-            className={`flex items-center justify-center w-11 h-11 rounded-lg cursor-pointer transition-colors ${
-              currentView === "verifications"
-                ? "bg-[#181d21]"
-                : "hover:bg-[#181d21] hover:bg-opacity-50"
-            }`}
+            className="hidden"
             onClick={() => setCurrentView("verifications")}
           >
             <div className="flex items-center justify-center w-full h-full">
@@ -157,6 +153,7 @@ export default function SideNavCollapsed() {
               />
             </div>
           </div>
+
         </nav>
       </div>
 

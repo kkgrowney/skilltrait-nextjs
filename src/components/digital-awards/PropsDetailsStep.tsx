@@ -35,12 +35,6 @@ export default function PropsDetailsStep({
   fromMessage,
   setFromMessage,
 }: PropsDetailsStepProps) {
-  const [mounted, setMounted] = useState(false);
-  
-  // Set mounted state to prevent hydration mismatch
-  useEffect(() => {
-    setMounted(true);
-  }, []);
   
   const [title, setTitle] = useState(propsTitle || "");
   const [showTitleInput, setShowTitleInput] = useState(false);
@@ -107,10 +101,6 @@ export default function PropsDetailsStep({
     onNext();
   };
 
-  // Remove the useEffect that sets default date - user must choose a date
-  useEffect(() => {
-    setMounted(true);
-  }, []);
 
   return (
     <div className="h-full flex flex-col" style={{ marginLeft: "8px", marginRight: "8px" }}>
@@ -143,33 +133,40 @@ export default function PropsDetailsStep({
             className="p-4 rounded-sm border"
             style={{ backgroundColor: "#1B1D21", borderColor: "#454446" }}
           >
-            {mounted && showTitleInput ? (
-              <div className="flex items-center space-x-2">
-                <input
-                  type="text"
-                  placeholder="Enter props title"
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                  maxLength={44}
-                  className="flex-1 px-4 py-2 text-sm bg-[#1B1D21] border rounded text-white placeholder-gray-400 focus:outline-none focus:border-[var(--primary-dark)]"
-                  style={{
-                    borderColor: "#454446",
-                    fontFamily: "Poppins",
-                    fontSize: "14px",
-                    color: "white",
-                  }}
-                />
-                <button
-                  onClick={() => {
-                    if (setPropsTitle) {
-                      setPropsTitle(title);
-                    }
-                    setShowTitleInput(false);
-                  }}
-                  className="px-4 py-2 text-sm font-medium transition-colors bg-white text-[#212327] rounded hover:bg-gray-100"
-                >
-                  Add
-                </button>
+            {showTitleInput ? (
+              <div>
+                <div className="flex items-center space-x-2">
+                  <input
+                    type="text"
+                    placeholder="Enter props title"
+                    value={title}
+                    onChange={(e) => setTitle(e.target.value)}
+                    maxLength={27}
+                    className="flex-1 px-4 py-2 text-sm bg-[#1B1D21] border rounded text-white placeholder-gray-400 focus:outline-none focus:border-[var(--primary-dark)]"
+                    style={{
+                      borderColor: "#454446",
+                      fontFamily: "Poppins",
+                      fontSize: "14px",
+                      color: "white",
+                    }}
+                  />
+                  <button
+                    onClick={() => {
+                      if (setPropsTitle) {
+                        setPropsTitle(title);
+                      }
+                      setShowTitleInput(false);
+                    }}
+                    className="px-4 py-2 text-sm font-medium transition-colors bg-white text-[#212327] rounded hover:bg-gray-100"
+                  >
+                    Add
+                  </button>
+                </div>
+                <div className="mt-2 text-right">
+                  <span className="text-xs text-gray-400">
+                    {title.length}/27 characters
+                  </span>
+                </div>
               </div>
             ) : (
               <div
