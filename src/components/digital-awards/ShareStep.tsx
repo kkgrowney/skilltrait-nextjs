@@ -487,6 +487,10 @@ This digital award recognizes excellence and dedication in professional developm
   // Function to get proxied URL for preview generation
   const getProxiedUrlForPreview = (imageUrl: string): string => {
     if (!imageUrl) return imageUrl;
+    // Handle local files (starting with /) - these should not be proxied
+    if (imageUrl.startsWith('/')) {
+      return imageUrl;
+    }
     if (imageUrl.startsWith("http://") || imageUrl.startsWith("https://")) {
       return `/api/proxy-image?url=${encodeURIComponent(imageUrl)}`;
     }

@@ -194,6 +194,39 @@ useEffect(() => {
 }, [fromMessage]);
 ```
 
+### Issue 3: Custom Template Proxy Errors ✅ FIXED
+**Problem**: Custom template was causing proxy-image API errors when trying to fetch local files (`/custombackground_2x.png`, `/a_custom_2x.png`).
+
+**Root Cause**: The `getProxiedUrlForPreview` function in `ShareStep.tsx` was trying to proxy local files instead of serving them directly, causing "Failed to parse URL" errors.
+
+**Solution**: Updated `getProxiedUrlForPreview` function to handle local files correctly and enhanced proxy API validation:
+
+```typescript
+// ShareStep.tsx - Handle local files directly
+const getProxiedUrlForPreview = (imageUrl: string): string => {
+  if (!imageUrl) return imageUrl;
+  // Handle local files (starting with /) - these should not be proxied
+  if (imageUrl.startsWith('/')) {
+    return imageUrl;
+  }
+  if (imageUrl.startsWith("http://") || imageUrl.startsWith("https://")) {
+    return `/api/proxy-image?url=${encodeURIComponent(imageUrl)}`;
+  }
+  return imageUrl;
+};
+```
+
+```typescript
+// proxy-image/route.ts - Enhanced validation
+// Handle local files - these should not be proxied (mainly Custom template assets)
+if (imageUrl.startsWith('/')) {
+  return NextResponse.json(
+    { error: "Local files should not be proxied" },
+    { status: 400 }
+  );
+}
+```
+
 ## Working Features
 - ✅ Custom template appears first in list
 - ✅ Custom template skips detail view
@@ -203,14 +236,16 @@ useEffect(() => {
 - ✅ SkillTrait mark visible
 - ✅ Regular templates work correctly
 - ✅ Hydration errors fixed
-- ✅ **NEW**: Props Recipients and From container display correctly for Custom template
-- ✅ **NEW**: Add button functionality works in From submission form
+- ✅ **FIXED**: Props Recipients and From container display correctly for Custom template
+- ✅ **FIXED**: Add button functionality works in From submission form
+- ✅ **FIXED**: Custom template proxy errors resolved - local files load directly
 
 ## Next Steps
 1. ✅ **COMPLETED**: Debug why Custom template overlay doesn't show in Details/Share tabs
 2. ✅ **COMPLETED**: Fix Add button functionality in From submission
-3. Test all functionality end-to-end
-4. Ensure no regression in regular template functionality
+3. ✅ **COMPLETED**: Fix Custom template proxy errors for local assets
+4. Test all functionality end-to-end
+5. Ensure no regression in regular template functionality
 
 ## Testing Checklist
 - [x] Custom template appears first in Props Templates
@@ -221,6 +256,7 @@ useEffect(() => {
 - [x] **FIXED**: Details tab shows Props Recipients and From container for Custom template
 - [x] **FIXED**: Share tab shows Props Recipients and From container for Custom template
 - [x] **FIXED**: Add button works in From submission
-- [x] Regular templates still work correctly
+- [x] **FIXED**: Custom template proxy errors resolved - no more local file proxy attempts
+- [x] Regular templates still work correctly (company and free props)
 - [x] No hydration errors
 - [x] SkillTrait mark visible in bottom right

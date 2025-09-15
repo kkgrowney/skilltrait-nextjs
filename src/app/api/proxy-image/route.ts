@@ -22,6 +22,23 @@ export async function GET(request: NextRequest) {
       );
     }
 
+    // Handle local files - these should not be proxied (mainly Custom template assets)
+    if (imageUrl.startsWith('/')) {
+      return NextResponse.json(
+        { error: "Local files should not be proxied" },
+        { status: 400 }
+      );
+    }
+
+    // Handle non-URL strings (like text content) - this shouldn't happen in normal operation
+    if (!imageUrl.startsWith('http://') && !imageUrl.startsWith('https://')) {
+      console.warn("Invalid URL format detected:", imageUrl);
+      return NextResponse.json(
+        { error: "Invalid URL format" },
+        { status: 400 }
+      );
+    }
+
     console.log("Proxying image from:", imageUrl);
 
     // Fetch the image from Firebase Storage
