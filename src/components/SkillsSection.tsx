@@ -14,6 +14,72 @@ export default function SkillsSection({ userId }: SkillsSectionProps) {
   const [expandedSkills, setExpandedSkills] = useState<Set<string>>(new Set());
   const [hoveredSkill, setHoveredSkill] = useState<string | null>(null);
 
+  // Helper function to get proficiency level number
+  const getProficiencyNumber = (proficiency: string | number): number => {
+    // If it's already a number, return it
+    if (typeof proficiency === 'number') {
+      return proficiency;
+    }
+    
+    const proficiencyMap: { [key: string]: number } = {
+      'Beginner': 1,
+      'Intermediate': 2,
+      'Advanced': 3,
+      'Expert': 4,
+      'Master': 5
+    };
+    return proficiencyMap[proficiency] || 0;
+  };
+
+  // Helper function to get motivation level number
+  const getMotivationNumber = (motivation: string | number): number => {
+    // If it's already a number, return it
+    if (typeof motivation === 'number') {
+      return motivation;
+    }
+    
+    const motivationMap: { [key: string]: number } = {
+      'Very Low': 1,
+      'Low': 2,
+      'Moderate': 3,
+      'High': 4,
+      'Very High': 5
+    };
+    return motivationMap[motivation] || 0;
+  };
+
+  // Helper function to get proficiency level text
+  const getProficiencyText = (proficiency: string | number): string => {
+    if (typeof proficiency === 'string') {
+      return proficiency;
+    }
+    
+    const proficiencyTextMap: { [key: number]: string } = {
+      1: 'Beginner',
+      2: 'Intermediate',
+      3: 'Advanced',
+      4: 'Expert',
+      5: 'Master'
+    };
+    return proficiencyTextMap[proficiency] || 'Unknown';
+  };
+
+  // Helper function to get motivation level text
+  const getMotivationText = (motivation: string | number): string => {
+    if (typeof motivation === 'string') {
+      return motivation;
+    }
+    
+    const motivationTextMap: { [key: number]: string } = {
+      1: 'Very Low',
+      2: 'Low',
+      3: 'Moderate',
+      4: 'High',
+      5: 'Very High'
+    };
+    return motivationTextMap[motivation] || 'Unknown';
+  };
+
   // Fetch skills from top-level skills collection
   const fetchUserSkills = async (userId: string) => {
     if (!userId) return;
@@ -141,6 +207,8 @@ export default function SkillsSection({ userId }: SkillsSectionProps) {
             const skill = userSkills.find(s => (s.id || `skill-${userSkills.indexOf(s)}`) === skillId);
             if (!skill) return null;
             
+            const skillName = skill.name || skill.skill || 'Unknown Skill';
+            
             return (
               <div 
                 key={`${skillId}-${expandedSkills.size}`} 
@@ -148,15 +216,27 @@ export default function SkillsSection({ userId }: SkillsSectionProps) {
               >
                 <div className="space-y-2">
                   <div className="flex items-center gap-2">
+                    <span className="text-white text-xs">Skill:</span>
+                    <button
+                      onClick={() => {
+                        // Navigate to skills page with this skill selected for detail view
+                        window.location.href = `/skills?select=${encodeURIComponent(skillName)}`;
+                      }}
+                      className="text-[#00DF71] text-xs font-medium underline hover:text-[#0AFB84] transition-colors cursor-pointer"
+                    >
+                      {skillName}
+                    </button>
+                  </div>
+                  <div className="flex items-center gap-2">
                     <span className="text-white text-xs">Proficiency:</span>
                     <span className="text-[#00DF71] text-xs font-medium">
-                      {skill.proficiency || 'Not specified'}
+                      {skill.proficiency ? `${getProficiencyText(skill.proficiency)} (${getProficiencyNumber(skill.proficiency)})` : 'Not specified'}
                     </span>
                   </div>
                   <div className="flex items-center gap-2">
                     <span className="text-white text-xs">Motivation:</span>
                     <span className="text-[#00DF71] text-xs font-medium">
-                      {skill.motivation || 'Not specified'}
+                      {skill.motivation ? `${getMotivationText(skill.motivation)} (${getMotivationNumber(skill.motivation)})` : 'Not specified'}
                     </span>
                   </div>
                   <div className="pt-2 border-t border-[#454446]">

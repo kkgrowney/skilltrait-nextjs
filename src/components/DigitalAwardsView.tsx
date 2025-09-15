@@ -17,6 +17,17 @@ import DigitalAwardsSideNav, {
   StepType,
 } from "@/components/DigitalAwardsSideNav";
 
+// Helper function to get proxied image URLs
+const getProxiedUrlForPreview = (imageUrl: string): string => {
+  if (!imageUrl) return "";
+  // If it's a local file (starts with /), use it directly
+  if (imageUrl.startsWith('/')) {
+    return imageUrl;
+  }
+  // Otherwise, proxy through the API
+  return `/api/proxy-image?url=${encodeURIComponent(imageUrl)}`;
+};
+
 export default function DigitalAwardsView() {
   // Function to get consistent company name based on template index
   const getCompanyName = (templateIndex: number) => {
@@ -573,8 +584,8 @@ export default function DigitalAwardsView() {
                               src={
                                 uploadedBackgroundFile
                                   ? URL.createObjectURL(uploadedBackgroundFile)
-                                  : selectedTemplate?.achievement
-                                      ?.backgroundImage || ""
+                                  : getProxiedUrlForPreview(selectedTemplate?.achievement
+                                      ?.backgroundImage || "")
                               }
                               alt="Background"
                               className="w-full h-full object-cover rounded"
@@ -589,7 +600,7 @@ export default function DigitalAwardsView() {
                           </div>
                         )}
                         <img
-                          src={selectedTemplate?.achievement?.props || ""}
+                          src={getProxiedUrlForPreview(selectedTemplate?.achievement?.props || "")}
                           alt="Selected Template"
                           className="object-contain rounded relative z-20 w-full h-full"
                           style={{
@@ -781,7 +792,7 @@ export default function DigitalAwardsView() {
                             className="relative w-full h-full"
                           >
                             <img
-                              src={temp.achievement.props}
+                              src={getProxiedUrlForPreview(temp.achievement.props)}
                               alt="Props Template 1"
                               className="w-full h-full object-cover"
                               style={{ borderRadius: "4px" }}
@@ -808,7 +819,7 @@ export default function DigitalAwardsView() {
                                 }}
                               >
                                 <img
-                                  src={temp.achievement.logoImage}
+                                  src={getProxiedUrlForPreview(temp.achievement.logoImage)}
                                   alt="Instagram Logo"
                                   className="h-full max-h-full w-auto object-contain"
                                 />
@@ -1034,7 +1045,7 @@ export default function DigitalAwardsView() {
         </div>
       )}
       {showAchievementsModal && (
-        <div className="fixed inset-0 flex items-center justify-center z-[9999] bg-black bg-opacity-50">
+        <div className="fixed inset-0 flex items-center justify-center z-[9999] style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }}">
           <div className="bg-[#212327] border border-gray-600 rounded-lg p-6 max-w-sm w-full mx-4 shadow-2xl text-center">
             <h2 className="text-lg font-medium text-white mb-4">
               Achievements Coming Soon
@@ -1066,7 +1077,7 @@ export default function DigitalAwardsView() {
       {/* Steps Sidebar - Always accessible from main layout */}
       {isStepsSidebarOpen && (
         <div
-          className="fixed inset-0 bg-black bg-opacity-50 z-[60]"
+          className="fixed inset-0 style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }} z-[60]"
           onClick={() => setIsStepsSidebarOpen(false)}
         />
       )}
@@ -1140,7 +1151,7 @@ export default function DigitalAwardsView() {
               {/* Steps Navigation */}
               <div className="space-y-3">
                 {[
-                  { step: "awards" as const, label: "Awards", icon: "🏆" },
+                  { step: "awards" as const, label: "Templates", icon: "🏆" },
                   { step: "company" as const, label: "Company", icon: "🏢" },
                   {
                     step: "background" as const,
@@ -1152,7 +1163,7 @@ export default function DigitalAwardsView() {
                     label: "Details",
                     icon: "📝",
                   },
-                  { step: "share" as const, label: "Share", icon: "📤" },
+                  { step: "share" as const, label: "Save", icon: "📤" },
                 ].map(({ step, label, icon }) => (
                   <button
                     key={step}

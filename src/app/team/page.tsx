@@ -11,6 +11,25 @@ import ViewTitleTab from '@/components/ViewTitleTab';
 import EmployeesContent from '@/components/EmployeesContent';
 import DragDropUpload from '@/components/DragDropUpload';
 import ProfileSnapshot from '@/components/ProfileSnapshot';
+import {
+  Chart as ChartJS,
+  RadialLinearScale,
+  PointElement,
+  LineElement,
+  Filler,
+  Tooltip,
+  Legend,
+} from 'chart.js';
+import { Radar } from 'react-chartjs-2';
+
+ChartJS.register(
+  RadialLinearScale,
+  PointElement,
+  LineElement,
+  Filler,
+  Tooltip,
+  Legend
+);
 
 // SkillRankSection Component
 interface SkillRankSectionProps {
@@ -493,7 +512,15 @@ export default function Team() {
   const [editingSkill, setEditingSkill] = useState<string | null>(null);
   const [editingSkillValue, setEditingSkillValue] = useState<string>('');
   const [rankedEmployeeResults, setRankedEmployeeResults] = useState<any[]>([]);
+  const [allSkillsRankedResults, setAllSkillsRankedResults] = useState<any[]>([]);
+  const [allSkillsEmployeesRanked, setAllSkillsEmployeesRanked] = useState(false);
   const [isRankingLoading, setIsRankingLoading] = useState(false);
+  const [selectedAllSkillsEmployee, setSelectedAllSkillsEmployee] = useState<any>(null);
+  const [showAllSkillsProfileModal, setShowAllSkillsProfileModal] = useState(false);
+  const [isAllSkillsModalClosing, setIsAllSkillsModalClosing] = useState(false);
+  const [skillFulfillmentData, setSkillFulfillmentData] = useState<any[]>([]);
+  const [selectedEmployees, setSelectedEmployees] = useState<Set<string>>(new Set());
+  const [showCompareModal, setShowCompareModal] = useState(false);
 
   // Handle adding a skill to required skills
   const handleAddSkill = (skill: string) => {
@@ -820,7 +847,7 @@ export default function Team() {
     setEditingSkillValue('');
   };
 
-  // Handle rank employees action
+  // Handle rank employees action from Required Skills tab
   const handleRankEmployees = () => {
     const skillsToRank = selectedSkillsForAction.map(skill => {
       // Get the most current value: pending changes first, then saved values, then defaults
@@ -840,6 +867,112 @@ export default function Team() {
     setPendingChanges({});
     
     // Don't start the ranking process automatically - let user click individual skill buttons
+  };
+
+  // Handle rank employees action from All Skills container
+  const handleAllSkillsRankEmployees = async () => {
+    // Use the already populated rankEmployeesSkills
+    const skillsToRank = rankEmployeesSkills;
+    
+    if (!skillsToRank || skillsToRank.length === 0) {
+      setNotification('No skills selected for ranking');
+      setTimeout(() => setNotification(null), 3000);
+      return;
+    }
+    
+    // Call the multiple skills API
+    try {
+      setIsRankingLoading(true);
+      setNotification('Ranking employees based on selected skills...');
+      
+      // Get company ID using the same logic as individual skills
+      let companyId: string = '';
+      console.log('🔍 Debug: teamProfile:', teamProfile);
+      console.log('🔍 Debug: teamProfile.companyReference:', teamProfile?.companyReference);
+      console.log('🔍 Debug: typeof teamProfile.companyReference:', typeof teamProfile?.companyReference);
+      
+      if (teamProfile && teamProfile.companyReference) {
+        if (typeof teamProfile.companyReference === 'string') {
+          companyId = teamProfile.companyReference;
+          console.log('🔍 Debug: Using string company ID:', companyId);
+        } else if (teamProfile.companyReference && typeof teamProfile.companyReference === 'object') {
+          // Handle Firestore document reference object
+          if ('path' in teamProfile.companyReference) {
+            companyId = teamProfile.companyReference.path.split('/').pop() || '';
+            console.log('🔍 Debug: Using path company ID:', companyId);
+            console.log('🔍 Debug: Full path:', teamProfile.companyReference.path);
+          } else if ('referencePath' in teamProfile.companyReference) {
+            companyId = teamProfile.companyReference.referencePath.split('/').pop() || '';
+            console.log('🔍 Debug: Using referencePath company ID:', companyId);
+            console.log('🔍 Debug: Full referencePath:', teamProfile.companyReference.referencePath);
+          }
+        }
+      }
+      
+      // If teamProfile doesn't have companyReference, try to get it from the user's active connection
+      if (!companyId) {
+        console.log('🔄 teamProfile missing companyReference, checking user connections...');
+        
+        try {
+          // Query user connections directly to get company ID
+          const userConnectionsQuery = query(
+            collection(db, 'connectedCompanies'),
+            where('userRef', '==', doc(db, 'users', user!.uid)),
+            where('active', '==', true),
+            where('verified', '==', true)
+          );
+          
+          const userConnectionsSnapshot = await getDocs(userConnectionsQuery);
+          
+          if (!userConnectionsSnapshot.empty) {
+            const userConnection = userConnectionsSnapshot.docs[0];
+            const companyData = userConnection.data();
+            
+            if (companyData.companyReference) {
+              if (typeof companyData.companyReference === 'string') {
+                companyId = companyData.companyReference;
+                console.log('🔍 Debug: From user connection - Using string company ID:', companyId);
+              } else if (companyData.companyReference && typeof companyData.companyReference === 'object') {
+                if ('path' in companyData.companyReference) {
+                  companyId = companyData.companyReference.path.split('/').pop() || '';
+                  console.log('🔍 Debug: From user connection - Using path company ID:', companyId);
+                } else if ('referencePath' in companyData.companyReference) {
+                  companyId = companyData.companyReference.referencePath.split('/').pop() || '';
+                  console.log('🔍 Debug: From user connection - Using referencePath company ID:', companyId);
+                }
+              }
+            }
+          }
+        } catch (connectionError) {
+          console.error('Error fetching user connections:', connectionError);
+        }
+      }
+      
+      if (!companyId) {
+        throw new Error('Company reference not found');
+      }
+      
+      // Call the multiple skills API
+      const result = await callMultipleSkillsVectorSearchAPI(skillsToRank, companyId);
+      
+      // Store results in separate All Skills state (not individual skills)
+      setAllSkillsRankedResults(result.employees);
+      setSkillFulfillmentData(result.skillFulfillment);
+      console.log('Setting skillFulfillmentData state:', result.skillFulfillment);
+      setAllSkillsEmployeesRanked(true);
+      setIsAllSkillsExpanded(true); // Automatically expand to show results
+      setNotification('Employee ranking completed successfully!');
+      
+      // Clear notification after 3 seconds
+      setTimeout(() => setNotification(null), 3000);
+      
+    } catch (error) {
+      console.error('Error ranking employees:', error);
+      setNotification('Error ranking employees. Please try again.');
+      setTimeout(() => setNotification(null), 3000);
+    } finally {
+      setIsRankingLoading(false);
+    }
   };
 
   // Start employee ranking process
@@ -965,6 +1098,132 @@ export default function Team() {
     } finally {
       setIsRankingLoading(false);
     }
+  };
+
+  // Call the vectorSearch cloud function for multiple skills
+  const callMultipleSkillsVectorSearchAPI = async (skillsData: any[], companyId: string) => {
+    console.log('🎯 callMultipleSkillsVectorSearchAPI called with:');
+    console.log('  - skillsData:', skillsData);
+    console.log('  - companyId:', companyId);
+    
+    // Validate skillsData structure
+    if (!skillsData || !Array.isArray(skillsData) || skillsData.length === 0) {
+      throw new Error('Invalid skillsData: must be a non-empty array');
+    }
+    
+    // Create the query array in the required format
+    const queryArray = skillsData.map(skill => ({ skill: skill.skill }));
+    
+    const requestBody = {
+      query: JSON.stringify(queryArray),
+      comp: companyId
+    };
+    
+    console.log('📤 Sending multiple skills request to cloud function with body:', JSON.stringify(requestBody, null, 2));
+    
+    // Use our Next.js API route to avoid CORS issues
+    const apiUrl = '/api/vector-search';
+    
+    console.log('🌐 Making request to Next.js API route:', apiUrl);
+    
+    const response = await fetch(apiUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(requestBody)
+    });
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
+    const result = await response.json();
+    console.log('Multiple skills vector search result:', result);
+    
+    // Extract the results array from the response
+    const results = result.results || [];
+    console.log('Extracted results for multiple skills:', results);
+    
+    // Extract skillFulfillment data from the first result (assuming all results have the same skillFulfillment)
+    const skillFulfillment = results.length > 0 ? results[0].skillFulfillment || [] : [];
+    console.log('Extracted skillFulfillment data:', skillFulfillment);
+    console.log('skillFulfillment length:', skillFulfillment.length);
+    console.log('skillFulfillment structure:', JSON.stringify(skillFulfillment, null, 2));
+    
+    // Process the results to get user information
+    const processedEmployees = await Promise.all(
+      results.map(async (item: any) => {
+        try {
+          // Extract user ID from userRef (now a string)
+          const userId = item.userRef;
+          
+          if (!userId) {
+            console.warn('No user ID found in userRef:', item.userRef);
+            return null;
+          }
+          
+          // Fetch user data from Firestore
+          const userDoc = await getDoc(doc(db, 'users', userId));
+          
+          if (!userDoc.exists()) {
+            console.warn('User document not found for ID:', userId);
+            return null;
+          }
+          
+          const userData = userDoc.data();
+          
+          // Map motivation and proficiency from numbers to strings
+          const motivationMap: { [key: number]: string } = {
+            1: 'Very Low',
+            2: 'Low',
+            3: 'Moderate',
+            4: 'High',
+            5: 'Very High'
+          };
+          
+          const proficiencyMap: { [key: number]: string } = {
+            1: 'Beginner',
+            2: 'Intermediate',
+            3: 'Advanced',
+            4: 'Expert',
+            5: 'Master'
+          };
+          
+          return {
+            id: userId,
+            name: userData.display_name || userData.displayName || userData.name || 'Unknown User',
+            title: userData.currentRole || userData.title || userData.jobTitle || 'Unknown Title',
+            location: userData.location || 'Unknown Location',
+            email: userData.email || '',
+            skills: userData.skills || [],
+            photo: userData.photo_url || userData.photoURL || userData.photo || userData.profilePicture,
+            company: userData.company || '',
+            motivation: motivationMap[item.motivation] || 'Moderate',
+            proficiency: proficiencyMap[item.proficiency] || 'Intermediate',
+            score: item.score || 0,
+            confidence: item.confidence || 0,
+            reason: item.reason || 'No reason provided',
+            summary: item.reason || 'No reason provided',
+            skillFulfillment: item.skillFulfillment || [],
+            userRef: userId
+          };
+        } catch (error) {
+          console.error('Error processing employee data:', error);
+          return null;
+        }
+      })
+    );
+    
+    // Filter out null results and sort by confidence (highest to lowest)
+    const validEmployees = processedEmployees.filter(emp => emp !== null);
+    const sortedEmployees = validEmployees.sort((a, b) => (b.confidence || 0) - (a.confidence || 0));
+    console.log('Processed employees for multiple skills:', sortedEmployees);
+    
+    return {
+      employees: sortedEmployees,
+      skillFulfillment: skillFulfillment
+    };
   };
 
   // Call the vectorSearch cloud function
@@ -1804,7 +2063,7 @@ export default function Team() {
 
           {/* Remove Confirmation Dialog */}
           {showRemoveConfirmation && (
-            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="fixed inset-0 style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }} flex items-center justify-center z-50">
               <div className="bg-[#212327] border border-[#454446] rounded-lg p-6 max-w-md mx-4">
                 <h3 className="text-lg font-semibold text-white mb-4">Confirm Removal</h3>
                 <p className="text-gray-300 mb-6">
@@ -2351,7 +2610,7 @@ export default function Team() {
                               </div>
                               <div className="flex items-center gap-2">
                                                         <button 
-                          onClick={handleRankEmployees}
+                          onClick={handleAllSkillsRankEmployees}
                           disabled={rankEmployeesSkills.length === 0 || !teamProfile?.companyReference}
                           className={`ml-5 flex items-center gap-2 px-3 py-2 rounded-lg transition-all ${
                             rankEmployeesSkills.length > 0 && teamProfile?.companyReference
@@ -2406,23 +2665,164 @@ export default function Team() {
                           {isAllSkillsExpanded && (
                             <div className="px-4 pb-4 border-t border-gray-500">
                               <div className="pt-4 space-y-3">
-                                <div className="text-sm text-gray-300 font-medium">Skills Summary</div>
-                                <div className="grid grid-cols-2 gap-4 text-xs">
-                                  <div className="space-y-2">
-                                    <div className="text-gray-400">Total Skills: {rankEmployeesSkills.length}</div>
-                                    <div className="text-gray-400">Average Proficiency: {rankEmployeesSkills.length > 0 ? 'Calculating...' : 'N/A'}</div>
+                                {/* All Skills Ranking Results */}
+                                {allSkillsEmployeesRanked && allSkillsRankedResults.length > 0 && (
+                                  <div className="mt-4">
+                                    <div className="flex justify-between items-center mb-3">
+                                      <div className="text-sm text-gray-300 font-medium">Ranked Employees</div>
+                                      <button
+                                        onClick={() => {
+                                          console.log('Compare button clicked with selected employees:', Array.from(selectedEmployees));
+                                          alert(`Compare functionality coming soon! Selected ${selectedEmployees.size} employees.`);
+                                        }}
+                                        disabled={selectedEmployees.size < 2}
+                                        className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                                          selectedEmployees.size >= 2
+                                            ? 'bg-[#00DF71] text-black hover:bg-[#0AFB84]'
+                                            : 'bg-gray-600 text-gray-400 cursor-not-allowed'
+                                        }`}
+                                      >
+                                        Compare ({selectedEmployees.size})
+                                      </button>
+                                    </div>
+                                    
+                                    {/* Employee Table */}
+                                    <div className="bg-[#1e2327] rounded-lg border border-[#454446] overflow-hidden">
+                                      {/* Horizontal Scrollable Container */}
+                                      <div className="overflow-x-auto">
+                                        {/* Table with Fixed Column Widths */}
+                                        <div className="min-w-[600px]">
+                                          {/* Table Header */}
+                                          <div className="bg-[#1B1D21] border-b border-[#3D3C3E] p-0">
+                                            <div className="flex">
+                                              <div className="w-[40px] py-3 flex justify-center">
+                                                <input
+                                                  type="checkbox"
+                                                  checked={selectedEmployees.size === allSkillsRankedResults.length && allSkillsRankedResults.length > 0}
+                                                  onChange={(e) => {
+                                                    if (e.target.checked) {
+                                                      setSelectedEmployees(new Set(allSkillsRankedResults.map(emp => emp.id)));
+                                                    } else {
+                                                      setSelectedEmployees(new Set());
+                                                    }
+                                                  }}
+                                                  className="h-4 w-4 text-[#00DF71] focus:ring-[#00DF71] border-gray-600 rounded bg-[#1B1D21]"
+                                                  style={{ accentColor: '#00DF71' }}
+                                                />
+                                              </div>
+
+                                              <div className="pl-3 pr-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider flex-1">NAME</div>
+                                              <div className="pl-3 pr-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider flex-1">TITLE</div>
+                                              <div className="pl-3 pr-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider flex-1">LOCATION</div>
+                                              <div className="pl-3 pr-20 py-3 text-center text-xs font-medium text-gray-300 uppercase tracking-wider flex-1">CONFIDENCE (1-100)</div>
+                                            </div>
+                                          </div>
+
+                                          {/* Table Body */}
+                                          <div className="divide-y divide-[#3D3C3E]">
+                                            {allSkillsRankedResults
+                                              .slice(0, 10) // Show top 10 employees
+                                              .map((employee: any, index: number) => (
+                                                <div 
+                                                  key={employee.id || index} 
+                                                  className="flex cursor-pointer transition-all duration-200 bg-[#191D21] hover:bg-[#202327]"
+                                                >
+                                                  <div className="w-[40px] py-4 flex justify-center">
+                                                    <input
+                                                      type="checkbox"
+                                                      checked={selectedEmployees.has(employee.id)}
+                                                      onChange={(e) => {
+                                                        const newSelected = new Set(selectedEmployees);
+                                                        if (e.target.checked) {
+                                                          newSelected.add(employee.id);
+                                                        } else {
+                                                          newSelected.delete(employee.id);
+                                                        }
+                                                        setSelectedEmployees(newSelected);
+                                                      }}
+                                                      className="h-4 w-4 text-[#00DF71] focus:ring-[#00DF71] border-gray-600 rounded bg-[#1B1D21]"
+                                                      style={{ accentColor: '#00DF71' }}
+                                                      onClick={(e) => e.stopPropagation()}
+                                                    />
+                                                  </div>
+
+                                                  <div 
+                                                    className="pl-3 pr-6 py-4 whitespace-nowrap text-sm text-white font-medium flex-1 underline hover:text-gray-300 transition-colors cursor-pointer"
+                                                    onClick={() => {
+                                                      setSelectedAllSkillsEmployee(employee);
+                                                      setShowAllSkillsProfileModal(true);
+                                                    }}
+                                                  >
+                                                    {employee.name}
+                                                  </div>
+                                                  <div className="pl-3 pr-6 py-4 whitespace-nowrap text-sm text-gray-300 flex-1">{employee.title || 'No title'}</div>
+                                                  <div className="pl-3 pr-6 py-4 whitespace-nowrap text-sm text-gray-300 flex-1">{employee.location || 'No location'}</div>
+                                                  <div className="pl-3 pr-20 py-4 whitespace-nowrap text-sm text-gray-300 flex-1 text-center">
+                                                    {employee.confidence || '0'}
+                                                  </div>
+                                                </div>
+                                              ))}
+                                          </div>
+                                        </div>
+                                      </div>
+                                    </div>
+
+                                    {/* Results Info */}
+                                    <div className="mt-4 text-center">
+                                      <p className="text-sm text-gray-400">
+                                        Showing top {Math.min(allSkillsRankedResults.length, 10)} employees ranked by All Skills confidence
+                                      </p>
+                                      <p className="text-xs text-gray-500 mt-1">
+                                        Rankings based on confidence scores (highest to lowest)
+                                      </p>
+                                    </div>
+
                                   </div>
-                                  <div className="space-y-2">
-                                    <div className="text-gray-400">Average Motivation: {rankEmployeesSkills.length > 0 ? 'Calculating...' : 'N/A'}</div>
-                                    <div className="text-gray-400">Status: {employeesRanked ? 'Ranked' : 'Pending'}</div>
-                                  </div>
-                                </div>
+                                )}
                               </div>
                             </div>
                           )}
                         </div>
 
-                        {/* Rank Employees Container */}
+                        {/* All Skills ProfileSnapshot Modal */}
+                        {showAllSkillsProfileModal && selectedAllSkillsEmployee && (
+                          <div 
+                            className="fixed inset-0 z-50 transition-all duration-500"
+                            style={{
+                              backgroundColor: isAllSkillsModalClosing ? 'rgba(0, 0, 0, 0)' : 'rgba(0, 0, 0, 0.3)'
+                            }}
+                            onClick={() => {
+                              setIsAllSkillsModalClosing(true);
+                              setTimeout(() => {
+                                setShowAllSkillsProfileModal(false);
+                                setSelectedAllSkillsEmployee(null);
+                                setIsAllSkillsModalClosing(false);
+                              }, 500);
+                            }}
+                          >
+                            <div 
+                              className={`absolute right-0 top-0 h-full bg-[#1A1D21] transform transition-transform duration-500 ease-in-out ${
+                                isAllSkillsModalClosing ? 'translate-x-full' : 'translate-x-0'
+                              }`}
+                              style={{ width: '670px' }}
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              <ProfileSnapshot 
+                                employee={selectedAllSkillsEmployee}
+                                onClose={() => {
+                                  setIsAllSkillsModalClosing(true);
+                                  setTimeout(() => {
+                                    setShowAllSkillsProfileModal(false);
+                                    setSelectedAllSkillsEmployee(null);
+                                    setIsAllSkillsModalClosing(false);
+                                  }, 500);
+                                }}
+                              />
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Individual Skills Containers */}
                         <div className="space-y-4">
                           {rankEmployeesSkills.length > 0 ? (
                             rankEmployeesSkills.map((skillData, index) => (
@@ -2497,12 +2897,9 @@ export default function Team() {
           ) : activeTab === 'employees' ? (
             // Employees tab content
             <div className="w-full h-full">
-              {/* Employees Header with Count Badge */}
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-xl font-bold text-white">Employees</h2>
-                <div className="bg-white text-[#212327] px-3 py-1 rounded-full text-sm font-medium">
-                  {totalEmployeeCount}
-                </div>
+              {/* Employees Header */}
+              <div className="mb-6">
+                <h2 className="text-xl font-bold text-white">Employees ({totalEmployeeCount})</h2>
               </div>
               <EmployeesContent />
             </div>
@@ -2668,6 +3065,7 @@ export default function Team() {
           )}
         </div>
       </div>
+
     </div>
   );
 }

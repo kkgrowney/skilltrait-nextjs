@@ -3,6 +3,25 @@
 import React, { useState, useEffect } from 'react';
 import { collection, getDocs, query, where, doc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
+import {
+  Chart as ChartJS,
+  RadialLinearScale,
+  PointElement,
+  LineElement,
+  Filler,
+  Tooltip,
+  Legend,
+} from 'chart.js';
+import { Radar } from 'react-chartjs-2';
+
+ChartJS.register(
+  RadialLinearScale,
+  PointElement,
+  LineElement,
+  Filler,
+  Tooltip,
+  Legend
+);
 
 interface Employee {
   id: string;
@@ -18,6 +37,10 @@ interface Employee {
   role?: string;
   skills?: string[];
   reason?: string;
+  skillFulfillment?: Array<{
+    inputSkill: string;
+    bestSim: number;
+  }>;
 }
 
 interface ProfileSnapshotProps {
@@ -185,6 +208,96 @@ export default function ProfileSnapshot({ employee }: ProfileSnapshotProps) {
           </div>
         )}
 
+        {/* Skills Matrix */}
+        {employee.skillFulfillment && employee.skillFulfillment.length > 0 && (
+          <div className="box-border content-stretch flex flex-col gap-2 items-start justify-start overflow-hidden px-3 py-[18px] relative shrink-0 w-full max-w-full">
+            <div className="font-['Poppins:Medium',_sans-serif] text-[#ffffff] text-[12px] text-left tracking-[0.24px]">
+              <p className="block leading-[1.2]">Skills Matrix</p>
+            </div>
+            <div className="w-full h-80 px-0">
+              <Radar
+                data={{
+                  labels: employee.skillFulfillment.map(skill => skill.inputSkill),
+                  datasets: [
+                    {
+                      label: 'Skill Fulfillment',
+                      data: employee.skillFulfillment.map(skill => skill.bestSim),
+                      backgroundColor: 'rgba(0, 223, 113, 0.2)',
+                      borderColor: '#00DF71',
+                      borderWidth: 2,
+                      pointBackgroundColor: '#00DF71',
+                      pointBorderColor: '#00DF71',
+                      pointHoverBackgroundColor: '#0AFB84',
+                      pointHoverBorderColor: '#0AFB84',
+                    },
+                  ],
+                }}
+                options={{
+                  responsive: true,
+                  maintainAspectRatio: false,
+                  layout: {
+                    padding: {
+                      left: 0,
+                      right: 0,
+                      top: 0,
+                      bottom: 0
+                    }
+                  },
+                  plugins: {
+                    legend: {
+                      display: false
+                    },
+                    tooltip: {
+                      backgroundColor: '#1A1D21',
+                      titleColor: '#ffffff',
+                      bodyColor: '#ffffff',
+                      borderColor: '#00DF71',
+                      borderWidth: 1,
+                      callbacks: {
+                        label: function(context) {
+                          return `${context.dataset.label}: ${(context.parsed.r * 100).toFixed(1)}%`;
+                        }
+                      }
+                    }
+                  },
+                  scales: {
+                    r: {
+                      beginAtZero: true,
+                      min: 0,
+                      max: 1,
+                      ticks: {
+                        stepSize: 0.2,
+                        color: '#9CA3AF',
+                        font: {
+                          size: 8
+                        },
+                        callback: function(value) {
+                          return `${(value * 100).toFixed(0)}%`;
+                        },
+                        backdropColor: 'transparent',
+                        backdropPadding: 0,
+                        z: 10
+                      },
+                      grid: {
+                        color: '#374151'
+                      },
+                      angleLines: {
+                        color: '#374151'
+                      },
+                      pointLabels: {
+                        color: '#ffffff',
+                        font: {
+                          size: 9
+                        }
+                      }
+                    }
+                  }
+                }}
+              />
+            </div>
+          </div>
+        )}
+
         {/* Divider line */}
         <div className="box-border content-stretch flex flex-row gap-3 h-2.5 items-center justify-center overflow-clip px-3 py-[18px] relative shrink-0 w-full">
           <div className="h-0 relative shrink-0 w-[341px]">
@@ -346,24 +459,32 @@ export default function ProfileSnapshot({ employee }: ProfileSnapshotProps) {
                   const skill = userSkills.find(s => (s.id || `skill-${userSkills.indexOf(s)}`) === skillId);
                   if (!skill) return null;
                   
+                  const skillName = skill.name || skill.skill || 'Unknown Skill';
+                  
                   return (
                     <div 
                       key={`${skillId}-${expandedSkills.size}`} 
                       className="w-full mt-2 p-3 bg-[#1F2327] border border-[#454446] rounded-lg animate-in fade-in-0 slide-in-from-top-2 duration-300"
                     >
-                                              <div className="space-y-2">
-                                                    <div className="flex items-center gap-2">
-                            <span className="text-white text-xs">Proficiency:</span>
-                            <span className="text-[#00DF71] text-xs font-medium">
-                              {skill.proficiency || 'Not specified'}
-                            </span>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <span className="text-white text-xs">Motivation:</span>
-                            <span className="text-[#00DF71] text-xs font-medium">
-                              {skill.motivation || 'Not specified'}
-                            </span>
-                          </div>
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-2">
+                          <span className="text-white text-xs">Skill:</span>
+                          <span className="text-[#00DF71] text-xs font-medium">
+                            {skillName}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-white text-xs">Proficiency:</span>
+                          <span className="text-[#00DF71] text-xs font-medium">
+                            {skill.proficiency || 'Not specified'}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-white text-xs">Motivation:</span>
+                          <span className="text-[#00DF71] text-xs font-medium">
+                            {skill.motivation || 'Not specified'}
+                          </span>
+                        </div>
                           <div className="pt-2 border-t border-[#454446]">
                             <p className="text-[#aeaeae] text-xs leading-relaxed">
                               {skill.description || 'No description available for this skill.'}

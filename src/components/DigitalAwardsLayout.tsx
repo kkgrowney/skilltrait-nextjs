@@ -91,7 +91,7 @@ export default function DigitalAwardsLayout({
         >
           {/* Left Container - Hidden on mobile/tablet (handled by hamburger), visible on desktop */}
           <div
-            className="hidden lg:flex w-3/12 xl:w-1/4 flex-shrink-0 relative z-[75]"
+            className="hidden lg:flex w-4/12 xl:w-1/3 flex-shrink-0 relative z-[75]"
             style={{
               backgroundColor: "#212327",
               padding: "16px",
@@ -104,7 +104,7 @@ export default function DigitalAwardsLayout({
 
           {/* Right Container - Full width on mobile/tablet, proportional on desktop */}
           <div
-            className="w-full lg:w-9/12 xl:w-3/4 flex flex-col"
+            className="w-full lg:w-8/12 xl:w-2/3 flex flex-col"
             style={{ overflow: "hidden" }}
           >
             {/* Content Area */}
@@ -170,12 +170,12 @@ export default function DigitalAwardsLayout({
         <div className="flex h-full flex-1" style={{ overflow: "hidden" }}>
           {/* Left Container - Hidden on mobile/tablet (handled by hamburger), visible on desktop */}
           <div
-            className="hidden lg:flex w-3/12 flex-shrink-0 flex"
+            className="hidden lg:flex w-4/12 flex-shrink-0 flex"
             style={{
               backgroundColor: "#212327",
               padding: "0px",
               overflow: "hidden",
-              maxWidth: "25%",
+              maxWidth: "33.33%",
             }}
           >
             {/* Awards Generator Side Navigation - Now inside left container */}
@@ -201,7 +201,7 @@ export default function DigitalAwardsLayout({
 
           {/* Right Container - Full width on mobile/tablet, proportional on desktop */}
           <div
-            className="w-full lg:w-9/12 flex flex-col"
+            className="w-full lg:w-8/12 flex flex-col"
             style={{ overflow: "hidden" }}
           >
             {/* Sticky Header */}

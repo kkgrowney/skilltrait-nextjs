@@ -28,6 +28,8 @@ export default function SideNavAuth({
       router.push("/digital-awards-generator");
     } else if (view === "team") {
       router.push("/team");
+    } else if (view === "verifications") {
+      router.push("/verifications");
     }
 
     onNavigationClick?.();
@@ -62,7 +64,7 @@ export default function SideNavAuth({
             <div className="flex items-center gap-3 pl-2">
               {/* Home Icon */}
               <img
-                src="/home_nav.svg"
+                src="/profile.svg"
                 alt="Home"
                 className="h-7 w-7 flex-shrink-0"
                 style={{
@@ -77,7 +79,7 @@ export default function SideNavAuth({
                   currentView === "home" ? "text-[#00df71]" : "text-[#79828a]"
                 }`}
               >
-                Home
+                Profile
               </span>
             </div>
           </div>
@@ -172,6 +174,36 @@ export default function SideNavAuth({
                 }`}
               >
                 Team
+              </span>
+            </div>
+          </div>
+
+          {/* Verifications - Active/Inactive State */}
+          <div
+            className={`flex items-center p-2 rounded-lg cursor-pointer transition-colors ${
+              currentView === "verifications" ? "bg-[#181d21]" : "hover:bg-[#2a2e32]"
+            }`}
+            onClick={() => handleNavigationClick("verifications")}
+          >
+            <div className="flex items-center gap-3 pl-2">
+              {/* Verifications Icon */}
+              <img
+                src="/verifications.svg"
+                alt="Verifications"
+                className="h-7 w-7 flex-shrink-0"
+                style={{
+                  filter:
+                    currentView === "verifications"
+                      ? "brightness(0) saturate(100%) invert(84%) sepia(11%) saturate(6382%) hue-rotate(86deg) brightness(101%) contrast(107%)" // #00DF71
+                      : "brightness(0) saturate(100%) invert(52%) sepia(8%) saturate(1234%) hue-rotate(202deg) brightness(94%) contrast(86%)", // #79828A
+                }}
+              />
+              <span
+                className={`font-medium text-base leading-none ${
+                  currentView === "verifications" ? "text-[#00df71]" : "text-[#79828a]"
+                }`}
+              >
+                Verifications
               </span>
             </div>
           </div>

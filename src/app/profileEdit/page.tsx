@@ -280,7 +280,7 @@ export default function ProfileEdit() {
 
       {/* Email Verification Modal */}
       {showEmailVerificationModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="fixed inset-0 style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }} flex items-center justify-center z-50">
           <div className="bg-[#212327] rounded-lg p-8 max-w-md mx-4">
             <h3 className="text-xl font-bold text-white mb-4">Email Verification Required</h3>
             <p className="text-gray-300 mb-6">
