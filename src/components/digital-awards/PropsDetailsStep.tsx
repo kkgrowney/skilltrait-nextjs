@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useLayoutEffect, useState } from "react";
 
 interface PropsDetailsStepProps {
   onNext: () => void;
@@ -47,35 +47,44 @@ export default function PropsDetailsStep({
   const [showValidationError, setShowValidationError] = useState(false);
 
   // Initialize state after mounting to prevent hydration issues
-  useEffect(() => {
+  useLayoutEffect(() => {
     setMounted(true);
-    setTitle(propsTitle || "");
-    setRecipients(propsRecipients || []);
-    setName(fromName || "");
-    setDate(fromDate || "");
-    setMessage(fromMessage || "");
-  }, [propsTitle, propsRecipients, fromName, fromDate, fromMessage]);
+  }, []);
 
-  // Sync local state with props when they change
+  // Sync state with props when they change
   useEffect(() => {
-    setTitle(propsTitle || "");
-  }, [propsTitle]);
+    if (mounted) {
+      console.log("PropsDetailsStep: Syncing state with props", {
+        propsTitle,
+        propsRecipients,
+        fromName,
+        fromDate,
+        fromMessage
+      });
+      setTitle(propsTitle || "");
+      setRecipients(propsRecipients || []);
+      setName(fromName || "");
+      setDate(fromDate || "");
+      setMessage(fromMessage || "");
+    }
+  }, [mounted, propsTitle, propsRecipients, fromName, fromDate, fromMessage]);
 
+  // Additional effect to ensure state is synced after mounting
   useEffect(() => {
-    setRecipients(propsRecipients || []);
-  }, [propsRecipients]);
+    if (mounted) {
+      // Force a re-render to ensure state is properly synced
+      const timeoutId = setTimeout(() => {
+        setTitle(propsTitle || "");
+        setRecipients(propsRecipients || []);
+        setName(fromName || "");
+        setDate(fromDate || "");
+        setMessage(fromMessage || "");
+      }, 100);
+      
+      return () => clearTimeout(timeoutId);
+    }
+  }, [mounted]);
 
-  useEffect(() => {
-    setName(fromName || "");
-  }, [fromName]);
-
-  useEffect(() => {
-    setDate(fromDate || "");
-  }, [fromDate]);
-
-  useEffect(() => {
-    setMessage(fromMessage || "");
-  }, [fromMessage]);
 
   const handleAddRecipient = () => {
     if (newRecipient.trim() && !recipients.includes(newRecipient.trim())) {

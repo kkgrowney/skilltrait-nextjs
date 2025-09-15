@@ -156,6 +156,16 @@ export default function DigitalAwardsPage() {
   const [selectedSidebarStep, setSelectedSidebarStep] =
     useState<StepType | null>(null);
 
+  // Debug logging for production
+  useEffect(() => {
+    console.log("ClientPage: State updated", {
+      propsRecipients: propsRecipients?.length || 0,
+      fromName,
+      fromDate,
+      fromMessage
+    });
+  }, [propsRecipients, fromName, fromDate, fromMessage]);
+
   // Helper function to save all form state to localStorage
   const saveFormStateToLocalStorage = () => {
     if (typeof window !== "undefined") {
