@@ -51,6 +51,7 @@ export default function ShareStep({
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedAward, setGeneratedAward] = useState("");
   const [isLoggedIn, setIsLoggedIn] = useState<boolean | null>(null);
+  const [isAuthLoading, setIsAuthLoading] = useState(true);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState<boolean>(false);
   const [savedPropId, setSavedPropId] = useState<string | null>(null);
   const [processStep, setProcessStep] = useState<string>("");
@@ -70,6 +71,7 @@ export default function ShareStep({
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       setIsLoggedIn(!!user);
+      setIsAuthLoading(false);
     });
 
     return () => unsubscribe();
@@ -1189,6 +1191,15 @@ This digital award recognizes excellence and dedication in professional developm
       alert("Error: Prop not found. Please try generating again.");
     }
   };
+
+  // Prevent hydration mismatch by not rendering until auth state is determined
+  if (isAuthLoading) {
+    return (
+      <div className="h-full flex flex-col items-center justify-center">
+        <div className="text-white">Loading...</div>
+      </div>
+    );
+  }
 
   return (
     <div

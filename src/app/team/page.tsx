@@ -521,6 +521,15 @@ export default function Team() {
   const [skillFulfillmentData, setSkillFulfillmentData] = useState<any[]>([]);
   const [selectedEmployees, setSelectedEmployees] = useState<Set<string>>(new Set());
   const [showCompareModal, setShowCompareModal] = useState(false);
+  const [showTeamsComingSoon, setShowTeamsComingSoon] = useState(false);
+
+  // Handle Create Team button click
+  const handleCreateTeamClick = () => {
+    setShowTeamsComingSoon(true);
+    setTimeout(() => {
+      setShowTeamsComingSoon(false);
+    }, 1500); // Show notification for exactly 1.5 seconds
+  };
 
   // Handle adding a skill to required skills
   const handleAddSkill = (skill: string) => {
@@ -1957,11 +1966,20 @@ export default function Team() {
 
               {/* Create Team Button */}
               <button 
-                onClick={() => router.push('/teamEdit')}
+                onClick={handleCreateTeamClick}
                 className="w-full bg-[#00DF71] text-[#212327] font-medium py-4 px-6 rounded-lg hover:bg-[#0AFB84] transition-colors text-lg"
               >
                 Create Team
               </button>
+
+              {/* Teams Coming Soon Notification */}
+              {showTeamsComingSoon && (
+                <div className="fixed top-6 left-1/2 transform -translate-x-1/2 z-50 animate-slide-down">
+                  <div className="bg-green-500 text-white px-8 py-4 rounded-lg shadow-xl font-semibold text-lg whitespace-nowrap">
+                    Teams are coming soon!
+                  </div>
+                </div>
+              )}
 
               {/* Additional Info */}
               <div className="mt-8 text-gray-400">

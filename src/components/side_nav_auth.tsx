@@ -178,11 +178,9 @@ export default function SideNavAuth({
             </div>
           </div>
 
-          {/* Verifications - Active/Inactive State */}
+          {/* Verifications - Hidden but functional */}
           <div
-            className={`flex items-center p-2 rounded-lg cursor-pointer transition-colors ${
-              currentView === "verifications" ? "bg-[#181d21]" : "hover:bg-[#2a2e32]"
-            }`}
+            className="hidden"
             onClick={() => handleNavigationClick("verifications")}
           >
             <div className="flex items-center gap-3 pl-2">
@@ -207,6 +205,7 @@ export default function SideNavAuth({
               </span>
             </div>
           </div>
+
         </nav>
       </div>
 
