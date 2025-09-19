@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useLayoutEffect, useState } from "react";
+import { useEffect, useState } from "react";
 
 interface PropsDetailsStepProps {
   onNext: () => void;
@@ -36,54 +36,30 @@ export default function PropsDetailsStep({
   setFromMessage,
 }: PropsDetailsStepProps) {
   
-  const [mounted, setMounted] = useState(false);
-  const [title, setTitle] = useState("");
+  const [title, setTitle] = useState(propsTitle || "");
   const [showTitleInput, setShowTitleInput] = useState(false);
-  const [recipients, setRecipients] = useState<string[]>([]);
+  const [recipients, setRecipients] = useState<string[]>(propsRecipients || []);
   const [newRecipient, setNewRecipient] = useState("");
-  const [name, setName] = useState("");
-  const [date, setDate] = useState("");
-  const [message, setMessage] = useState("");
+  const [name, setName] = useState(fromName || "");
+  const [date, setDate] = useState(fromDate || "");
+  const [message, setMessage] = useState(fromMessage || "");
   const [showValidationError, setShowValidationError] = useState(false);
-
-  // Initialize state after mounting to prevent hydration issues
-  useLayoutEffect(() => {
-    setMounted(true);
-  }, []);
 
   // Sync state with props when they change
   useEffect(() => {
-    if (mounted) {
-      console.log("PropsDetailsStep: Syncing state with props", {
-        propsTitle: propsTitle || "undefined",
-        propsRecipients: propsRecipients || [],
-        fromName: fromName || "undefined", 
-        fromDate: fromDate || "undefined",
-        fromMessage: fromMessage || "undefined"
-      });
-      setTitle(propsTitle || "");
-      setRecipients(propsRecipients || []);
-      setName(fromName || "");
-      setDate(fromDate || "");
-      setMessage(fromMessage || "");
-    }
-  }, [mounted, propsTitle, propsRecipients, fromName, fromDate, fromMessage]);
-
-  // Additional effect to ensure state is synced after mounting
-  useEffect(() => {
-    if (mounted) {
-      // Force a re-render to ensure state is properly synced
-      const timeoutId = setTimeout(() => {
-        setTitle(propsTitle || "");
-        setRecipients(propsRecipients || []);
-        setName(fromName || "");
-        setDate(fromDate || "");
-        setMessage(fromMessage || "");
-      }, 100);
-      
-      return () => clearTimeout(timeoutId);
-    }
-  }, [mounted]);
+    console.log("PropsDetailsStep: Syncing state with props", {
+      propsTitle: propsTitle || "undefined",
+      propsRecipients: propsRecipients || [],
+      fromName: fromName || "undefined", 
+      fromDate: fromDate || "undefined",
+      fromMessage: fromMessage || "undefined"
+    });
+    setTitle(propsTitle || "");
+    setRecipients(propsRecipients || []);
+    setName(fromName || "");
+    setDate(fromDate || "");
+    setMessage(fromMessage || "");
+  }, [propsTitle, propsRecipients, fromName, fromDate, fromMessage]);
 
 
   const handleAddRecipient = () => {
@@ -122,13 +98,6 @@ export default function PropsDetailsStep({
   };
 
 
-  if (!mounted) {
-    return (
-      <div className="h-full flex flex-col items-center justify-center">
-        <div className="text-white">Loading...</div>
-      </div>
-    );
-  }
 
   return (
     <div className="h-full flex flex-col" style={{ marginLeft: "8px", marginRight: "8px" }}>

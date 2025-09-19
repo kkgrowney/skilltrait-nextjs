@@ -1,42 +1,19 @@
 "use client";
 
 import { useState } from "react";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import Link from "next/link";
 
 export default function NavPrelogin() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [showNotification, setShowNotification] = useState(false);
   const pathname = usePathname();
-  const router = useRouter();
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
   };
 
-  const handleProtectedLink = (e: React.MouseEvent) => {
-    e.preventDefault();
-    console.log("Showing notification...");
-    setShowNotification(true);
-
-    // Hide notification after 2 seconds and redirect
-    setTimeout(() => {
-      console.log("Hiding notification and redirecting...");
-      setShowNotification(false);
-      router.push("/signup");
-    }, 2000);
-  };
-
   return (
     <>
-      {/* Notification */}
-      {showNotification && (
-        <div className="fixed top-20 left-1/2 transform -translate-x-1/2 z-[9999] bg-[var(--primary-dark)] border border-[#454446] rounded-lg px-6 py-4 shadow-xl">
-          <div className="text-[#212327] text-base font-semibold">
-            Please create a free account
-          </div>
-        </div>
-      )}
 
       <nav
         className="sticky top-0 z-50 shadow-sm border-b w-full"
@@ -91,26 +68,16 @@ export default function NavPrelogin() {
                 >
                   Slack App
                 </Link>
-                <button
-                  onClick={handleProtectedLink}
-                  className={`px-2 py-2 text-sm transition-colors relative cursor-pointer ${
-                    pathname === "/profile"
+                <Link
+                  href="/skilltrait-vs-matterapp"
+                  className={`px-2 py-2 text-sm transition-colors relative ${
+                    pathname === "/skilltrait-vs-matterapp"
                       ? 'text-white font-bold after:content-[""] after:absolute after:left-0 after:right-0 after:bottom-[-14px] after:h-0.5 after:bg-[var(--primary-dark)] after:z-10'
                       : 'text-gray-300 hover:text-white hover:after:content-[""] hover:after:absolute hover:after:left-0 hover:after:right-0 hover:after:bottom-[-14px] hover:after:h-0.5 hover:after:bg-[var(--primary-dark)] hover:after:opacity-50 hover:after:z-10 font-medium'
                   }`}
                 >
-                  Profile
-                </button>
-                <button
-                  onClick={handleProtectedLink}
-                  className={`px-2 py-2 text-sm transition-colors relative cursor-pointer ${
-                    pathname === "/employees"
-                      ? 'text-white font-bold after:content-[""] after:absolute after:left-0 after:right-0 after:bottom-[-14px] after:h-0.5 after:bg-[var(--primary-dark)] after:z-10'
-                      : 'text-gray-300 hover:text-white hover:after:content-[""] hover:after:absolute hover:after:left-0 hover:after:right-0 hover:after:bottom-[-14px] hover:after:h-0.5 hover:after:bg-[var(--primary-dark)] hover:after:opacity-50 hover:after:z-10 font-medium'
-                  }`}
-                >
-                  Employees
-                </button>
+                  SkillTrait vs. Matter App
+                </Link>
               </div>
             </div>
 
@@ -217,32 +184,17 @@ export default function NavPrelogin() {
             >
               Slack App
             </Link>
-            <button
-              onClick={(e) => {
-                setIsMenuOpen(false);
-                handleProtectedLink(e);
-              }}
-              className={`block w-full text-left px-3 py-2 text-base font-medium transition-colors cursor-pointer ${
-                pathname === "/profile"
+            <Link
+              href="/skilltrait-vs-matterapp"
+              className={`block px-3 py-2 text-base font-medium transition-colors ${
+                pathname === "/skilltrait-vs-matterapp"
                   ? "text-white font-bold"
                   : "text-gray-300 hover:text-white"
               }`}
+              onClick={() => setIsMenuOpen(false)}
             >
-              Profile
-            </button>
-            <button
-              onClick={(e) => {
-                setIsMenuOpen(false);
-                handleProtectedLink(e);
-              }}
-              className={`block w-full text-left px-3 py-2 text-base font-medium transition-colors cursor-pointer ${
-                pathname === "/employees"
-                  ? "text-white font-bold"
-                  : "text-gray-300 hover:text-white"
-              }`}
-            >
-              Employees
-            </button>
+              SkillTrait vs. Matter App
+            </Link>
             <Link
               href="/signin"
               className="text-gray-300 hover:text-white block px-3 py-2 text-base font-medium transition-colors"
