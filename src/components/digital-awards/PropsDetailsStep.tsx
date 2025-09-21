@@ -44,16 +44,15 @@ export default function PropsDetailsStep({
   const [date, setDate] = useState(fromDate || "");
   const [message, setMessage] = useState(fromMessage || "");
   const [showValidationError, setShowValidationError] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  // Ensure component is mounted before rendering to prevent hydration issues
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // Sync state with props when they change
   useEffect(() => {
-    console.log("PropsDetailsStep: Syncing state with props", {
-      propsTitle: propsTitle || "undefined",
-      propsRecipients: propsRecipients || [],
-      fromName: fromName || "undefined", 
-      fromDate: fromDate || "undefined",
-      fromMessage: fromMessage || "undefined"
-    });
     setTitle(propsTitle || "");
     setRecipients(propsRecipients || []);
     setName(fromName || "");
@@ -97,12 +96,19 @@ export default function PropsDetailsStep({
     onNext();
   };
 
-
+  // Prevent hydration mismatch by not rendering until mounted
+  if (!mounted) {
+    return (
+      <div className="h-full flex flex-col items-center justify-center">
+        <div className="text-white">Loading...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="h-full flex flex-col" style={{ marginLeft: "8px", marginRight: "8px" }}>
       {/* Validation Error Notification */}
-      {showValidationError && (
+      {showValidationError ? (
         <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50">
           <div 
             className="px-4 py-2 rounded-md text-white text-sm font-medium"
@@ -111,7 +117,7 @@ export default function PropsDetailsStep({
             Enter all required fields.
           </div>
         </div>
-      )}
+      ) : null}
       
       <div className="text-center mb-6 flex-shrink-0" style={{ marginTop: "24px" }}>
         <h1 className="text-[30px] font-bold text-white mb-1">Details</h1>

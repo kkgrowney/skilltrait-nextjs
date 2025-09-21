@@ -4,16 +4,16 @@ import React from 'react';
 import { CheckIcon, XMarkIcon } from '@heroicons/react/24/outline';
 
 const features = [
-  { name: "Digital Awards Creation", skilltrait: true, matter: false },
-  { name: "Skill Verification", skilltrait: true, matter: true },
-  { name: "Team Collaboration", skilltrait: true, matter: false },
-  { name: "LinkedIn Integration", skilltrait: true, matter: true },
-  { name: "Custom Templates", skilltrait: true, matter: false },
-  { name: "Real-time Analytics", skilltrait: false, matter: true },
-  { name: "Slack Integration", skilltrait: true, matter: false },
-  { name: "Mobile App", skilltrait: false, matter: true },
-  { name: "API Access", skilltrait: true, matter: true },
-  { name: "Enterprise Features", skilltrait: true, matter: false },
+  { name: "Slack app for sending props", skilltrait: true, matter: true },
+  { name: "Microsoft Teams app", skilltrait: false, matter: true },
+  { name: "Awards generator to send branded props", skilltrait: true, matter: false },
+  { name: "Automatically celebrate birthdays and work anniversaries", skilltrait: true, matter: true },
+  { name: "Analytics: track sent and received digital awards", skilltrait: true, matter: true },
+  { name: "Custom branded template access for all team members", skilltrait: true, matter: false },
+  { name: "Employee surveys", skilltrait: false, matter: true },
+  { name: "Mobile app (iOS & Android)", skilltrait: true, matter: false },
+  { name: "Team challenges", skilltrait: false, matter: true },
+  { name: "Send validated achievements and recommendations", skilltrait: true, matter: false },
 ];
 
 export default function SkillTraitVsMatterApp() {
@@ -22,11 +22,11 @@ export default function SkillTraitVsMatterApp() {
       {/* Header Section */}
       <div className="max-w-6xl mx-auto px-4 py-16 text-center">
         <h1 className="text-5xl md:text-6xl font-bold mb-6 font-poppins">
-          Quick comparison guide
+          15x the savings compared to Matter App
         </h1>
         <p className="text-xl md:text-2xl text-gray-300 max-w-3xl mx-auto font-poppins">
-          SkillTrait offers a comprehensive all-in-one solution for digital awards, 
-          skill verification, and team collaboration that goes beyond what Matter App provides.
+          SkillTrait offers a monthly flat fee instead of Matter App's PEPM (Per Employee Per Month), 
+          giving companies enormous value and savings to recognize and retain their employees.
         </p>
       </div>
 
@@ -35,13 +35,13 @@ export default function SkillTraitVsMatterApp() {
         {/* Desktop/Tablet Layout */}
         <div className="hidden md:block bg-[#212327] rounded-2xl shadow-2xl overflow-hidden border border-[#454446]">
           <div className="grid grid-cols-3 bg-[#2A2D32] border-b-2 border-[#454446]">
-            <div className="p-6 text-left">
+            <div className="px-6 py-5 text-left">
               <h3 className="text-xl font-bold text-white font-poppins">Features</h3>
             </div>
-            <div className="p-6 text-center">
+            <div className="px-6 py-5 text-center">
               <h3 className="text-xl font-bold text-[#00df71] font-poppins">SkillTrait</h3>
             </div>
-            <div className="p-6 text-center">
+            <div className="px-6 py-5 text-center">
               <h3 className="text-xl font-bold text-gray-400 font-poppins">Matter App</h3>
             </div>
           </div>
@@ -53,17 +53,17 @@ export default function SkillTraitVsMatterApp() {
                 index % 2 === 0 ? 'bg-[#212327]' : 'bg-[#2A2D32]'
               }`}
             >
-              <div className="p-6 text-left">
+              <div className="px-6 py-5 text-left">
                 <span className="text-lg text-white font-poppins">{feature.name}</span>
               </div>
-              <div className="p-6 text-center">
+              <div className="px-6 py-5 text-center">
                 {feature.skilltrait ? (
                   <CheckIcon className="h-8 w-8 text-[#00df71] mx-auto" />
                 ) : (
                   <XMarkIcon className="h-8 w-8 text-red-400 mx-auto" />
                 )}
               </div>
-              <div className="p-6 text-center">
+              <div className="px-6 py-5 text-center">
                 {feature.matter ? (
                   <CheckIcon className="h-8 w-8 text-[#00df71] mx-auto" />
                 ) : (
@@ -78,11 +78,11 @@ export default function SkillTraitVsMatterApp() {
         <div className="md:hidden space-y-4">
           {features.map((feature, index) => (
             <div key={feature.name} className="bg-[#212327] rounded-xl shadow-lg overflow-hidden border border-[#454446]">
-              <div className="p-4 border-b border-[#454446]">
+              <div className="px-4 py-3 border-b border-[#454446]">
                 <h4 className="text-lg font-bold text-white font-poppins">{feature.name}</h4>
               </div>
               <div className="grid grid-cols-2">
-                <div className="p-4 text-center border-r border-[#454446]">
+                <div className="px-4 py-3 text-center border-r border-[#454446]">
                   <div className="text-sm font-semibold text-[#00df71] mb-2 font-poppins">SkillTrait</div>
                   {feature.skilltrait ? (
                     <CheckIcon className="h-6 w-6 text-[#00df71] mx-auto" />
@@ -90,7 +90,7 @@ export default function SkillTraitVsMatterApp() {
                     <XMarkIcon className="h-6 w-6 text-red-400 mx-auto" />
                   )}
                 </div>
-                <div className="p-4 text-center">
+                <div className="px-4 py-3 text-center">
                   <div className="text-sm font-semibold text-gray-400 mb-2 font-poppins">Matter App</div>
                   {feature.matter ? (
                     <CheckIcon className="h-6 w-6 text-[#00df71] mx-auto" />
