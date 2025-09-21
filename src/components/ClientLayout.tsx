@@ -8,6 +8,7 @@ import { Toaster } from "react-hot-toast";
 
 const IFRAME_ROUTES = [
   "/",
+  "/slackapp",
   "/achievements",
   "/award-templates",
   "/pricing",

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useLayoutEffect, useState } from "react";
+import { useEffect, useState } from "react";
 
 interface PropsDetailsStepProps {
   onNext: () => void;
@@ -36,54 +36,29 @@ export default function PropsDetailsStep({
   setFromMessage,
 }: PropsDetailsStepProps) {
   
-  const [mounted, setMounted] = useState(false);
-  const [title, setTitle] = useState("");
+  const [title, setTitle] = useState(propsTitle || "");
   const [showTitleInput, setShowTitleInput] = useState(false);
-  const [recipients, setRecipients] = useState<string[]>([]);
+  const [recipients, setRecipients] = useState<string[]>(propsRecipients || []);
   const [newRecipient, setNewRecipient] = useState("");
-  const [name, setName] = useState("");
-  const [date, setDate] = useState("");
-  const [message, setMessage] = useState("");
+  const [name, setName] = useState(fromName || "");
+  const [date, setDate] = useState(fromDate || "");
+  const [message, setMessage] = useState(fromMessage || "");
   const [showValidationError, setShowValidationError] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
-  // Initialize state after mounting to prevent hydration issues
-  useLayoutEffect(() => {
+  // Ensure component is mounted before rendering to prevent hydration issues
+  useEffect(() => {
     setMounted(true);
   }, []);
 
   // Sync state with props when they change
   useEffect(() => {
-    if (mounted) {
-      console.log("PropsDetailsStep: Syncing state with props", {
-        propsTitle: propsTitle || "undefined",
-        propsRecipients: propsRecipients || [],
-        fromName: fromName || "undefined", 
-        fromDate: fromDate || "undefined",
-        fromMessage: fromMessage || "undefined"
-      });
-      setTitle(propsTitle || "");
-      setRecipients(propsRecipients || []);
-      setName(fromName || "");
-      setDate(fromDate || "");
-      setMessage(fromMessage || "");
-    }
-  }, [mounted, propsTitle, propsRecipients, fromName, fromDate, fromMessage]);
-
-  // Additional effect to ensure state is synced after mounting
-  useEffect(() => {
-    if (mounted) {
-      // Force a re-render to ensure state is properly synced
-      const timeoutId = setTimeout(() => {
-        setTitle(propsTitle || "");
-        setRecipients(propsRecipients || []);
-        setName(fromName || "");
-        setDate(fromDate || "");
-        setMessage(fromMessage || "");
-      }, 100);
-      
-      return () => clearTimeout(timeoutId);
-    }
-  }, [mounted]);
+    setTitle(propsTitle || "");
+    setRecipients(propsRecipients || []);
+    setName(fromName || "");
+    setDate(fromDate || "");
+    setMessage(fromMessage || "");
+  }, [propsTitle, propsRecipients, fromName, fromDate, fromMessage]);
 
 
   const handleAddRecipient = () => {
@@ -121,7 +96,7 @@ export default function PropsDetailsStep({
     onNext();
   };
 
-
+  // Prevent hydration mismatch by not rendering until mounted
   if (!mounted) {
     return (
       <div className="h-full flex flex-col items-center justify-center">
@@ -133,7 +108,7 @@ export default function PropsDetailsStep({
   return (
     <div className="h-full flex flex-col" style={{ marginLeft: "8px", marginRight: "8px" }}>
       {/* Validation Error Notification */}
-      {showValidationError && (
+      {showValidationError ? (
         <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50">
           <div 
             className="px-4 py-2 rounded-md text-white text-sm font-medium"
@@ -142,7 +117,7 @@ export default function PropsDetailsStep({
             Enter all required fields.
           </div>
         </div>
-      )}
+      ) : null}
       
       <div className="text-center mb-6 flex-shrink-0" style={{ marginTop: "24px" }}>
         <h1 className="text-[30px] font-bold text-white mb-1">Details</h1>
