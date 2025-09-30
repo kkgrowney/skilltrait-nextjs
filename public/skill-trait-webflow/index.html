@@ -17,6 +17,18 @@
   <link href="/skill-trait-webflow/css/normalize.css" rel="stylesheet" type="text/css">
   <link href="/skill-trait-webflow/css/webflow.css" rel="stylesheet" type="text/css">
   <link href="/skill-trait-webflow/css/skill-trait.webflow.css" rel="stylesheet" type="text/css">
+  <style>
+    /* Override grid layout for larger screens to allow bigger hero image */
+    @media (min-width: 1025px) {
+      .header1_component {
+        grid-template-columns: 1fr 1.2fr !important;
+      }
+      .header1_image-wrapper {
+        max-width: 800px !important;
+        justify-self: end;
+      }
+    }
+  </style>
   <link href="https://fonts.googleapis.com" rel="preconnect">
   <link href="https://fonts.gstatic.com" rel="preconnect" crossorigin="anonymous">
   <script src="https://ajax.googleapis.com/ajax/libs/webfont/1.6.26/webfont.js" type="text/javascript"></script>
@@ -235,13 +247,12 @@ margin: 0rem !important;
       <div class="hero">
         <div class="container-large-hero">
           <div class="padding-top padding-medium">
-            <div class="w-layout-grid header1_component">
-              <div class="header1_content">
+            <div class="w-layout-grid header1_component" style="padding-bottom: 48px;">
+              <div class="header1_content" style="padding-top: 24px;">
                 <div class="margin-bottom margin-small">
-                  <p class="text-color-primary hero">SEND FREE</p>
-                  <h1 class="heading-style-h1-2 gradient">Digital Awards for Work</h1>
+                  <h1 class="heading-style-h1-2 gradient">The Validated Talent Marketplace</h1>
                 </div>
-                <p class="text-size-medium-3">Celebrate team achievements by sending branded digital awards; employee recommendations, issuing education certificates, and recognizing milestones like work anniversaries.</p>
+                <p class="text-size-medium-3">A validated talent marketplace that transforms accomplishments, skills, and motivation into trusted matches for projects, roles, and growth.</p>
                 <div class="margin-top margin-medium">
                   <div class="button-group">
                     <a href="/digital-awards-generator" class="button-r_light is-small is-alternate round w-button" style="background-color: #00DF71; color: #212327;">Awards Generator</a>
@@ -249,7 +260,7 @@ margin: 0rem !important;
                   </div>
                 </div>
               </div>
-              <div class="header1_image-wrapper"><img sizes="(max-width: 565px) 100vw, 565px" srcset="images/webflow_share5-p-500.png 500w, images/webflow_share5.png 565w" alt="" src="images/webflow_share5.png" loading="eager" class="header1_image"></div>
+              <div class="header1_image-wrapper" style="max-width: 800px; width: 100%;"><img sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 800px" alt="" src="/skilltrait_diamond.svg" loading="eager" class="header1_image" style="max-width: 800px; width: 100%;"></div>
             </div>
           </div>
         </div>
