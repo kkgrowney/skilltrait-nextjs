@@ -45,6 +45,7 @@
   -moz-osx-font-smoothing: grayscale;
   -o-font-smoothing: antialiased;
 }
+
 </style>
 </head>
 <body>
@@ -249,8 +250,8 @@ margin: 0rem !important;
           <div class="padding-top padding-medium">
             <div class="w-layout-grid header1_component" style="padding-bottom: 48px;">
               <div class="header1_content" style="padding-top: 24px;">
-                <div class="margin-bottom margin-small">
-                  <h1 class="heading-style-h1-2 gradient">The Validated Talent Marketplace</h1>
+                <div class="margin-bottom margin-small" style="padding-top: 120px;">
+                  <h1 class="heading-style-h1-2 gradient" id="typewriter-title">The Validated Talent Marketplace</h1>
                 </div>
                 <p class="text-size-medium-3">A validated talent marketplace that transforms accomplishments, skills, and motivation into trusted matches for projects, roles, and growth.</p>
                 <div class="margin-top margin-medium">
@@ -259,8 +260,13 @@ margin: 0rem !important;
                     <a href="https://slack.com/oauth/v2/authorize?client_id=6065766542231.8787683961942&scope=chat:write,im:write,users:read,channels:write.invites&user_scope=" target="_blank" class="button-r is-secondary is-small is-alternate round button-black-stroke w-button">Free Slack App</a>
                   </div>
                 </div>
+                <div class="margin-top margin-large" style="margin-top: calc(var(--margin-large) - 24px); padding-top: 18px;">
+                  <div id="typewriter-list" class="text-right" style="min-height: 200px;">
+                    <p class="text-size-large-2 is-alternate" style="font-size: 36px; font-weight: bold; color: white;">Get started!</p>
+                  </div>
+                </div>
               </div>
-              <div class="header1_image-wrapper" style="max-width: 800px; width: 100%;"><img sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 800px" alt="" src="/skilltrait_diamond.svg" loading="eager" class="header1_image" style="max-width: 800px; width: 100%;"></div>
+              <div class="header1_image-wrapper" style="max-width: 800px; width: 100%;"><img sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 800px" alt="" src="/skilltrait_diamond.svg?v=2" loading="eager" class="header1_image" style="max-width: 800px; width: 100%;"></div>
             </div>
           </div>
         </div>
@@ -491,5 +497,122 @@ margin: 0rem !important;
   <script src="js/webflow.js" type="text/javascript"></script>
   <script type="text/javascript">!function(e,t,n){function a(){var e=t.getElementsByTagName("script")[0],n=t.createElement("script");n.type="text/javascript",n.async=!0,n.src="https://beacon-v2.helpscout.net",e.parentNode.insertBefore(n,e)}if(e.Beacon=n=function(t,n,a){e.Beacon.readyQueue.push({method:t,options:n,data:a})},n.readyQueue=[],"complete"===t.readyState)return a();e.attachEvent?e.attachEvent("onload",a):e.addEventListener("load",a,!1)}(window,document,window.Beacon||function(){});</script>
   <script type="text/javascript">window.Beacon('init', '5ddcd004-087e-4c8c-9124-cb00d0862184')</script>
+  
+  <!-- Typewriter Animation Script -->
+  <script type="text/javascript">
+    document.addEventListener('DOMContentLoaded', function() {
+      const titleElement = document.getElementById('typewriter-title');
+      const listElement = document.getElementById('typewriter-list');
+      
+      if (!titleElement || !listElement) return;
+      
+      const originalText = titleElement.textContent;
+      const speed = 100; // milliseconds per character
+      const delay = 500; // delay before starting animation
+      
+      // Add cursor styles
+      const style = document.createElement('style');
+      style.textContent = `
+        @keyframes blink {
+          0%, 50% { opacity: 1; }
+          51%, 100% { opacity: 0; }
+        }
+        .typewriter-cursor {
+          animation: blink 1s infinite;
+          margin-left: 2px;
+          font-size: 36px;
+          font-weight: bold;
+          color: white;
+          line-height: 44px;
+        }
+        .typewriter-text {
+          font-size: 36px;
+          font-weight: bold;
+          color: white;
+          min-height: 44px;
+          line-height: 44px;
+        }
+      `;
+      document.head.appendChild(style);
+      
+      // Load the value offerings from the text file
+      fetch('/skill-trait-webflow/value-offerings.txt')
+        .then(response => response.text())
+        .then(text => {
+          // Parse the text file into an array of items
+          const allItems = text.split('\n').filter(item => item.trim().length > 0);
+          
+          // Randomly select 3 unique items
+          const selectedItems = [];
+          const usedIndices = new Set();
+          
+          while (selectedItems.length < 3 && selectedItems.length < allItems.length) {
+            const randomIndex = Math.floor(Math.random() * allItems.length);
+            if (!usedIndices.has(randomIndex)) {
+              usedIndices.add(randomIndex);
+              selectedItems.push(allItems[randomIndex]);
+            }
+          }
+          
+          // Add "Get started!" as the final item
+          const listItems = [...selectedItems, "Get started!"];
+          
+          console.log('Selected items:', listItems);
+          
+          // Start animation after delay
+          setTimeout(() => {
+            let currentItemIndex = 0;
+            let currentCharIndex = 0;
+            
+            function typeNextCharacter() {
+              if (currentItemIndex < listItems.length) {
+                const currentItem = listItems[currentItemIndex];
+                
+                if (currentCharIndex === 0) {
+                  // Clear and start new item
+                  listElement.innerHTML = '<span class="typewriter-text"></span><span class="typewriter-cursor">|</span>';
+                }
+                
+                const textElement = listElement.querySelector('.typewriter-text');
+                
+                if (currentCharIndex < currentItem.length) {
+                  // Add next character
+                  textElement.textContent = currentItem.substring(0, currentCharIndex + 1);
+                  currentCharIndex++;
+                  setTimeout(typeNextCharacter, speed);
+                } else {
+                  // Item complete, move to next
+                  currentItemIndex++;
+                  currentCharIndex = 0;
+                  
+                  // Remove cursor from current item
+                  const cursor = listElement.querySelector('.typewriter-cursor');
+                  if (cursor) {
+                    cursor.remove();
+                  }
+                  
+                  // Add delay between items
+                  setTimeout(typeNextCharacter, 2000);
+                }
+              } else {
+                // All items complete
+                console.log('Typewriter animation complete');
+              }
+            }
+            
+            typeNextCharacter();
+          }, delay);
+        })
+        .catch(error => {
+          console.error('Error loading value offerings:', error);
+          // Fallback to default items if file can't be loaded
+          const listItems = ["Get started!"];
+          
+          setTimeout(() => {
+            listElement.innerHTML = '<span class="typewriter-text">Get started!</span>';
+          }, delay);
+        });
+    });
+  </script>
 </body>
 </html>

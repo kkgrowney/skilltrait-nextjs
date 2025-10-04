@@ -9,7 +9,7 @@ export const metadata: Metadata = {
 export default function Home() {
   return (
     <WebflowIframe 
-      src="/skill-trait-webflow/index.html"
+      src={`/skill-trait-webflow/index.html?v=${Date.now()}`}
       title="SkillTrait: Digital Awards for Work"
     />
   );

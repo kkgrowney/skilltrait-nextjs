@@ -155,6 +155,49 @@
       opacity: 1;
     }
   }
+
+  /* Typewriter cursor animation */
+  .animate-blink {
+    animation: blink 1s infinite;
+  }
+
+  @keyframes blink {
+    0%, 50% {
+      opacity: 1;
+    }
+    51%, 100% {
+      opacity: 0;
+    }
+  }
+
+  /* Gradient heading styles matching the original */
+  .heading-style-h1-2 {
+    -webkit-text-fill-color: transparent;
+    mix-blend-mode: normal;
+    background-image: linear-gradient(91deg, #ecf4f0, #37fb9a 53%, #2ec9c2 70%, #7ecfcd);
+    -webkit-background-clip: text;
+    background-clip: text;
+    font-size: 5rem;
+    font-weight: 700;
+    line-height: 1.1;
+  }
+
+  .heading-style-h1-2.gradient {
+    padding-bottom: 16px;
+  }
+
+  /* Responsive font sizes */
+  @media screen and (max-width: 991px) {
+    .heading-style-h1-2 {
+      font-size: 3.25rem;
+    }
+  }
+
+  @media screen and (max-width: 479px) {
+    .heading-style-h1-2 {
+      font-size: 2.5rem;
+    }
+  }
 }
 
 /* Hide signup image when screen width is less than 1360px */
