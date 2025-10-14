@@ -296,41 +296,92 @@ margin: 0rem !important;
                   <!-- Four Buttons Grid (2x2 responsive) -->
                   <div class="w-layout-grid button-grid" style="grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px;">
                     <!-- Button 1 -->
-                    <div class="button-item" style="display: flex; align-items: center; padding: 16px; border: 1px solid #454446; border-radius: 8px; background: rgba(255,255,255,0.02); cursor: pointer; transition: all 0.3s ease;">
+                    <div class="button-item" data-content="skills" style="display: flex; align-items: center; padding: 16px; border: 1px solid #454446; border-radius: 8px; background: rgba(255,255,255,0.02); cursor: pointer; transition: all 0.3s ease;">
                       <img src="/skills.svg" alt="Skills" style="width: 36px; height: 36px; margin-right: 12px; filter: brightness(0) invert(1);" />
                     <span class="button-text" style="color: white; font-weight: 500;">Skills & Validation</span>
                   </div>
                   
                   <!-- Button 2 -->
-                  <div class="button-item" style="display: flex; align-items: center; padding: 16px; border: 1px solid #454446; border-radius: 8px; background: rgba(255,255,255,0.02); cursor: pointer; transition: all 0.3s ease;">
+                  <div class="button-item" data-content="motivation" style="display: flex; align-items: center; padding: 16px; border: 1px solid #454446; border-radius: 8px; background: rgba(255,255,255,0.02); cursor: pointer; transition: all 0.3s ease;">
                     <img src="/motivation.svg" alt="Motivation" style="width: 36px; height: 36px; margin-right: 12px; filter: brightness(0) invert(1);" />
                     <span class="button-text" style="color: white; font-weight: 500;">Motivation & Growth</span>
                   </div>
                   
                   <!-- Button 3 -->
-                  <div class="button-item" style="display: flex; align-items: center; padding: 16px; border: 1px solid #454446; border-radius: 8px; background: rgba(255,255,255,0.02); cursor: pointer; transition: all 0.3s ease;">
+                  <div class="button-item" data-content="awards" style="display: flex; align-items: center; padding: 16px; border: 1px solid #454446; border-radius: 8px; background: rgba(255,255,255,0.02); cursor: pointer; transition: all 0.3s ease;">
                     <img src="/awards.svg" alt="Awards" style="width: 36px; height: 36px; margin-right: 12px; filter: brightness(0) invert(1);" />
                     <span class="button-text" style="color: white; font-weight: 500;">Awards & Recognition</span>
                   </div>
                   
                   <!-- Button 4 -->
-                  <div class="button-item" style="display: flex; align-items: center; padding: 16px; border: 1px solid #454446; border-radius: 8px; background: rgba(255,255,255,0.02); cursor: pointer; transition: all 0.3s ease;">
+                  <div class="button-item" data-content="discovery" style="display: flex; align-items: center; padding: 16px; border: 1px solid #454446; border-radius: 8px; background: rgba(255,255,255,0.02); cursor: pointer; transition: all 0.3s ease;">
                     <img src="/discovery.svg" alt="Talent Discovery" style="width: 36px; height: 36px; margin-right: 12px; filter: brightness(0) invert(1);" />
                     <span class="button-text" style="color: white; font-weight: 500;">Talent Discovery</span>
                     </div>
                   </div>
                 </div>
                 
-                <!-- Right Container - Keep Original Content -->
+                <!-- Right Container - Dynamic Content -->
                 <div id="w-node-a9f343ad-6206-ca7a-86b9-32de165445be-fcb3385b" class="home_6_feature_content">
-                  <div class="margin-bottom margin-xsmall">
-                    <div>Employee skill validation and insights</div>
+                  <!-- Default Content (AI ranking and skill summaries) -->
+                  <div id="default-content" class="content-section">
+                    <div class="margin-bottom margin-xsmall">
+                      <div>Employee skill validation and insights</div>
+                    </div>
+                    <div class="margin-bottom margin-small">
+                      <h2 class="text-color-primary">AI ranking and skill summaries</h2>
+                    </div>
+                    <div class="margin-top margin-medium"></div>
+                    <p class="text-size-medium-5">Employees can build their profiles by adding skills, competency levels, and motivation indicators—along with verified sources such as educational certificates, digital awards, and skill tests. Managers and peers can recognize achievements through our integrated awards platform, while AI-generated summaries support performance reviews. Internal mobility teams can instantly search, rank, and identify employees with the highest potential for new roles or career transitions.</p>
                   </div>
-                <div class="margin-bottom margin-small">
-                  <h2 class="text-color-primary">AI ranking and skill summaries</h2>
-                </div>
-                  <div class="margin-top margin-medium"></div>
-                  <p class="text-size-medium-5">Employees can build their profiles by adding skills, competency levels, and motivation indicators—along with verified sources such as educational certificates, digital awards, and skill tests. Managers and peers can recognize achievements through our integrated awards platform, while AI-generated summaries support performance reviews. Internal mobility teams can instantly search, rank, and identify employees with the highest potential for new roles or career transitions.</p>
+                  
+                  <!-- Skills & Validation Content -->
+                  <div id="skills-content" class="content-section" style="display: none;">
+                    <div class="margin-bottom margin-xsmall">
+                      <div>Comprehensive skill verification system</div>
+                    </div>
+                    <div class="margin-bottom margin-small">
+                      <h2 class="text-color-primary">Skills & Validation</h2>
+                    </div>
+                    <div class="margin-top margin-medium"></div>
+                    <p class="text-size-medium-5">Our advanced skill validation system allows employees to showcase their expertise through verified certificates, peer endorsements, and competency assessments. Managers can trust the accuracy of skill data, making informed decisions about project assignments and career development opportunities. The platform automatically validates skills through multiple sources, ensuring reliability and transparency in talent evaluation.</p>
+                  </div>
+                  
+                  <!-- Motivation & Growth Content -->
+                  <div id="motivation-content" class="content-section" style="display: none;">
+                    <div class="margin-bottom margin-xsmall">
+                      <div>Employee engagement and development tracking</div>
+                    </div>
+                    <div class="margin-bottom margin-small">
+                      <h2 class="text-color-primary">Motivation & Growth</h2>
+                    </div>
+                    <div class="margin-top margin-medium"></div>
+                    <p class="text-size-medium-5">Track employee motivation levels and growth trajectories through our comprehensive analytics dashboard. Identify high-potential employees, monitor engagement trends, and create personalized development plans. Our system provides insights into what drives your team members, helping you create a more engaged and productive workforce while supporting individual career aspirations.</p>
+                  </div>
+                  
+                  <!-- Awards & Recognition Content -->
+                  <div id="awards-content" class="content-section" style="display: none;">
+                    <div class="margin-bottom margin-xsmall">
+                      <div>Digital awards and achievement recognition</div>
+                    </div>
+                    <div class="margin-bottom margin-small">
+                      <h2 class="text-color-primary">Awards & Recognition</h2>
+                    </div>
+                    <div class="margin-top margin-medium"></div>
+                    <p class="text-size-medium-5">Create and distribute branded digital awards to celebrate team achievements, milestones, and exceptional performance. Our customizable award templates and automated recognition system help build a culture of appreciation. Track award impact, share achievements across platforms, and maintain a comprehensive record of employee accomplishments that contributes to their professional portfolio.</p>
+                  </div>
+                  
+                  <!-- Talent Discovery Content -->
+                  <div id="discovery-content" class="content-section" style="display: none;">
+                    <div class="margin-bottom margin-xsmall">
+                      <div>Intelligent talent identification and matching</div>
+                    </div>
+                    <div class="margin-bottom margin-small">
+                      <h2 class="text-color-primary">Talent Discovery</h2>
+                    </div>
+                    <div class="margin-top margin-medium"></div>
+                    <p class="text-size-medium-5">Uncover hidden talent within your organization using our AI-powered discovery engine. Find employees with specific skill combinations, identify potential for new roles, and discover cross-functional collaboration opportunities. Our advanced matching algorithms help you build diverse teams, plan succession strategies, and maximize the potential of your existing workforce.</p>
+                  </div>
                 </div>
               </div>
             </div>
@@ -345,7 +396,7 @@ margin: 0rem !important;
             <div class="padding-section-large-2">
               <div class="layout209_component">
                 <div class="w-layout-grid layout209_content">
-                  <div class="layout209_image-wrapper" style="height: auto;"><img sizes="(max-width: 1000px) 100vw, 1000px" srcset="/my_skills.jpg?v=2 1000w" alt="My Skills" src="/my_skills.jpg?v=2" loading="lazy" class="layout209_image" style="width: 100%; height: auto; object-fit: contain; border-radius: 24px;"></div>
+                  <div class="layout209_image-wrapper" style="height: auto;"><img sizes="(max-width: 600px) 100vw, 600px" srcset="/my_skills.jpg?v=2 600w" alt="My Skills" src="/my_skills.jpg?v=2" loading="lazy" class="layout209_image" style="width: 100%; height: auto; object-fit: contain; border-radius: 24px;"></div>
                   <div id="w-node-_856097df-11ad-cbc3-7952-70af831e8e6b-fcb3385b" class="layout209_content-right">
                     <div class="margin-bottom margin-small">
                       <h2 class="heading-style-h3">Validated employee skills and growth indicators.</h2>
@@ -730,5 +781,121 @@ margin: 0rem !important;
         });
     });
   </script>
+  
+  <!-- Interactive Button Functionality -->
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      let currentActiveButton = null;
+      let isShowingDefault = true;
+      
+      // Add click handlers to all buttons
+      const buttons = document.querySelectorAll('.button-item');
+      
+      buttons.forEach(button => {
+        button.addEventListener('click', function() {
+          const contentType = this.getAttribute('data-content');
+          
+          // If clicking the same button, toggle back to default
+          if (currentActiveButton === this && !isShowingDefault) {
+            showDefaultContent();
+            removeActiveState();
+            currentActiveButton = null;
+            isShowingDefault = true;
+            return;
+          }
+          
+          // Show the selected content
+          showContent(contentType);
+          
+          // Update active states
+          removeActiveState();
+          addActiveState(this);
+          
+          currentActiveButton = this;
+          isShowingDefault = false;
+        });
+        
+        // Add hover effects
+        button.addEventListener('mouseenter', function() {
+          if (currentActiveButton !== this) {
+            this.style.background = 'rgba(255,255,255,0.05)';
+            this.style.borderColor = '#666';
+          }
+        });
+        
+        button.addEventListener('mouseleave', function() {
+          if (currentActiveButton !== this) {
+            this.style.background = 'rgba(255,255,255,0.02)';
+            this.style.borderColor = '#454446';
+          }
+        });
+      });
+      
+      function showContent(contentType) {
+        // Hide all content sections
+        const allContent = document.querySelectorAll('.content-section');
+        allContent.forEach(content => {
+          content.style.display = 'none';
+        });
+        
+        // Show the selected content
+        const targetContent = document.getElementById(contentType + '-content');
+        if (targetContent) {
+          targetContent.style.display = 'block';
+        }
+      }
+      
+      function showDefaultContent() {
+        // Hide all content sections
+        const allContent = document.querySelectorAll('.content-section');
+        allContent.forEach(content => {
+          content.style.display = 'none';
+        });
+        
+        // Show default content
+        const defaultContent = document.getElementById('default-content');
+        if (defaultContent) {
+          defaultContent.style.display = 'block';
+        }
+      }
+      
+      function addActiveState(button) {
+        button.style.background = 'rgba(0, 223, 113, 0.1)';
+        button.style.borderColor = '#00df71';
+        button.style.transform = 'translateY(-2px)';
+        button.style.boxShadow = '0 4px 12px rgba(0, 223, 113, 0.2)';
+      }
+      
+      function removeActiveState() {
+        buttons.forEach(button => {
+          button.style.background = 'rgba(255,255,255,0.02)';
+          button.style.borderColor = '#454446';
+          button.style.transform = 'translateY(0)';
+          button.style.boxShadow = 'none';
+        });
+      }
+    });
+  </script>
+  
+  <style>
+    .button-item {
+      transition: all 0.3s ease !important;
+    }
+    
+    .content-section {
+      animation: fadeIn 0.5s ease-in-out;
+    }
+    
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+  </style>
 </body>
 </html>
