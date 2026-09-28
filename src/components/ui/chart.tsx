@@ -7,6 +7,11 @@ import { cn } from "@/lib/utils"
 
 // Format: { THEME_NAME: CSS_SELECTOR }
 const THEMES = { light: "", dark: ".dark" } as const
+const SAFE_CSS_TOKEN = /^[a-zA-Z0-9_-]+$/
+
+function safeCssValue(value: string | undefined) {
+  return value && !/[;{}<>]/.test(value) ? value : null
+}
 
 export type ChartConfig = {
   [k in string]: {
@@ -70,19 +75,17 @@ function ChartContainer({
 }
 
 const ChartStyle = ({ id, config }: { id: string; config: ChartConfig }) => {
+  if (!SAFE_CSS_TOKEN.test(id)) return null
   const colorConfig = Object.entries(config).filter(
-    ([, config]) => config.theme || config.color
+    ([key, config]) => SAFE_CSS_TOKEN.test(key) && (config.theme || config.color)
   )
 
   if (!colorConfig.length) {
     return null
   }
 
-  return (
-    <style
-      dangerouslySetInnerHTML={{
-        __html: Object.entries(THEMES)
-          .map(
+  const stylesheet = Object.entries(THEMES)
+    .map(
             ([theme, prefix]) => `
 ${prefix} [data-chart=${id}] {
 ${colorConfig
@@ -90,16 +93,15 @@ ${colorConfig
     const color =
       itemConfig.theme?.[theme as keyof typeof itemConfig.theme] ||
       itemConfig.color
-    return color ? `  --color-${key}: ${color};` : null
+    return safeCssValue(color) ? `  --color-${key}: ${color};` : null
   })
   .join("\n")}
 }
 `
           )
-          .join("\n"),
-      }}
-    />
-  )
+    .join("\n")
+
+  return <style>{stylesheet}</style>
 }
 
 const ChartTooltip = RechartsPrimitive.Tooltip

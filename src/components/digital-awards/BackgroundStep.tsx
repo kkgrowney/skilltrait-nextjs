@@ -16,7 +16,7 @@ const getProxiedUrlForPreview = (imageUrl: string): string => {
 interface BackgroundStepProps {
   onNext: () => void;
   onPrevious: () => void;
-  selectedTemplate?: string | null;
+  selectedTemplate?: { achievement?: { props?: string } } | null;
   templateType?: "props" | "achievements";
   backgroundVisible?: boolean;
   setBackgroundVisible?: (visible: boolean) => void;
@@ -50,6 +50,7 @@ export default function BackgroundStep({
   >(null);
   const [hasConfirmedModal, setHasConfirmedModal] = useState(false);
   const [backgroundDeleted, setBackgroundDeleted] = useState(false);
+  const selectedBackgroundFile = uploadedFile ?? uploadedBackgroundFile;
 
   useEffect(() => {
     if (!uploadedFile && uploadedBackgroundFile) {
@@ -158,11 +159,11 @@ export default function BackgroundStep({
             onDragLeave={handleDragLeave}
             onDrop={handleDrop}
           >
-            {!backgroundDeleted && (uploadedFile || uploadedBackgroundFile) ? (
+            {!backgroundDeleted && selectedBackgroundFile ? (
               <div className="relative w-[300px] h-[200px] rounded-none flex items-center justify-center overflow-hidden">
-                <img
-                  key={uploadedFile ? uploadedFile.name + uploadedFile.lastModified : uploadedBackgroundFile?.name + uploadedBackgroundFile?.lastModified}
-                  src={uploadedFile || uploadedBackgroundFile ? URL.createObjectURL(uploadedFile || uploadedBackgroundFile!) : ""}
+                <img loading="lazy"
+                  key={`${selectedBackgroundFile.name}-${selectedBackgroundFile.lastModified}`}
+                  src={URL.createObjectURL(selectedBackgroundFile)}
                   alt="Uploaded background"
                   className="w-[300px] h-[200px] object-cover rounded"
                   style={{
@@ -189,7 +190,7 @@ export default function BackgroundStep({
                 }}
               >
                 <div className="relative w-full h-full">
-                  <img
+                  <img loading="lazy"
                     src={getProxiedUrlForPreview(selectedTemplate?.achievement?.props || "")}
                     alt="Selected Template"
                     className="w-full h-full object-cover"

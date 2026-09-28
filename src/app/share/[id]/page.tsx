@@ -1,5 +1,7 @@
 "use client";
 
+import { logger } from "@/lib/logger";
+
 import { useEffect, useState } from "react";
 import { doc, getDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
@@ -17,6 +19,7 @@ interface PropData {
   propsTitle?: string;
   previewImageUrl?: string;
   previewImageBase64?: string;
+  fullPropImage?: string;
   achievement?: {
     fromName?: string;
     fromMessage?: string;
@@ -46,7 +49,7 @@ const handleDownloadProp = async (prop: PropData) => {
     "/liquid_death_props.png";
   const filename = `${prop.propsTitle || "prop"}-${Date.now()}.png`;
 
-  console.log("Attempting to download:", { imageUrl, filename });
+  logger.debug("Attempting to download:", { imageUrl, filename });
 
   try {
     // For Cloudinary URLs, use fetch and blob download
@@ -54,7 +57,7 @@ const handleDownloadProp = async (prop: PropData) => {
       imageUrl.includes("cloudinary.com") ||
       imageUrl.includes("res.cloudinary.com")
     ) {
-      console.log("Using Cloudinary download method");
+      logger.debug("Using Cloudinary download method");
 
       try {
         // Fetch the image as a blob
@@ -79,14 +82,14 @@ const handleDownloadProp = async (prop: PropData) => {
 
         return;
       } catch (error) {
-        console.error("Cloudinary download failed:", error);
+        logger.error("Cloudinary download failed:", error);
         // Fall through to other methods
       }
     }
 
     // For Firebase Storage URLs, use the optimized download
     if (imageUrl.includes("firebasestorage.googleapis.com")) {
-      console.log("Using Firebase download method");
+      logger.debug("Using Firebase download method");
       await downloadFirebaseImage(imageUrl, filename);
 
       // Show user instructions for the new tab approach
@@ -101,23 +104,23 @@ const handleDownloadProp = async (prop: PropData) => {
 
     // For base64 images, try direct download
     if (imageUrl.startsWith("data:image")) {
-      console.log("Using base64 download method");
+      logger.debug("Using base64 download method");
       await downloadImageDirectly(imageUrl, filename);
       return;
     }
 
     // Try high-resolution canvas download for other URLs
-    console.log("Using canvas download method");
+    logger.debug("Using canvas download method");
     await downloadPropAsPNG(imageUrl, prop.propsTitle);
   } catch (error) {
-    console.error("Primary download failed, trying fallback:", error);
+    logger.error("Primary download failed, trying fallback:", error);
 
     try {
       // Fallback to direct download
-      console.log("Using fallback download method");
+      logger.debug("Using fallback download method");
       await downloadImageDirectly(imageUrl, filename);
     } catch (fallbackError) {
-      console.error("Fallback download also failed:", fallbackError);
+      logger.error("Fallback download also failed:", fallbackError);
       alert("Failed to download prop. Please try again.");
     }
   }
@@ -139,7 +142,7 @@ export default function PublicSharePage({
       try {
         const { id } = await params;
         setPropId(id);
-        
+
         // Get prop data
         const propDoc = await getDoc(doc(db, "publicProps", id));
 
@@ -150,7 +153,7 @@ export default function PublicSharePage({
         const propData: PropData = { id: propDoc.id, ...propDoc.data() };
         setProp(propData);
       } catch (error) {
-        console.error("Error loading prop:", error);
+        logger.error("Error loading prop:", error);
         notFound();
       } finally {
         setLoading(false);
@@ -208,14 +211,14 @@ export default function PublicSharePage({
           <div className="relative">
             {/* Use the saved Cloudinary preview image if available, otherwise fallback to base64 */}
             {prop.previewImageUrl ? (
-              <img
+              <img loading="lazy"
                 src={prop.previewImageUrl}
                 alt={prop.propsTitle || "Prop"}
                 style={{ width: "600px", height: "auto" }}
                 className="object-cover mx-auto rounded"
               />
             ) : prop.previewImageBase64 ? (
-              <img
+              <img loading="lazy"
                 src={prop.previewImageBase64}
                 alt={prop.propsTitle || "Prop"}
                 className="w-full h-full object-cover rounded"
@@ -226,7 +229,7 @@ export default function PublicSharePage({
                 <>
                   {/* Background layer (props background 600x400) */}
                   <div className="absolute inset-0 z-10 overflow-hidden rounded">
-                    <img
+                    <img loading="lazy"
                       src={getProxiedUrlForPreview(
                         prop.achievement?.backgroundImage || ""
                       )}
@@ -235,7 +238,7 @@ export default function PublicSharePage({
                     />
                   </div>
                   {/* Foreground props image */}
-                  <img
+                  <img loading="lazy"
                     src={getProxiedUrlForPreview(prop.achievement?.props || "")}
                     alt={prop.propsTitle || ""}
                     className="relative z-20 w-full h-full object-cover rounded"
@@ -257,7 +260,7 @@ export default function PublicSharePage({
                       }}
                     >
                       {prop.achievement?.logoImage ? (
-                        <img
+                        <img loading="lazy"
                           src={getProxiedUrlForPreview(
                             prop.achievement.logoImage
                           )}

@@ -1,5 +1,7 @@
 "use client";
 
+import { logger } from "@/lib/logger";
+
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import SideNavigation, { useSideNavMargin } from "@/components/SideNavigation";
@@ -137,10 +139,10 @@ export default function ProfilePage() {
         setOriginalOverviewText(data.overview || "");
         setSelectedProficiencyLevel(data.proficiencyLevel || "");
         setSelectedMotivationLevel(data.motivationLevel || "");
-        console.log("User profile loaded:", data);
+        logger.debug("User profile loaded:", data);
       }
     } catch (error) {
-      console.error("Error fetching user profile:", error);
+      logger.error("Error fetching user profile:", error);
     } finally {
       setIsLoadingProfile(false);
     }
@@ -162,7 +164,7 @@ export default function ProfilePage() {
       });
       return () => unsub();
     } catch (error) {
-      console.error("Error fetching recent props:", error);
+      logger.error("Error fetching recent props:", error);
       setRecentProps([]);
       setIsLoadingRecentProps(false);
     }
@@ -184,7 +186,7 @@ export default function ProfilePage() {
       });
       return () => unsub();
     } catch (error) {
-      console.error("Error fetching recent templates:", error);
+      logger.error("Error fetching recent templates:", error);
       setRecentTemplates([]);
       setIsLoadingRecentTemplates(false);
     }
@@ -205,7 +207,7 @@ export default function ProfilePage() {
       await logout();
       router.push("/signin");
     } catch (error) {
-      console.error("Error during logout:", error);
+      logger.error("Error during logout:", error);
       alert("An error occurred during logout. Please try again.");
     }
   };
@@ -256,7 +258,7 @@ export default function ProfilePage() {
       setConfirmPassword("");
       setIsGoogleUser(false); // Update state since user now has password provider
     } catch (error: any) {
-      console.error("Password set error:", error);
+      logger.error("Password set error:", error);
       if (error.code === "auth/email-already-in-use") {
         setPasswordError(
           "This email is already associated with another account"
@@ -326,7 +328,7 @@ export default function ProfilePage() {
       setNewPassword("");
       setConfirmPassword("");
     } catch (error: any) {
-      console.error("Password update error:", error);
+      logger.error("Password update error:", error);
       if (error.code === "auth/wrong-password") {
         setPasswordError("Current password is incorrect");
       } else if (error.code === "auth/weak-password") {
@@ -375,7 +377,7 @@ export default function ProfilePage() {
       );
       setNewEmail("");
     } catch (error: any) {
-      console.error("Email update error:", error);
+      logger.error("Email update error:", error);
       if (error.code === "auth/email-already-in-use") {
         setEmailError("This email is already in use");
       } else if (error.code === "auth/invalid-email") {
@@ -413,7 +415,7 @@ export default function ProfilePage() {
         router.push("/signup");
       }, 2000);
     } catch (error: any) {
-      console.error("Account deletion error:", error);
+      logger.error("Account deletion error:", error);
       alert("Failed to delete account. Please try again.");
     } finally {
       setIsDeletingAccount(false);
@@ -424,11 +426,11 @@ export default function ProfilePage() {
   const fetchCompanyInfo = async () => {
     if (!user?.uid) return;
 
-    console.log("🚀 fetchCompanyInfo called for user:", user.uid);
+    logger.debug("🚀 fetchCompanyInfo called for user:", user.uid);
     setIsLoadingCompany(true);
 
     try {
-      console.log("🔍 Starting fetchCompanyInfo for user:", user.uid);
+      logger.debug("🔍 Starting fetchCompanyInfo for user:", user.uid);
 
       // ✅ EFFICIENT: Query with filters to get only the user's active and verified company connection
       const userConnectionsQuery = query(
@@ -438,37 +440,37 @@ export default function ProfilePage() {
         where("verified", "==", true)
       );
 
-      console.log(
+      logger.debug(
         "📁 Querying with filters: userRef, active=true, verified=true"
       );
       const userConnectionsSnapshot = await getDocs(userConnectionsQuery);
-      console.log(
+      logger.debug(
         "📊 User connections snapshot size:",
         userConnectionsSnapshot.size
       );
 
       if (!userConnectionsSnapshot.empty) {
-        console.log("✅ Found active and verified company connection for user");
+        logger.debug("✅ Found active and verified company connection for user");
 
         // Get the first (and should be only) connection
         const userConnection = userConnectionsSnapshot.docs[0];
         const companyData = userConnection.data();
 
-        console.log("🔗 Company Connection Data:");
-        console.log("  📄 Document ID:", userConnection.id);
-        console.log("  🔍 Key Fields:");
-        console.log("    - active:", companyData.active);
-        console.log("    - verified:", companyData.verified);
-        console.log("    - companyReference:", companyData.companyReference);
-        console.log("    - userRef:", companyData.userRef);
-        console.log("    - isAdmin:", companyData.isAdmin || false);
-        console.log("    - role:", companyData.role || "Employee");
+        logger.debug("🔗 Company Connection Data:");
+        logger.debug("  📄 Document ID:", userConnection.id);
+        logger.debug("  🔍 Key Fields:");
+        logger.debug("    - active:", companyData.active);
+        logger.debug("    - verified:", companyData.verified);
+        logger.debug("    - companyReference:", companyData.companyReference);
+        logger.debug("    - userRef:", companyData.userRef);
+        logger.debug("    - isAdmin:", companyData.isAdmin || false);
+        logger.debug("    - role:", companyData.role || "Employee");
 
         const activeCompanyConnection = {
           id: userConnection.id,
           ...(companyData as object),
         };
-        console.log(
+        logger.debug(
           "🎯 Active company connection found:",
           JSON.stringify(activeCompanyConnection, null, 2)
         );
@@ -477,7 +479,7 @@ export default function ProfilePage() {
           activeCompanyConnection &&
           (activeCompanyConnection as any).companyReference
         ) {
-          console.log(
+          logger.debug(
             "\n🏢 Company reference found, fetching company details..."
           );
 
@@ -495,7 +497,7 @@ export default function ProfilePage() {
                 "companies",
                 (activeCompanyConnection as any).companyReference
               );
-              console.log(
+              logger.debug(
                 "📁 Using string ID, created doc ref:",
                 `companies/${(activeCompanyConnection as any).companyReference}`
               );
@@ -507,12 +509,12 @@ export default function ProfilePage() {
             ) {
               // If it's a Firestore document reference, use it directly
               companyDocRef = (activeCompanyConnection as any).companyReference;
-              console.log(
+              logger.debug(
                 "📁 Using Firestore doc reference, path:",
                 (activeCompanyConnection as any).companyReference.path
               );
             } else {
-              console.log(
+              logger.debug(
                 "❌ Invalid companyReference format:",
                 (activeCompanyConnection as any).companyReference
               );
@@ -520,13 +522,13 @@ export default function ProfilePage() {
               return;
             }
 
-            console.log("📖 Fetching company document...");
+            logger.debug("📖 Fetching company document...");
             const companyDoc = await getDoc(companyDocRef);
 
             if (companyDoc.exists()) {
               const companyDetails = companyDoc.data();
-              console.log("✅ Company document found!");
-              console.log(
+              logger.debug("✅ Company document found!");
+              logger.debug(
                 "📋 Company details:",
                 JSON.stringify(companyDetails, null, 2)
               );
@@ -536,46 +538,46 @@ export default function ProfilePage() {
                 ...activeCompanyConnection,
                 ...(companyDetails as object),
               };
-              console.log(
+              logger.debug(
                 "🔗 Combined full company info:",
                 JSON.stringify(fullCompanyInfo, null, 2)
               );
 
               setCompanyInfo(fullCompanyInfo);
-              console.log("✅ Company info state updated successfully");
-              console.log("📊 New companyInfo state:", fullCompanyInfo);
-              console.log(
+              logger.debug("✅ Company info state updated successfully");
+              logger.debug("📊 New companyInfo state:", fullCompanyInfo);
+              logger.debug(
                 "🔍 Company name from fullCompanyInfo:",
                 (fullCompanyInfo as any).companyName
               );
             } else {
-              console.log(
+              logger.debug(
                 "❌ Company document not found for reference:",
                 (activeCompanyConnection as any).companyReference
               );
               setCompanyInfo(activeCompanyConnection); // Fallback to connection data only
             }
           } catch (companyError) {
-            console.error("❌ Error fetching company details:", companyError);
+            logger.error("❌ Error fetching company details:", companyError);
             setCompanyInfo(activeCompanyConnection); // Fallback to connection data only
           }
         } else {
-          console.log(
+          logger.debug(
             "\n❌ No active and verified company connections found, or missing companyReference"
           );
           setCompanyInfo(null);
-          console.log("📊 Company info set to null");
+          logger.debug("📊 Company info set to null");
         }
       } else {
-        console.log("❌ No connected companies found for user");
+        logger.debug("❌ No connected companies found for user");
         setCompanyInfo(null);
       }
     } catch (error) {
-      console.error("❌ Error fetching connected companies:", error);
+      logger.error("❌ Error fetching connected companies:", error);
       setCompanyInfo(null);
     } finally {
       setIsLoadingCompany(false);
-      console.log("🏁 fetchCompanyInfo completed");
+      logger.debug("🏁 fetchCompanyInfo completed");
     }
   };
 
@@ -593,35 +595,35 @@ export default function ProfilePage() {
         where("verified", "==", true)
       );
 
-      console.log(
+      logger.debug(
         "📁 Querying with filters: userRef, active=true, verified=true"
       );
       const userConnectionsSnapshot = await getDocs(userConnectionsQuery);
-      console.log(
+      logger.debug(
         "📊 User connections snapshot size:",
         userConnectionsSnapshot.size
       );
 
       if (!userConnectionsSnapshot.empty) {
-        console.log("✅ Found active and verified company connection for user");
+        logger.debug("✅ Found active and verified company connection for user");
 
         // Get the first (and should be only) connection
         const userConnection = userConnectionsSnapshot.docs[0];
         const companyData = userConnection.data();
 
-        console.log("🔗 Company Connection Data:");
-        console.log("  📄 Document ID:", userConnection.id);
-        console.log("  🔍 Key Fields:");
-        console.log("    - active:", companyData.active);
-        console.log("    - verified:", companyData.verified);
-        console.log("    - companyReference:", companyData.companyReference);
-        console.log("    - userRef:", companyData.userRef);
+        logger.debug("🔗 Company Connection Data:");
+        logger.debug("  📄 Document ID:", userConnection.id);
+        logger.debug("  🔍 Key Fields:");
+        logger.debug("    - active:", companyData.active);
+        logger.debug("    - verified:", companyData.verified);
+        logger.debug("    - companyReference:", companyData.companyReference);
+        logger.debug("    - userRef:", companyData.userRef);
 
         const activeCompanyConnection = {
           id: userConnection.id,
           ...(companyData as object),
         };
-        console.log(
+        logger.debug(
           "🎯 Active company connection found:",
           JSON.stringify(activeCompanyConnection, null, 2)
         );
@@ -632,7 +634,7 @@ export default function ProfilePage() {
         ) {
           // Fetch the actual company details from the companies collection
           try {
-            console.log(
+            logger.debug(
               "Company reference found:",
               (activeCompanyConnection as any).companyReference
             );
@@ -658,7 +660,7 @@ export default function ProfilePage() {
               // If it's a Firestore document reference, use it directly
               companyDocRef = (activeCompanyConnection as any).companyReference;
             } else {
-              console.log(
+              logger.debug(
                 "Invalid companyReference format:",
                 (activeCompanyConnection as any).companyReference
               );
@@ -676,29 +678,29 @@ export default function ProfilePage() {
                 ...(companyDetails as object),
               };
               setTeamProfile(fullCompanyProfile);
-              console.log("Full company profile loaded:", fullCompanyProfile);
+              logger.debug("Full company profile loaded:", fullCompanyProfile);
             } else {
-              console.log(
+              logger.debug(
                 "Company document not found for reference:",
                 (activeCompanyConnection as any).companyReference
               );
               setTeamProfile(activeCompanyConnection); // Fallback to connection data only
             }
           } catch (companyError) {
-            console.error("Error fetching company details:", companyError);
+            logger.error("Error fetching company details:", companyError);
             setTeamProfile(activeCompanyConnection); // Fallback to connection data only
           }
         } else {
-          console.log(
+          logger.debug(
             "No active and verified company connections found, or missing companyReference"
           );
-          console.log("activeCompanyConnection:", activeCompanyConnection);
+          logger.debug("activeCompanyConnection:", activeCompanyConnection);
           if (activeCompanyConnection) {
-            console.log(
+            logger.debug(
               "companyReference type:",
               typeof (activeCompanyConnection as any).companyReference
             );
-            console.log(
+            logger.debug(
               "companyReference value:",
               (activeCompanyConnection as any).companyReference
             );
@@ -706,11 +708,11 @@ export default function ProfilePage() {
           setTeamProfile(null);
         }
       } else {
-        console.log("No connected companies found for user");
+        logger.debug("No connected companies found for user");
         setTeamProfile(null);
       }
     } catch (error) {
-      console.error("Error fetching connected companies:", error);
+      logger.error("Error fetching connected companies:", error);
       setTeamProfile(null);
     } finally {
       setIsLoadingTeam(false);
@@ -756,7 +758,7 @@ export default function ProfilePage() {
       await updateDoc(userDocRef, { overview: overviewText });
       setOriginalOverviewText(overviewText);
     } catch (error) {
-      console.error("Error saving overview:", error);
+      logger.error("Error saving overview:", error);
       alert("Failed to save overview.");
     }
   };
@@ -782,7 +784,7 @@ export default function ProfilePage() {
       await updateDoc(userDocRef, { proficiencyLevel: newLevel });
       setSelectedProficiencyLevel(newLevel);
     } catch (error) {
-      console.error("Error saving proficiency level:", error);
+      logger.error("Error saving proficiency level:", error);
       alert("Failed to save proficiency level.");
     }
   };
@@ -804,7 +806,7 @@ export default function ProfilePage() {
       await updateDoc(userDocRef, { motivationLevel: newMotivation });
       setSelectedMotivationLevel(newMotivation);
     } catch (error) {
-      console.error("Error saving motivation level:", error);
+      logger.error("Error saving motivation level:", error);
       alert("Failed to save motivation level.");
     }
   };
@@ -839,12 +841,12 @@ export default function ProfilePage() {
   // Fetch company information from Firebase
   useEffect(() => {
     if (user?.uid) {
-      console.log("🔄 useEffect triggered for company info, user:", user.uid);
+      logger.debug("🔄 useEffect triggered for company info, user:", user.uid);
       fetchCompanyInfo();
     }
   }, [user?.uid]);
 
-  console.log(
+  logger.debug(
     "Profile Recent Props Data:",
     recentProps.map((prop) => ({
       id: prop.id,
@@ -924,7 +926,7 @@ export default function ProfilePage() {
                     userProfile?.photo ||
                     userProfile?.profilePicture ? (
                       <div className="w-16 h-16 md:w-20 md:h-20 rounded-full overflow-hidden border-2 border-[#454446]">
-                        <img
+                        <img loading="lazy"
                           src={
                             userProfile?.photo_url ||
                             userProfile?.photoURL ||
@@ -1043,7 +1045,7 @@ export default function ProfilePage() {
                     <div className="flex items-center gap-3">
                       {companyInfo.logoUrl && (
                         <div className="w-8 h-8 rounded-full overflow-hidden border border-[#454446]">
-                          <img
+                          <img loading="lazy"
                             src={companyInfo.logoUrl}
                             alt="Company Logo"
                             className="w-full h-full object-cover"
@@ -1203,7 +1205,7 @@ export default function ProfilePage() {
 
                             {/* Use the saved Cloudinary preview image - this should match exactly what was generated in ShareStep */}
                             {prop.previewImageUrl ? (
-                              <img
+                              <img loading="lazy"
                                 src={prop.previewImageUrl}
                                 alt={prop.propsTitle || "Recent Prop"}
                                 className="relative z-20 w-full h-full"
@@ -1216,7 +1218,7 @@ export default function ProfilePage() {
                                 }}
                               />
                             ) : prop.previewImageBase64 ? (
-                              <img
+                              <img loading="lazy"
                                 src={prop.previewImageBase64}
                                 alt={prop.propsTitle || "Recent Prop"}
                                 className="relative z-20 w-full h-full"
@@ -1237,7 +1239,7 @@ export default function ProfilePage() {
                                   className="absolute inset-0 z-10 overflow-hidden"
                                   style={{ borderRadius: "4px" }}
                                 >
-                                  <img
+                                  <img loading="lazy"
                                     src={getProxiedUrlForPreview(
                                       prop.achievement?.backgroundImage || ""
                                     )}
@@ -1251,7 +1253,7 @@ export default function ProfilePage() {
                                   />
                                 </div>
                                 {/* Foreground props image */}
-                                <img
+                                <img loading="lazy"
                                   src={getProxiedUrlForPreview(
                                     prop.achievement?.props || ""
                                   )}
@@ -1284,7 +1286,7 @@ export default function ProfilePage() {
                                     }}
                                   >
                                     {prop.achievement?.logoImage ? (
-                                      <img
+                                      <img loading="lazy"
                                         src={getProxiedUrlForPreview(
                                           prop.achievement.logoImage
                                         )}
@@ -1478,7 +1480,7 @@ export default function ProfilePage() {
 
                             {/* Use the saved preview image if available, otherwise reconstruct from template data */}
                             {template.previewImageBase64 ? (
-                              <img
+                              <img loading="lazy"
                                 src={template.previewImageBase64}
                                 alt={
                                   template.achievement?.company ||
@@ -1502,7 +1504,7 @@ export default function ProfilePage() {
                                   className="absolute inset-0 z-10 overflow-hidden"
                                   style={{ borderRadius: "4px" }}
                                 >
-                                  <img
+                                  <img loading="lazy"
                                     src={getProxiedUrlForPreview(
                                       template.achievement?.backgroundImage ||
                                         ""
@@ -1517,7 +1519,7 @@ export default function ProfilePage() {
                                   />
                                 </div>
                                 {/* Foreground props image */}
-                                <img
+                                <img loading="lazy"
                                   src={getProxiedUrlForPreview(
                                     template.achievement?.props || ""
                                   )}
@@ -1550,7 +1552,7 @@ export default function ProfilePage() {
                                     }}
                                   >
                                     {template.achievement?.logoImage ? (
-                                      <img
+                                      <img loading="lazy"
                                         src={getProxiedUrlForPreview(
                                           template.achievement.logoImage
                                         )}

@@ -1,5 +1,7 @@
 "use client";
 
+import { logger } from "@/lib/logger";
+
 import { useEffect, useState } from "react";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 import { useRouter } from "next/navigation";
@@ -17,6 +19,7 @@ import Link from "next/link";
 import AuthModal from "./AuthModal";
 import { uploadToCloudinary } from "@/lib/cloudinary";
 import toast from "react-hot-toast";
+import { authenticatedFetch } from "@/lib/authenticatedFetch";
 
 interface ShareStepProps {
   onPrevious: () => void;
@@ -88,7 +91,7 @@ export default function ShareStep({
         throw new Error("User not authenticated");
       }
 
-      console.log({ selectedTemplate });
+      logger.debug({ selectedTemplate });
 
       // Step 1: Upload assets and create template
       setProcessStep("Uploading assets and creating template...");
@@ -109,17 +112,17 @@ export default function ShareStep({
         ? null
         : previewResult;
 
-      console.log(
+      logger.debug(
         "Retrieved preview image result:",
         cloudinaryUrl ? "Cloudinary URL" : "Base64",
         cloudinaryUrl || savedPreviewImage
       );
 
       // Log the uploaded assets for debugging
-      console.log("Uploaded assets for preview:", uploadedAssets);
-      console.log("Selected template:", selectedTemplate);
-      console.log("Preview image URL:", previewImageUrl);
-      console.log("Template achievement structure:", {
+      logger.debug("Uploaded assets for preview:", uploadedAssets);
+      logger.debug("Selected template:", selectedTemplate);
+      logger.debug("Preview image URL:", previewImageUrl);
+      logger.debug("Template achievement structure:", {
         props: selectedTemplate?.achievement?.props,
         logoImage: selectedTemplate?.achievement?.logoImage,
         backgroundImage: selectedTemplate?.achievement?.backgroundImage,
@@ -170,15 +173,15 @@ export default function ShareStep({
 
         const propId = await saveUserProp(user.uid, propData);
         setSavedPropId(propId);
-        console.log("Preview image saved to database with prop ID:", propId);
+        logger.debug("Preview image saved to database with prop ID:", propId);
         setProcessStep("Preview image saved successfully!");
 
         // Also save to public collection for sharing
         try {
           await savePublicProp(propId, propData);
-          console.log("Prop saved to public collection for sharing");
+          logger.debug("Prop saved to public collection for sharing");
         } catch (error) {
-          console.error("Error saving to public collection:", error);
+          logger.error("Error saving to public collection:", error);
           // Don't fail the whole process if public save fails
         }
 
@@ -190,13 +193,13 @@ export default function ShareStep({
               user.uid,
               uploadedAssets
             );
-            console.log(
+            logger.debug(
               "Successfully created reusable template with ID:",
               userTemplateId
             );
             setProcessStep("Reusable template created successfully!");
           } catch (error) {
-            console.error("Error creating reusable template:", error);
+            logger.error("Error creating reusable template:", error);
             setProcessStep("Template creation failed, but prop was saved");
           }
         }
@@ -219,14 +222,14 @@ export default function ShareStep({
           localStorage.removeItem("digital-awards-filters");
           localStorage.removeItem("digital-awards-search-query");
           localStorage.removeItem("temp-preview-image-base64"); // Clean up temporary preview image
-          console.log("Cleared all digital awards localStorage persistence");
+          logger.debug("Cleared all digital awards localStorage persistence");
         }
 
         // Keep user on Share step to see generated award
         // Only clear localStorage so next visit will be fresh
-        console.log("Award generated successfully! User stays on Share step.");
+        logger.debug("Award generated successfully! User stays on Share step.");
       } catch (error) {
-        console.error("Error saving preview image to database:", error);
+        logger.error("Error saving preview image to database:", error);
         setProcessStep("Error saving preview image");
       }
 
@@ -265,7 +268,7 @@ This digital award recognizes excellence and dedication in professional developm
         setProcessStep("");
       }, 2000);
     } catch (error) {
-      console.error("Error generating award:", error);
+      logger.error("Error generating award:", error);
       setIsGenerating(false);
       setProcessStep("");
       // Handle error appropriately
@@ -322,7 +325,7 @@ This digital award recognizes excellence and dedication in professional developm
 
       return uploadedAssets;
     } catch (error) {
-      console.error("Error uploading assets and creating template:", error);
+      logger.error("Error uploading assets and creating template:", error);
       throw error;
     }
   };
@@ -333,7 +336,7 @@ This digital award recognizes excellence and dedication in professional developm
     uploadedAssets: any
   ) => {
     try {
-      let templateId = selectedTemplate?.id || "";
+      const templateId = selectedTemplate?.id || "";
       let isPrivateTemplate = false;
       let userTemplateId = null;
 
@@ -382,11 +385,11 @@ This digital award recognizes excellence and dedication in professional developm
             templateType: "props",
           });
 
-          console.log("Saved user template with ID:", userTemplateId);
-          console.log("Template data:", templateData);
+          logger.debug("Saved user template with ID:", userTemplateId);
+          logger.debug("Template data:", templateData);
           isPrivateTemplate = true;
         } catch (error) {
-          console.error("Error saving user template:", error);
+          logger.error("Error saving user template:", error);
           // Continue without template saving if it fails
         }
       }
@@ -394,7 +397,7 @@ This digital award recognizes excellence and dedication in professional developm
       // Return the user template ID (no prop saving here - that's done in the main function)
       return userTemplateId;
     } catch (error) {
-      console.error("Error creating prop in user subcollection:", error);
+      logger.error("Error creating prop in user subcollection:", error);
       throw error;
     }
   };
@@ -410,17 +413,17 @@ This digital award recognizes excellence and dedication in professional developm
   ) => {
     try {
       // First, get the prop data to ensure we have the latest information
-      console.log("Generating image for prop:", propId);
-      console.log("Uploaded assets:", uploadedAssets);
+      logger.debug("Generating image for prop:", propId);
+      logger.debug("Uploaded assets:", uploadedAssets);
 
       // Call our proxy API route instead of the cloud function directly
       const imageUrl = `/api/generate-image?user=${userId}&prop=${propId}`;
 
-      console.log("Attempting to fetch image from:", imageUrl);
-      console.log("Prop ID being sent:", propId);
+      logger.debug("Attempting to fetch image from:", imageUrl);
+      logger.debug("Prop ID being sent:", propId);
 
       // Fetch the image from our proxy API route
-      const response = await fetch(imageUrl, {
+      const response = await authenticatedFetch(imageUrl, {
         method: "GET",
         headers: {
           Accept: "image/png",
@@ -431,8 +434,10 @@ This digital award recognizes excellence and dedication in professional developm
         let errorBody = "";
         try {
           errorBody = await response.text();
-        } catch {}
-        console.warn(
+        } catch (readError) {
+          errorBody = readError instanceof Error ? readError.message : "unavailable";
+        }
+        logger.warn(
           "API route response:",
           response.status,
           response.statusText,
@@ -449,7 +454,7 @@ This digital award recognizes excellence and dedication in professional developm
       try {
         imageBlob = await response.blob();
       } catch (e) {
-        console.warn("Failed reading image blob:", e);
+        logger.warn("Failed reading image blob:", e);
         const placeholderImageUrl = `/generated_placeholder.png`;
         await updatePropWithImage(userId, propId, placeholderImageUrl);
         return placeholderImageUrl;
@@ -465,10 +470,10 @@ This digital award recognizes excellence and dedication in professional developm
       // Update the prop document with the uploaded image URL
       await updatePropWithImage(userId, propId, uploadedImageUrl);
 
-      console.log("Successfully generated and saved image:", uploadedImageUrl);
+      logger.debug("Successfully generated and saved image:", uploadedImageUrl);
       return uploadedImageUrl;
     } catch (error) {
-      console.warn("Error generating and saving image:", error);
+      logger.warn("Error generating and saving image:", error);
       // For now, let's create a placeholder image URL for testing
       const placeholderImageUrl = `/generated_placeholder.png`;
       await updatePropWithImage(userId, propId, placeholderImageUrl);
@@ -511,7 +516,7 @@ This digital award recognizes excellence and dedication in professional developm
   const generatePreviewImage = async (uploadedAssets: any): Promise<string> => {
     return new Promise(async (resolve, reject) => {
       try {
-        console.log("Generating preview image with assets:", uploadedAssets);
+        logger.debug("Generating preview image with assets:", uploadedAssets);
 
         // Create a canvas to composite the images
         const canvas = document.createElement("canvas");
@@ -938,7 +943,7 @@ This digital award recognizes excellence and dedication in professional developm
 
                   // Save Cloudinary URL to localStorage for immediate access
                   localStorage.setItem("temp-preview-image-url", cloudinaryUrl);
-                  console.log(
+                  logger.debug(
                     "Preview image uploaded to Cloudinary:",
                     cloudinaryUrl
                   );
@@ -946,7 +951,7 @@ This digital award recognizes excellence and dedication in professional developm
                   // Resolve the promise with the Cloudinary URL
                   resolve(cloudinaryUrl);
                 } catch (error) {
-                  console.error(
+                  logger.error(
                     "Failed to upload to Cloudinary, falling back to base64:",
                     error
                   );
@@ -966,7 +971,7 @@ This digital award recognizes excellence and dedication in professional developm
             };
 
             logoImg.onerror = async () => {
-              console.warn("Could not load logo image, continuing without it");
+              logger.warn("Could not load logo image, continuing without it");
               // Continue without logo
               const previewDataUrl = canvas.toDataURL("image/png");
 
@@ -1019,7 +1024,7 @@ This digital award recognizes excellence and dedication in professional developm
           };
 
           propsImg.onerror = () => {
-            console.warn("Could not load props image, continuing without it");
+            logger.warn("Could not load props image, continuing without it");
             // Continue without props image
             const previewDataUrl = canvas.toDataURL("image/png");
 
@@ -1073,7 +1078,7 @@ This digital award recognizes excellence and dedication in professional developm
         };
 
         backgroundImg.onerror = () => {
-          console.warn("Could not load background image, using fallback");
+          logger.warn("Could not load background image, using fallback");
           // Use fallback background
           ctx.fillStyle = "#FF69B4"; // Pink background as fallback
           ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -1124,7 +1129,7 @@ This digital award recognizes excellence and dedication in professional developm
         }
 
         backgroundImg.onerror = () => {
-          console.warn("Could not load background image, using fallback");
+          logger.warn("Could not load background image, using fallback");
           // Use fallback background
           ctx.fillStyle = "#FF69B4"; // Pink background as fallback
           ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -1176,7 +1181,7 @@ This digital award recognizes excellence and dedication in professional developm
           handleNoBackgroundUpload();
         }
       } catch (error) {
-        console.error("Error generating preview image:", error);
+        logger.error("Error generating preview image:", error);
         setPreviewImageUrl(null);
         reject(error);
       }
@@ -1187,7 +1192,7 @@ This digital award recognizes excellence and dedication in professional developm
     if (savedPropId) {
       router.push(`/props/${savedPropId}`);
     } else {
-      console.error("No saved prop ID available");
+      logger.error("No saved prop ID available");
       alert("Error: Prop not found. Please try generating again.");
     }
   };
@@ -1305,7 +1310,7 @@ This digital award recognizes excellence and dedication in professional developm
                     Preview Image (Generated Locally):
                   </h4>
                   <div className="bg-white rounded-lg p-2 inline-block">
-                    <img
+                    <img loading="lazy"
                       src={previewImageUrl}
                       alt="Preview Prop"
                       className="rounded border border-gray-300"
@@ -1316,10 +1321,10 @@ This digital award recognizes excellence and dedication in professional developm
                         objectPosition: "center",
                       }}
                       onLoad={() =>
-                        console.log("Preview image loaded successfully")
+                        logger.debug("Preview image loaded successfully")
                       }
                       onError={(e) =>
-                        console.error("Preview image failed to load:", e)
+                        logger.error("Preview image failed to load:", e)
                       }
                     />
                   </div>
@@ -1343,7 +1348,7 @@ This digital award recognizes excellence and dedication in professional developm
                       className="bg-white rounded-lg p-2 inline-block"
                       title="View Prop Detail"
                     >
-                      <img
+                      <img loading="lazy"
                         src={getProxiedImageUrl(generatedImageUrl)}
                         alt="Generated Prop"
                         className="rounded border border-gray-300"
@@ -1354,13 +1359,13 @@ This digital award recognizes excellence and dedication in professional developm
                           objectPosition: "center",
                         }}
                         onLoad={() =>
-                          console.log(
+                          logger.debug(
                             "Image loaded successfully:",
                             getProxiedImageUrl(generatedImageUrl)
                           )
                         }
                         onError={(e) =>
-                          console.error(
+                          logger.error(
                             "Image failed to load:",
                             getProxiedImageUrl(generatedImageUrl),
                             e
@@ -1371,7 +1376,7 @@ This digital award recognizes excellence and dedication in professional developm
                     </Link>
                   ) : (
                     <div className="bg-white rounded-lg p-2 inline-block">
-                      <img
+                      <img loading="lazy"
                         src={getProxiedImageUrl(generatedImageUrl)}
                         alt="Generated Prop"
                         className="rounded border border-gray-300"
@@ -1382,13 +1387,13 @@ This digital award recognizes excellence and dedication in professional developm
                           objectPosition: "center",
                         }}
                         onLoad={() =>
-                          console.log(
+                          logger.debug(
                             "Image loaded successfully:",
                             getProxiedImageUrl(generatedImageUrl)
                           )
                         }
                         onError={(e) =>
-                          console.error(
+                          logger.error(
                             "Image failed to load:",
                             getProxiedImageUrl(generatedImageUrl),
                             e

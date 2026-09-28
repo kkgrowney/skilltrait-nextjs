@@ -1,14 +1,16 @@
 "use client";
 
+import { logger } from "@/lib/logger";
+
 /**
  * Skills Page with Firebase Cloud Function Integration
- * 
+ *
  * NOTE: If you're getting "Failed to fetch" errors, this could be due to:
  * 1. Cloud function not deployed yet
  * 2. CORS configuration issues
  * 3. Network connectivity problems
  * 4. Cloud function URL being incorrect
- * 
+ *
  * The system will fallback to local Firebase storage if the cloud function fails.
  */
 
@@ -20,6 +22,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { doc, getDoc, updateDoc, collection, addDoc, query, where, getDocs, deleteDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import Link from 'next/link';
+import { authenticatedFetch } from '@/lib/authenticatedFetch';
 
 function SkillsPageContent() {
   const { user } = useAuth();
@@ -72,23 +75,23 @@ function SkillsPageContent() {
   // Helper function to find existing skill document
   const findSkillDocument = async (skillName: string): Promise<string | null> => {
     if (!user?.uid) return null;
-    
+
     try {
       // ✅ UPDATED: Query top-level skills collection with userRef filter
       const skillsRef = collection(db, 'skills');
       const q = query(
-        skillsRef, 
+        skillsRef,
         where('userRef', '==', doc(db, 'users', user.uid)),
         where('name', '==', skillName)
       );
       const querySnapshot = await getDocs(q);
-      
+
       if (!querySnapshot.empty) {
         return querySnapshot.docs[0].id;
       }
       return null;
     } catch (error) {
-      console.error('Error finding skill document:', error);
+      logger.error('Error finding skill document:', error);
       return null;
     }
   };
@@ -96,9 +99,9 @@ function SkillsPageContent() {
   // Helper function to call the cloud function via Next.js API route
   const callSaveSkillFunction = async (skillData: any) => {
     try {
-      console.log('Calling Next.js API route with skill data');
-      
-      const response = await fetch('/api/save-skill', {
+      logger.debug('Calling Next.js API route with skill data');
+
+      const response = await authenticatedFetch('/api/save-skill', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -108,15 +111,15 @@ function SkillsPageContent() {
 
       if (!response.ok) {
         const errorText = await response.text();
-        console.error('API route error:', response.status, errorText);
+        logger.error('API route error:', response.status, errorText);
         throw new Error(`HTTP error! status: ${response.status}, message: ${errorText}`);
       }
 
       const result = await response.json();
-      console.log('API route response:', result);
+      logger.debug('API route response:', result);
       return result;
     } catch (error) {
-      console.error('Error calling API route:', error);
+      logger.error('Error calling API route:', error);
       return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
     }
   };
@@ -133,12 +136,12 @@ function SkillsPageContent() {
   // Track changes to determine if save button should be active
   useEffect(() => {
     if (selectedSkillDetail) {
-      const hasChanges = 
+      const hasChanges =
         overviewText !== originalOverviewText ||
         selectedProficiencyLevel !== originalProficiencyLevel ||
         selectedMotivationLevel !== originalMotivationLevel;
-      
-      console.log('Change detection:', {
+
+      logger.debug('Change detection:', {
         overviewText,
         originalOverviewText,
         selectedProficiencyLevel,
@@ -147,7 +150,7 @@ function SkillsPageContent() {
         originalMotivationLevel,
         hasChanges
       });
-      
+
       setHasUnsavedChanges(hasChanges);
     } else {
       setHasUnsavedChanges(false);
@@ -157,12 +160,12 @@ function SkillsPageContent() {
   // Fetch user profile data
   const fetchUserProfile = async () => {
     if (!user?.uid) return;
-    
+
     setIsLoadingProfile(true);
     try {
       const userDocRef = doc(db, 'users', user.uid);
       const userDoc = await getDoc(userDocRef);
-      
+
       if (userDoc.exists()) {
         const data = userDoc.data();
         setUserProfile(data);
@@ -170,24 +173,24 @@ function SkillsPageContent() {
         setOriginalOverviewText(data.overview || '');
         setSelectedProficiencyLevel(data.proficiencyLevel || '');
         setSelectedMotivationLevel(data.motivationLevel || '');
-        
+
         // ✅ UPDATED: Load skills from top-level skills collection with userRef filter
         try {
           const skillsRef = collection(db, 'skills');
           const q = query(skillsRef, where('userRef', '==', doc(db, 'users', user.uid)));
           const skillsSnapshot = await getDocs(q);
-          
+
           const userSkills = skillsSnapshot.docs.map(doc => doc.data().name);
           setSelectedSkills(userSkills);
         } catch (error) {
-          console.error('Error loading skills:', error);
+          logger.error('Error loading skills:', error);
           setSelectedSkills(data.skills || []);
         }
-        
-        console.log('User profile loaded:', data);
+
+        logger.debug('User profile loaded:', data);
       }
     } catch (error) {
-      console.error('Error fetching user profile:', error);
+      logger.error('Error fetching user profile:', error);
     } finally {
       setIsLoadingProfile(false);
     }
@@ -196,7 +199,7 @@ function SkillsPageContent() {
   // Handle adding a skill
   const handleAddSkill = async (skill: string) => {
     if (!user?.uid || selectedSkills.includes(skill)) return;
-    
+
     try {
       // ✅ UPDATED: Add to top-level skills collection with userRef
       const skillsRef = collection(db, 'skills');
@@ -209,17 +212,17 @@ function SkillsPageContent() {
         createdAt: new Date(),
         updatedAt: new Date()
       });
-      
+
       // Update local state
       setSelectedSkills([...selectedSkills, skill]);
-      
+
       // Update user document skills array
       const userDocRef = doc(db, 'users', user.uid);
       await updateDoc(userDocRef, {
         skills: [...selectedSkills, skill]
       });
     } catch (error) {
-      console.error('Error adding skill:', error);
+      logger.error('Error adding skill:', error);
       toast.error('Failed to add skill.');
     }
   };
@@ -227,30 +230,30 @@ function SkillsPageContent() {
   // Handle removing a skill
   const handleRemoveSkill = async (skill: string) => {
     if (!user?.uid) return;
-    
+
     try {
       // ✅ UPDATED: Find and delete from top-level skills collection
       const existingSkillId = await findSkillDocument(skill);
       if (existingSkillId) {
         await deleteDoc(doc(db, 'skills', existingSkillId));
       }
-      
+
       // Update local state
       const newSkills = selectedSkills.filter(s => s !== skill);
       setSelectedSkills(newSkills);
-      
+
       if (selectedSkillDetail === skill) {
         setSelectedSkillDetail(null);
         setSkillDocumentId(null);
       }
-      
+
       // Update user document skills array
       const userDocRef = doc(db, 'users', user.uid);
       await updateDoc(userDocRef, {
         skills: newSkills
       });
     } catch (error) {
-      console.error('Error removing skill:', error);
+      logger.error('Error removing skill:', error);
       toast.error('Failed to remove skill.');
     }
   };
@@ -279,23 +282,23 @@ function SkillsPageContent() {
           // Load the new skill data
           const existingSkillId = await findSkillDocument(skill);
           setSkillDocumentId(existingSkillId);
-          
+
           if (existingSkillId) {
             try {
               const skillDocRef = doc(db, 'skills', existingSkillId);
               const skillDoc = await getDoc(skillDocRef);
-            
+
               if (skillDoc.exists()) {
                 const skillData = skillDoc.data();
                 setOverviewText(skillData.description || '');
                 setOriginalOverviewText(skillData.description || '');
-                
+
                 // Map proficiency back from integer
                 const proficiencyMap = { 1: 'Beginner', 2: 'Intermediate', 3: 'Advanced', 4: 'Expert', 5: 'Master' };
                 const proficiencyLevel = proficiencyMap[skillData.proficiency as keyof typeof proficiencyMap] || '';
                 setSelectedProficiencyLevel(proficiencyLevel);
                 setOriginalProficiencyLevel(proficiencyLevel);
-                
+
                 // Map motivation back from integer
                 const motivationMap = { 1: 'Very Low', 2: 'Low', 3: 'Moderate', 4: 'High', 5: 'Very High' };
                 const motivationLevel = motivationMap[skillData.motivation as keyof typeof motivationMap] || '';
@@ -303,7 +306,7 @@ function SkillsPageContent() {
                 setOriginalMotivationLevel(motivationLevel);
               }
             } catch (error) {
-              console.error('Error loading skill data:', error);
+              logger.error('Error loading skill data:', error);
             }
           } else {
             // Reset form for new skill
@@ -320,28 +323,28 @@ function SkillsPageContent() {
         return;
       }
       setSelectedSkillDetail(skill);
-      
+
               // Try to find existing skill document
         const existingSkillId = await findSkillDocument(skill);
         setSkillDocumentId(existingSkillId);
-        
+
         // ✅ UPDATED: Load existing skill data from top-level skills collection
         if (existingSkillId) {
           try {
             const skillDocRef = doc(db, 'skills', existingSkillId);
             const skillDoc = await getDoc(skillDocRef);
-          
+
           if (skillDoc.exists()) {
             const skillData = skillDoc.data();
             setOverviewText(skillData.description || '');
             setOriginalOverviewText(skillData.description || '');
-            
+
             // Map proficiency back from integer
             const proficiencyMap = { 1: 'Beginner', 2: 'Intermediate', 3: 'Advanced', 4: 'Expert', 5: 'Master' };
             const proficiencyLevel = proficiencyMap[skillData.proficiency as keyof typeof proficiencyMap] || '';
             setSelectedProficiencyLevel(proficiencyLevel);
             setOriginalProficiencyLevel(proficiencyLevel);
-            
+
             // Map motivation back from integer
             const motivationMap = { 1: 'Very Low', 2: 'Low', 3: 'Moderate', 4: 'High', 5: 'Very High' };
             const motivationLevel = motivationMap[skillData.motivation as keyof typeof motivationMap] || '';
@@ -349,7 +352,7 @@ function SkillsPageContent() {
             setOriginalMotivationLevel(motivationLevel);
           }
         } catch (error) {
-          console.error('Error loading skill data:', error);
+          logger.error('Error loading skill data:', error);
         }
       } else {
         // Reset form for new skill
@@ -365,10 +368,10 @@ function SkillsPageContent() {
 
   // Handle closing skill detail
   const handleCloseSkillDetail = () => {
-    console.log('Closing skill detail, hasUnsavedChanges:', hasUnsavedChanges);
+    logger.debug('Closing skill detail, hasUnsavedChanges:', hasUnsavedChanges);
     // Check for unsaved changes before closing
     if (hasUnsavedChanges) {
-      console.log('Showing unsaved changes modal');
+      logger.debug('Showing unsaved changes modal');
       setPendingAction(() => () => {
         setSelectedSkillDetail(null);
         setSkillDocumentId(null);
@@ -381,7 +384,7 @@ function SkillsPageContent() {
         setHasUnsavedChanges(false);
       });
       setShowUnsavedChangesModal(true);
-      console.log('Modal state set to true');
+      logger.debug('Modal state set to true');
       return;
     }
     setSelectedSkillDetail(null);
@@ -404,7 +407,7 @@ function SkillsPageContent() {
       setShowUnsavedChangesModal(false);
       setPendingAction(null);
     } catch (error) {
-      console.error('Error saving from modal:', error);
+      logger.error('Error saving from modal:', error);
     } finally {
       setIsSavingFromModal(false);
     }
@@ -418,15 +421,15 @@ function SkillsPageContent() {
 
   const handleSaveSkillDetails = async () => {
     if (!user?.uid || !selectedSkillDetail) return;
-    
+
     setIsSaving(true);
     try {
-      console.log('Saving skill details for:', selectedSkillDetail);
-      
+      logger.debug('Saving skill details for:', selectedSkillDetail);
+
       // Find existing skill document or create new one
-      let existingSkillId = await findSkillDocument(selectedSkillDetail);
-      console.log('Existing Skill ID:', existingSkillId);
-      
+      const existingSkillId = await findSkillDocument(selectedSkillDetail);
+      logger.debug('Existing Skill ID:', existingSkillId);
+
       // Prepare skill data for cloud function
       const skillData = {
         user: user.uid,
@@ -436,21 +439,21 @@ function SkillsPageContent() {
         prof: mapProficiencyToInt(selectedProficiencyLevel),
         mot: mapMotivationToInt(selectedMotivationLevel)
       };
-      
-      console.log('Skill data prepared:', skillData);
-      
+
+      logger.debug('Skill data prepared:', skillData);
+
       // Try to call cloud function via API route
       let cloudFunctionResult = null;
       try {
         cloudFunctionResult = await callSaveSkillFunction(skillData);
       } catch (cloudError) {
-        console.log('API route call failed, proceeding with local save only');
+        logger.debug('API route call failed, proceeding with local save only');
         cloudFunctionResult = { success: false, error: 'API route unavailable' };
       }
-      
+
       // Always save to local Firebase for immediate UI updates
       const userDocRef = doc(db, 'users', user.uid);
-      await updateDoc(userDocRef, { 
+      await updateDoc(userDocRef, {
         overview: overviewText,
         proficiencyLevel: selectedProficiencyLevel,
         motivationLevel: selectedMotivationLevel
@@ -458,17 +461,17 @@ function SkillsPageContent() {
 
       // Update local state
       setOriginalOverviewText(overviewText);
-      
+
       // If API route was successful, handle the response
       if (cloudFunctionResult && cloudFunctionResult.success !== false) {
         // If this is a new skill, add it to the skills collection locally
         if (!existingSkillId && cloudFunctionResult.skillId) {
           setSkillDocumentId(cloudFunctionResult.skillId);
-          
+
           // Also add to local skills array if not already there
           if (!selectedSkills.includes(selectedSkillDetail)) {
             setSelectedSkills([...selectedSkills, selectedSkillDetail]);
-            
+
             // Update user document skills array
             await updateDoc(userDocRef, {
               skills: [...selectedSkills, selectedSkillDetail]
@@ -482,16 +485,16 @@ function SkillsPageContent() {
         setOriginalMotivationLevel(selectedMotivationLevel);
       } else {
         // API route failed but local save succeeded
-        console.log('API route failed, but data saved locally');
+        logger.debug('API route failed, but data saved locally');
         toast.success('Skill details saved locally. Cloud function unavailable.');
         // Update original values to match current values after successful save
         setOriginalOverviewText(overviewText);
         setOriginalProficiencyLevel(selectedProficiencyLevel);
         setOriginalMotivationLevel(selectedMotivationLevel);
       }
-      
+
     } catch (error) {
-      console.error('Error saving skill details:', error);
+      logger.error('Error saving skill details:', error);
       toast.error('Failed to save skill details.');
     } finally {
       setIsSaving(false);
@@ -513,7 +516,7 @@ function SkillsPageContent() {
       // Select the new level (automatically deselects the previous one)
       newLevel = level;
     }
-    
+
     setSelectedProficiencyLevel(newLevel);
   };
 
@@ -526,7 +529,7 @@ function SkillsPageContent() {
       // Select the new motivation (automatically deselects the previous one)
       newMotivation = motivation;
     }
-    
+
     setSelectedMotivationLevel(newMotivation);
   };
 
@@ -540,7 +543,7 @@ function SkillsPageContent() {
   return (
     <div className="min-h-screen" style={{ backgroundColor: "#1B1D21" }}>
       <SideNavigation />
-      
+
       <div className={`${sideNavMargin} h-full flex flex-col`}>
         {/* Fixed Header Container */}
         <div className="flex-shrink-0 z-20">
@@ -552,13 +555,13 @@ function SkillsPageContent() {
             </div>
           </div>
         </div>
-        
+
         {/* Scrollable Content Area */}
         <div className="flex-1 overflow-y-auto p-4 md:p-8" style={{ height: 'calc(100vh - 64px)' }}>
           <div className="max-w-6xl">
             <div className="bg-[#212327] rounded-lg shadow-sm border border-[#454446] p-6 mb-6">
               <h2 className="text-xl font-bold text-white mb-6">My Skills</h2>
-              
+
               {/* Responsive two-column layout */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 {/* Left Column - My Skills */}
@@ -568,8 +571,8 @@ function SkillsPageContent() {
                     <div>
                       <h3 className="text-lg font-semibold text-white mb-3">Getting Started</h3>
                       <p className="text-gray-300 text-sm leading-relaxed">
-                        Start by adding your core competencies and areas of specialization. 
-                        You can organize skills by category, add proficiency levels, and include 
+                        Start by adding your core competencies and areas of specialization.
+                        You can organize skills by category, add proficiency levels, and include
                         relevant certifications or achievements.
                       </p>
                     </div>
@@ -613,7 +616,7 @@ function SkillsPageContent() {
                     </div>
                   )}
                 </div>
-                
+
                 {/* Right Column - Conditional Content */}
                 <div className="h-full">
                   {selectedSkillDetail ? (
@@ -628,12 +631,12 @@ function SkillsPageContent() {
                           ×
                         </button>
                       </div>
-                      
+
                       {/* Skill Detail Content */}
                       <div className="space-y-6">
                         <div className="bg-[#212327] rounded-lg border border-[#454446] p-4">
                           <h5 className="text-md font-semibold text-white mb-3">Overview</h5>
-                          
+
                           <div className="space-y-3">
                             <textarea
                               id="overviewTextarea"
@@ -644,7 +647,7 @@ function SkillsPageContent() {
                               value={overviewText}
                               onChange={(e) => setOverviewText(e.target.value)}
                             />
-                            
+
                             <div className="text-sm text-gray-400">
                               <span className={overviewText.length > 160 ? 'text-red-400 font-semibold' : ''}>
                                 {overviewText.length > 160 ? `${overviewText.length - 160} over limit` : `${160 - overviewText.length} characters remaining`}
@@ -652,7 +655,7 @@ function SkillsPageContent() {
                             </div>
                           </div>
                         </div>
-                        
+
                         <div className="bg-[#212327] rounded-lg border border-[#454446] p-4">
                           <h5 className="text-md font-semibold text-white mb-3">Proficiency Level</h5>
                           <div className="flex gap-2">
@@ -671,7 +674,7 @@ function SkillsPageContent() {
                             ))}
                           </div>
                         </div>
-                        
+
                         <div className="bg-[#212327] rounded-lg border border-[#454446] p-4">
                           <h5 className="text-md font-semibold text-white mb-3">Skill Growth</h5>
                           <p className="text-gray-300 text-sm mb-4">
@@ -693,7 +696,7 @@ function SkillsPageContent() {
                             ))}
                           </div>
                         </div>
-                        
+
                         {/* Save/Cancel Section at Bottom */}
                         <div className="flex justify-end gap-2 pt-4">
                           <button
@@ -743,7 +746,7 @@ function SkillsPageContent() {
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                             </svg>
                           </div>
-                          
+
                           {/* Search Dropdown */}
                           {showSearchDropdown && (
                             <div className="absolute top-full left-0 right-0 mt-1 bg-[#212327] border border-[#454446] rounded-lg shadow-lg z-10 max-h-48 overflow-y-auto">
@@ -752,7 +755,7 @@ function SkillsPageContent() {
                                   {searchQuery ? 'Search Results' : 'Popular Skills'}
                                 </div>
                                 {['JavaScript', 'React', 'Python', 'Data Analysis', 'Project Management', 'Leadership', 'Communication', 'UI/UX Design']
-                                  .filter(skill => 
+                                  .filter(skill =>
                                     skill.toLowerCase().includes(searchQuery.toLowerCase())
                                   )
                                   .map((skill, index) => (
@@ -769,7 +772,7 @@ function SkillsPageContent() {
                                     </button>
                                   ))}
                                 {searchQuery && ['JavaScript', 'React', 'Python', 'Data Analysis', 'Project Management', 'Leadership', 'Communication', 'UI/UX Design']
-                                  .filter(skill => 
+                                  .filter(skill =>
                                     skill.toLowerCase().includes(searchQuery.toLowerCase())
                                   ).length === 0 && (
                                     <div className="px-3 py-2 text-sm text-gray-400">
@@ -781,7 +784,7 @@ function SkillsPageContent() {
                           )}
                         </div>
                       </div>
-                      
+
                       {/* Popular Skills Section */}
                       <div className="bg-[#1e2327] rounded-lg border border-[#454446] p-6">
                         <h4 className="text-md font-semibold text-white mb-4">Popular Skills</h4>

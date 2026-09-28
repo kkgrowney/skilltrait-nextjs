@@ -1,5 +1,7 @@
 "use client";
 
+import { logger } from "@/lib/logger";
+
 import { useAuth } from "@/contexts/AuthContext";
 import { auth, db } from "@/lib/firebase";
 import { useRouter } from "next/navigation";
@@ -58,18 +60,18 @@ export default function Home() {
       if (userDoc.exists()) {
         const data = userDoc.data();
         setUserProfile(data);
-        console.log("User profile loaded:", data);
-        console.log("Photo URL fields:", {
+        logger.debug("User profile loaded:", data);
+        logger.debug("Photo URL fields:", {
           photo_url: data.photo_url,
           photoURL: data.photoURL,
           photo: data.photo,
           profilePicture: data.profilePicture,
         });
       } else {
-        console.log("No user profile found");
+        logger.debug("No user profile found");
       }
     } catch (error) {
-      console.error("Error fetching user profile:", error);
+      logger.error("Error fetching user profile:", error);
     } finally {
       setIsLoadingProfile(false);
     }
@@ -79,10 +81,10 @@ export default function Home() {
   const fetchCompanyInfo = async () => {
     if (!user?.uid) return;
 
-    console.log("🚀 fetchCompanyInfo called for user:", user.uid);
+    logger.debug("🚀 fetchCompanyInfo called for user:", user.uid);
 
     try {
-      console.log("🔍 Starting fetchCompanyInfo for user:", user.uid);
+      logger.debug("🔍 Starting fetchCompanyInfo for user:", user.uid);
 
       // ✅ EFFICIENT: Query with filters to get only the user's active and verified company connection
       const userConnectionsQuery = query(
@@ -92,11 +94,11 @@ export default function Home() {
         where("verified", "==", true)
       );
 
-      console.log(
+      logger.debug(
         "📁 Querying with filters: userRef, active=true, verified=true"
       );
       const userConnectionsSnapshot = await getDocs(userConnectionsQuery);
-      console.log(
+      logger.debug(
         "📊 User connections snapshot size:",
         userConnectionsSnapshot.size
       );
@@ -108,27 +110,27 @@ export default function Home() {
       }));
 
       if (!userConnectionsSnapshot.empty) {
-        console.log("✅ Found active and verified company connection for user");
+        logger.debug("✅ Found active and verified company connection for user");
 
         // Get the first (and should be only) connection
         const userConnection = userConnectionsSnapshot.docs[0];
         const companyData = userConnection.data();
 
-        console.log("🔗 Company Connection Data:");
-        console.log("  📄 Document ID:", userConnection.id);
-        console.log("  🔍 Key Fields:");
-        console.log("    - active:", companyData.active);
-        console.log("    - verified:", companyData.verified);
-        console.log("    - companyReference:", companyData.companyReference);
-        console.log("    - userRef:", companyData.userRef);
-        console.log("    - isAdmin:", companyData.isAdmin || false);
-        console.log("    - role:", companyData.role || "Employee");
+        logger.debug("🔗 Company Connection Data:");
+        logger.debug("  📄 Document ID:", userConnection.id);
+        logger.debug("  🔍 Key Fields:");
+        logger.debug("    - active:", companyData.active);
+        logger.debug("    - verified:", companyData.verified);
+        logger.debug("    - companyReference:", companyData.companyReference);
+        logger.debug("    - userRef:", companyData.userRef);
+        logger.debug("    - isAdmin:", companyData.isAdmin || false);
+        logger.debug("    - role:", companyData.role || "Employee");
 
         const activeCompanyConnection = {
           id: userConnection.id,
           ...(companyData as object),
         };
-        console.log(
+        logger.debug(
           "🎯 Active company connection found:",
           JSON.stringify(activeCompanyConnection, null, 2)
         );
@@ -137,7 +139,7 @@ export default function Home() {
           activeCompanyConnection &&
           (activeCompanyConnection as any).companyReference
         ) {
-          console.log(
+          logger.debug(
             "\n🏢 Company reference found, fetching company details..."
           );
 
@@ -155,7 +157,7 @@ export default function Home() {
                 "companies",
                 (activeCompanyConnection as any).companyReference
               );
-              console.log(
+              logger.debug(
                 "📁 Using string ID, created doc ref:",
                 `companies/${(activeCompanyConnection as any).companyReference}`
               );
@@ -167,12 +169,12 @@ export default function Home() {
             ) {
               // If it's a Firestore document reference, use it directly
               companyDocRef = (activeCompanyConnection as any).companyReference;
-              console.log(
+              logger.debug(
                 "📁 Using Firestore doc reference, path:",
                 (activeCompanyConnection as any).companyReference.path
               );
             } else {
-              console.log(
+              logger.debug(
                 "❌ Invalid companyReference format:",
                 (activeCompanyConnection as any).companyReference
               );
@@ -180,13 +182,13 @@ export default function Home() {
               return;
             }
 
-            console.log("📖 Fetching company document...");
+            logger.debug("📖 Fetching company document...");
             const companyDoc = await getDoc(companyDocRef);
 
             if (companyDoc.exists()) {
               const companyDetails = companyDoc.data();
-              console.log("✅ Company document found!");
-              console.log(
+              logger.debug("✅ Company document found!");
+              logger.debug(
                 "📋 Company details:",
                 JSON.stringify(companyDetails, null, 2)
               );
@@ -196,15 +198,15 @@ export default function Home() {
                 ...activeCompanyConnection,
                 ...(companyDetails as object),
               };
-              console.log(
+              logger.debug(
                 "🔗 Combined full company info:",
                 JSON.stringify(fullCompanyInfo, null, 2)
               );
 
               setCompanyInfo(fullCompanyInfo);
-              console.log("✅ Company info state updated successfully");
-              console.log("📊 New companyInfo state:", fullCompanyInfo);
-              console.log(
+              logger.debug("✅ Company info state updated successfully");
+              logger.debug("📊 New companyInfo state:", fullCompanyInfo);
+              logger.debug(
                 "🔍 Company name from fullCompanyInfo:",
                 (fullCompanyInfo as any).companyName
               );
@@ -218,32 +220,32 @@ export default function Home() {
                 timestamp: new Date().toISOString(),
               });
             } else {
-              console.log(
+              logger.debug(
                 "❌ Company document not found for reference:",
                 (activeCompanyConnection as any).companyReference
               );
               setCompanyInfo(activeCompanyConnection); // Fallback to connection data only
             }
           } catch (companyError) {
-            console.error("❌ Error fetching company details:", companyError);
+            logger.error("❌ Error fetching company details:", companyError);
             setCompanyInfo(activeCompanyConnection); // Fallback to connection data only
           }
         } else {
-          console.log(
+          logger.debug(
             "\n❌ No active and verified company connections found, or missing companyReference"
           );
           setCompanyInfo(null);
-          console.log("📊 Company info set to null");
+          logger.debug("📊 Company info set to null");
         }
       } else {
-        console.log("❌ No connected companies found for user");
+        logger.debug("❌ No connected companies found for user");
         setCompanyInfo(null);
       }
     } catch (error) {
-      console.error("❌ Error fetching connected companies:", error);
+      logger.error("❌ Error fetching connected companies:", error);
       setCompanyInfo(null);
     } finally {
-      console.log("🏁 fetchCompanyInfo completed");
+      logger.debug("🏁 fetchCompanyInfo completed");
     }
   };
 
@@ -262,7 +264,7 @@ export default function Home() {
   // Fetch company information from Firebase
   useEffect(() => {
     if (user?.uid) {
-      console.log("🔄 useEffect triggered for company info, user:", user.uid);
+      logger.debug("🔄 useEffect triggered for company info, user:", user.uid);
       fetchCompanyInfo();
     }
   }, [user?.uid]);
@@ -312,53 +314,53 @@ export default function Home() {
 
   // Test logout button functionality
   const testLogoutButton = () => {
-    console.log("=== LOGOUT BUTTON TEST ===");
-    console.log("1. Testing logout button click...");
-    console.log("2. Current user:", user?.email);
-    console.log("3. isLoggingOut state:", isLoggingOut);
-    console.log("4. logout function available:", !!logout);
-    console.log("5. Router available:", !!router);
-    console.log("=== END TEST ===");
+    logger.debug("=== LOGOUT BUTTON TEST ===");
+    logger.debug("1. Testing logout button click...");
+    logger.debug("2. Current user:", user?.email);
+    logger.debug("3. isLoggingOut state:", isLoggingOut);
+    logger.debug("4. logout function available:", !!logout);
+    logger.debug("5. Router available:", !!router);
+    logger.debug("=== END TEST ===");
   };
 
   const handleSignOut = async () => {
-    console.log("=== LOGOUT PROCESS STARTED ===");
-    console.log("1. Logout button clicked");
-    console.log("2. Current user:", user?.email);
+    logger.debug("=== LOGOUT PROCESS STARTED ===");
+    logger.debug("1. Logout button clicked");
+    logger.debug("2. Current user:", user?.email);
 
     try {
-      console.log("3. Calling logout function...");
+      logger.debug("3. Calling logout function...");
       const success = await logout();
-      console.log("4. Logout result:", success);
+      logger.debug("4. Logout result:", success);
 
       if (success) {
-        console.log("5. Successfully signed out");
-        console.log("6. Redirecting to signin page");
+        logger.debug("5. Successfully signed out");
+        logger.debug("6. Redirecting to signin page");
         router.push("/signin");
       } else {
-        console.error("5. Failed to sign out");
+        logger.error("5. Failed to sign out");
         alert("Failed to sign out. Please try again.");
       }
     } catch (error) {
-      console.error("5. Logout error:", error);
+      logger.error("5. Logout error:", error);
       alert("An error occurred during logout. Please try again.");
     }
 
-    console.log("=== LOGOUT PROCESS ENDED ===");
+    logger.debug("=== LOGOUT PROCESS ENDED ===");
   };
 
   const openLogoutModal = () => {
-    console.log("Opening logout modal");
+    logger.debug("Opening logout modal");
     setShowLogoutModal(true);
   };
 
   const closeLogoutModal = () => {
-    console.log("Closing logout modal");
+    logger.debug("Closing logout modal");
     setShowLogoutModal(false);
   };
 
   const confirmLogout = async () => {
-    console.log("User confirmed logout");
+    logger.debug("User confirmed logout");
     closeLogoutModal();
     await handleSignOut();
   };
@@ -411,6 +413,13 @@ export default function Home() {
     }
   };
 
+  // Handle authentication redirect in an unconditional hook.
+  useEffect(() => {
+    if (!loading && !user) {
+      router.push("/signin");
+    }
+  }, [user, loading, router]);
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -422,16 +431,8 @@ export default function Home() {
     );
   }
 
-  // Handle authentication redirect in useEffect to avoid setState during render
-  useEffect(() => {
-    if (!loading && !user) {
-      console.log("Redirecting to signin - no user");
-      router.push("/signin");
-    }
-  }, [user, loading, router]);
-
   if (!user) {
-    console.log("No user, returning null");
+    logger.debug("No user, returning null");
     return null;
   }
 
@@ -460,7 +461,7 @@ export default function Home() {
           {/* Logout Button */}
           <button
             onClick={(e) => {
-              console.log("Home header logout button clicked");
+              logger.debug("Home header logout button clicked");
               testLogoutButton();
               openLogoutModal();
             }}

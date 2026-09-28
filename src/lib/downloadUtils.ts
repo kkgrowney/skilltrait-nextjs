@@ -1,3 +1,5 @@
+import { logger } from "@/lib/logger";
+
 /**
  * Utility functions for downloading high-resolution PNG images
  * Can be reused across different components that need download functionality
@@ -60,23 +62,23 @@ export const downloadImageAsPNG = async (
           link.download = filename;
           link.href = canvas.toDataURL('image/png', quality);
           link.click();
-          
+
           resolve();
         } catch (error) {
-          reject(new Error(`Failed to process image: ${error.message}`));
+          reject(new Error(`Failed to process image: ${error instanceof Error ? error.message : "unknown error"}`));
         }
       };
 
       img.onerror = () => {
         clearTimeout(timeout);
-        console.error('Failed to load image:', imageUrl);
+        logger.error('Failed to load image:', imageUrl);
         reject(new Error(`Failed to load image: ${imageUrl}`));
       };
 
       img.src = imageUrl;
 
     } catch (error) {
-      reject(new Error(`Setup error: ${error.message}`));
+      reject(new Error(`Setup error: ${error instanceof Error ? error.message : "unknown error"}`));
     }
   });
 };
@@ -92,7 +94,7 @@ export const downloadPropAsPNG = async (
 ): Promise<void> => {
   try {
     const filename = `${propsTitle || 'prop'}-${Date.now()}.png`;
-    
+
     await downloadImageAsPNG(propImageUrl, {
       width: 1500,
       height: 1200,
@@ -100,7 +102,7 @@ export const downloadPropAsPNG = async (
       filename
     });
   } catch (error) {
-    console.error('Error downloading prop:', error);
+    logger.error('Error downloading prop:', error);
     throw error;
   }
 };
@@ -116,7 +118,7 @@ export const downloadTemplateAsPNG = async (
 ): Promise<void> => {
   try {
     const filename = `${companyName || 'template'}-${Date.now()}.png`;
-    
+
     await downloadImageAsPNG(templateImageUrl, {
       width: 1000,
       height: 800,
@@ -124,7 +126,7 @@ export const downloadTemplateAsPNG = async (
       filename
     });
   } catch (error) {
-    console.error('Error downloading template:', error);
+    logger.error('Error downloading template:', error);
     throw error;
   }
 };
@@ -144,7 +146,7 @@ export const downloadCustomImageAsPNG = async (
 ): Promise<void> => {
   try {
     const finalFilename = filename || `custom-${width}x${height}-${Date.now()}.png`;
-    
+
     await downloadImageAsPNG(imageUrl, {
       width,
       height,
@@ -152,7 +154,7 @@ export const downloadCustomImageAsPNG = async (
       filename: finalFilename
     });
   } catch (error) {
-    console.error('Error downloading custom image:', error);
+    logger.error('Error downloading custom image:', error);
     throw error;
   }
 };
@@ -167,7 +169,7 @@ export const downloadImageDirectly = async (
 ): Promise<void> => {
   try {
     const finalFilename = filename || `image-${Date.now()}.png`;
-    
+
     // For Firebase Storage URLs, use direct download approach
     if (imageUrl.includes('firebasestorage.googleapis.com')) {
       try {
@@ -175,36 +177,36 @@ export const downloadImageDirectly = async (
         link.download = finalFilename;
         link.href = imageUrl;
         link.style.display = 'none';
-        
+
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
         return;
       } catch (error) {
-        console.error('Firebase direct download failed:', error);
+        logger.error('Firebase direct download failed:', error);
         // Continue to fallback methods
       }
     }
-    
+
     // For other URLs, try direct download first
     try {
       const link = document.createElement('a');
       link.download = finalFilename;
       link.href = imageUrl;
       link.style.display = 'none';
-      
+
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
     } catch (error) {
-      console.error('Direct download failed, trying alternative method:', error);
-      
+      logger.error('Direct download failed, trying alternative method:', error);
+
       // Alternative: open in new tab as last resort
       window.open(imageUrl, '_blank');
     }
-    
+
   } catch (error) {
-    console.error('Error downloading image directly:', error);
+    logger.error('Error downloading image directly:', error);
     throw error;
   }
 };
@@ -219,39 +221,41 @@ export const downloadFirebaseImage = async (
 ): Promise<void> => {
   try {
     const finalFilename = filename || `firebase-image-${Date.now()}.png`;
-    
+
     // Since Firebase Storage URLs don't support direct download due to CORS,
     // we'll open the image in a new tab with download instructions
     const newWindow = window.open(firebaseUrl, '_blank');
-    
+
     if (newWindow) {
       // Add a message to the new window
       setTimeout(() => {
         try {
-          newWindow.document.title = `Download: ${finalFilename}`;
-          newWindow.document.body.innerHTML = `
-            <div style="text-align: center; padding: 40px; font-family: Arial, sans-serif;">
-              <h2>Download Your Image</h2>
-              <p>To download this image:</p>
-              <ol style="text-align: left; display: inline-block;">
-                <li>Right-click on the image below</li>
-                <li>Select "Save image as..."</li>
-                <li>Choose your download location</li>
-                <li>Save as: <strong>${finalFilename}</strong></li>
-              </ol>
-              <br><br>
-              <img src="${firebaseUrl}" alt="Downloadable Image" style="max-width: 100%; border: 1px solid #ccc;">
-            </div>
-          `;
+          const document = newWindow.document;
+          document.title = `Download: ${finalFilename}`;
+          const container = document.createElement("main");
+          container.style.cssText =
+            "text-align:center;padding:40px;font-family:Arial,sans-serif";
+          const heading = document.createElement("h2");
+          heading.textContent = "Download Your Image";
+          const description = document.createElement("p");
+          description.textContent = "Right-click the image and choose Save image as…";
+          const filenameLabel = document.createElement("p");
+          filenameLabel.textContent = `Suggested filename: ${finalFilename}`;
+          const image = document.createElement("img");
+          image.src = firebaseUrl;
+          image.alt = "Downloadable image";
+          image.style.cssText = "max-width:100%;border:1px solid #ccc";
+          container.append(heading, description, filenameLabel, image);
+          document.body.replaceChildren(container);
         } catch (e) {
           // If we can't modify the new window, just let it open normally
-          console.log('Could not modify new window, opened Firebase URL directly');
+          logger.debug('Could not modify new window, opened Firebase URL directly');
         }
       }, 100);
     }
-    
+
   } catch (error) {
-    console.error('Error opening Firebase image:', error);
+    logger.error('Error opening Firebase image:', error);
     throw error;
   }
 };

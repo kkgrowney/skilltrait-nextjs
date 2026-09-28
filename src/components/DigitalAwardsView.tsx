@@ -1,5 +1,7 @@
 "use client";
 
+import { logger } from "@/lib/logger";
+
 import { useEffect, useState } from "react";
 import {
   AwardsStep,
@@ -158,7 +160,11 @@ export default function DigitalAwardsView() {
     };
     try {
       localStorage.setItem("digitalAwardsWizardState", JSON.stringify(state));
-    } catch {}
+    } catch (error) {
+      // Persistence is an optional enhancement; quota/privacy failures must not
+      // prevent the award workflow from continuing.
+      void error;
+    }
   }, [
     currentStep,
     activeTab,
@@ -199,7 +205,11 @@ export default function DigitalAwardsView() {
       if (saved.fromDate) setFromDate(saved.fromDate);
       if (saved.fromMessage) setFromMessage(saved.fromMessage);
       if (saved.currentStep) setCurrentStep(saved.currentStep);
-    } catch {}
+    } catch (error) {
+      // Corrupt or inaccessible local state is safely ignored in favor of the
+      // component's defaults.
+      void error;
+    }
   }, []);
 
   // Callback when auth succeeds (from modal): jump to Share
@@ -352,7 +362,7 @@ export default function DigitalAwardsView() {
         setPropsTemplates(templatesWithProps);
         setFilteredTemplates(templatesWithProps); // initialize with all
       } catch (error) {
-        console.error("Error fetching templates:", error);
+        logger.error("Error fetching templates:", error);
       } finally {
         setLoadingTemplates(false);
       }
@@ -529,7 +539,7 @@ export default function DigitalAwardsView() {
                                   {companyNameText}
                                 </div>
                               ) : (
-                                <img
+                                <img loading="lazy"
                                   src={
                                     uploadedLogoFile
                                       ? URL.createObjectURL(uploadedLogoFile)
@@ -580,7 +590,7 @@ export default function DigitalAwardsView() {
                               borderRadius: "4px",
                             }}
                           >
-                            <img
+                            <img loading="lazy"
                               src={
                                 uploadedBackgroundFile
                                   ? URL.createObjectURL(uploadedBackgroundFile)
@@ -599,7 +609,7 @@ export default function DigitalAwardsView() {
                             />
                           </div>
                         )}
-                        <img
+                        <img loading="lazy"
                           src={getProxiedUrlForPreview(selectedTemplate?.achievement?.props || "")}
                           alt="Selected Template"
                           className="object-contain rounded relative z-20 w-full h-full"
@@ -701,7 +711,7 @@ export default function DigitalAwardsView() {
                             zIndex: 100,
                           }}
                         >
-                          <img
+                          <img loading="lazy"
                             src="/skilltrait_mark.svg"
                             alt="SkillTrait"
                             className="h-16 w-16"
@@ -791,7 +801,7 @@ export default function DigitalAwardsView() {
                             onClick={() => handleTemplateSelect(temp)}
                             className="relative w-full h-full"
                           >
-                            <img
+                            <img loading="lazy"
                               src={getProxiedUrlForPreview(temp.achievement.props)}
                               alt="Props Template 1"
                               className="w-full h-full object-cover"
@@ -818,7 +828,7 @@ export default function DigitalAwardsView() {
                                   transform: "translateY(-50%)",
                                 }}
                               >
-                                <img
+                                <img loading="lazy"
                                   src={getProxiedUrlForPreview(temp.achievement.logoImage)}
                                   alt="Instagram Logo"
                                   className="h-full max-h-full w-auto object-contain"
@@ -837,7 +847,7 @@ export default function DigitalAwardsView() {
                         className="w-full flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity bg-white rounded"
                         style={{ borderRadius: "4px", minHeight: "200px" }}
                       >
-                        <img
+                        <img loading="lazy"
                           src="/templates/achievements/achievements-1.png"
                           alt="Achievement Template 1"
                           className="w-full h-full object-contain"
@@ -851,7 +861,7 @@ export default function DigitalAwardsView() {
                         className="w-full flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity bg-white rounded"
                         style={{ borderRadius: "4px" }}
                       >
-                        <img
+                        <img loading="lazy"
                           src="/templates/achievements/achievements-2.png"
                           alt="Achievement Template 2"
                           className="w-full h-full object-contain"
@@ -865,7 +875,7 @@ export default function DigitalAwardsView() {
                         className="w-full flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity bg-white rounded"
                         style={{ borderRadius: "4px" }}
                       >
-                        <img
+                        <img loading="lazy"
                           src="/templates/achievements/achievements-3.png"
                           alt="Achievement Template 3"
                           className="w-full h-full object-contain"
@@ -879,7 +889,7 @@ export default function DigitalAwardsView() {
                         className="w-full flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity bg-white rounded"
                         style={{ borderRadius: "4px" }}
                       >
-                        <img
+                        <img loading="lazy"
                           src="/templates/achievements/achievements-4.png"
                           alt="Achievement Template 4"
                           className="w-full h-full object-contain"
@@ -893,7 +903,7 @@ export default function DigitalAwardsView() {
                         className="w-full flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity bg-white rounded"
                         style={{ borderRadius: "4px" }}
                       >
-                        <img
+                        <img loading="lazy"
                           src="/templates/achievements/achievements-5.png"
                           alt="Achievement Template 5"
                           className="w-full h-full object-contain"
@@ -907,7 +917,7 @@ export default function DigitalAwardsView() {
                         className="w-full flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity bg-white rounded"
                         style={{ borderRadius: "4px" }}
                       >
-                        <img
+                        <img loading="lazy"
                           src="/templates/achievements/achievements-6.png"
                           alt="Achievement Template 6"
                           className="w-full h-full object-contain"
@@ -921,7 +931,7 @@ export default function DigitalAwardsView() {
                         className="w-full flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity bg-white rounded"
                         style={{ borderRadius: "4px" }}
                       >
-                        <img
+                        <img loading="lazy"
                           src="/templates/achievements/achievements-7.png"
                           alt="Achievement Template 7"
                           className="w-full h-full object-contain"
@@ -935,7 +945,7 @@ export default function DigitalAwardsView() {
                         className="w-full flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity bg-white rounded"
                         style={{ borderRadius: "4px" }}
                       >
-                        <img
+                        <img loading="lazy"
                           src="/templates/achievements/achievements-8.png"
                           alt="Achievement Template 8"
                           className="w-full h-full object-contain"
@@ -949,7 +959,7 @@ export default function DigitalAwardsView() {
                         className="w-full flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity bg-white rounded"
                         style={{ borderRadius: "4px" }}
                       >
-                        <img
+                        <img loading="lazy"
                           src="/templates/achievements/achievements-9.png"
                           alt="Achievement Template 9"
                           className="w-full h-full object-contain"
@@ -963,7 +973,7 @@ export default function DigitalAwardsView() {
                         className="w-full flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity bg-white rounded"
                         style={{ borderRadius: "4px" }}
                       >
-                        <img
+                        <img loading="lazy"
                           src="/templates/achievements/achievements-10.png"
                           alt="Achievement Template 10"
                           className="w-full h-full object-contain"
@@ -981,7 +991,7 @@ export default function DigitalAwardsView() {
                         className="w-full flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity bg-white rounded"
                         style={{ borderRadius: "4px" }}
                       >
-                        <img
+                        <img loading="lazy"
                           src="/templates/achievements/achievements-11.png"
                           alt="Achievement Template 11"
                           className="w-full h-full object-contain"
@@ -999,7 +1009,7 @@ export default function DigitalAwardsView() {
                         className="w-full flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity bg-white rounded"
                         style={{ borderRadius: "4px" }}
                       >
-                        <img
+                        <img loading="lazy"
                           src="/templates/achievements/achievements-12.png"
                           alt="Achievement Template 12"
                           className="w-full h-full object-contain"

@@ -36,10 +36,13 @@ export default function DigitalAwardsSideNav({
     <div className="bg-[#191d21] pt-5 flex flex-col gap-2.5 items-center justify-start px-0 h-full w-[94px] relative">
       <div className="flex flex-col gap-4">
         {steps.map((step, index) => (
-          <div
+          <button
+            type="button"
             key={step.key}
             className="h-[60px] w-[94px] flex flex-col items-center cursor-pointer transition-all duration-200"
             onClick={() => onStepChange(step.key)}
+            aria-current={currentStep === step.key ? "step" : undefined}
+            aria-label={`Go to ${step.label}`}
           >
             <div
               className={`h-[60px] w-[94px] flex flex-col items-center justify-center rounded-none p-2 transition-all duration-200 ${
@@ -85,7 +88,7 @@ export default function DigitalAwardsSideNav({
                 </p>
               </div>
             </div>
-          </div>
+          </button>
         ))}
       </div>
     </div>

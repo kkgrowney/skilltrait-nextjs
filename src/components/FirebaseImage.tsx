@@ -1,5 +1,7 @@
 'use client';
 
+import { logger } from "@/lib/logger";
+
 import { useState, useEffect } from 'react';
 
 interface FirebaseImageProps {
@@ -11,13 +13,13 @@ interface FirebaseImageProps {
   onClick?: () => void;
 }
 
-export default function FirebaseImage({ 
-  templateNumber, 
-  fallbackSrc, 
-  alt, 
-  className, 
-  style, 
-  onClick 
+export default function FirebaseImage({
+  templateNumber,
+  fallbackSrc,
+  alt,
+  className,
+  style,
+  onClick
 }: FirebaseImageProps) {
   const [imageUrl, setImageUrl] = useState<string>('');
   const [isLoading, setIsLoading] = useState(true);
@@ -32,7 +34,7 @@ export default function FirebaseImage({
         const localUrl = `/templates/props/props-${templateNumber}.png`;
         setImageUrl(localUrl);
       } catch (err) {
-        console.error('Failed to load image:', err);
+        logger.error('Failed to load image:', err);
         setError(true);
         if (fallbackSrc) {
           setImageUrl(fallbackSrc);
@@ -47,7 +49,7 @@ export default function FirebaseImage({
 
   if (isLoading) {
     return (
-      <div 
+      <div
         className={`bg-gray-200 animate-pulse ${className || ''}`}
         style={style}
       >
@@ -60,7 +62,7 @@ export default function FirebaseImage({
 
   if (error && !fallbackSrc) {
     return (
-      <div 
+      <div
         className={`bg-gray-100 flex items-center justify-center ${className || ''}`}
         style={style}
       >
@@ -70,7 +72,7 @@ export default function FirebaseImage({
   }
 
   return (
-    <img 
+    <img
       src={imageUrl}
       alt={alt}
       className={className}
@@ -78,4 +80,4 @@ export default function FirebaseImage({
       onClick={onClick}
     />
   );
-} 
+}

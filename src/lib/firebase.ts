@@ -1,3 +1,5 @@
+import { logger } from "@/lib/logger";
+
 import { initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
 import {
@@ -49,7 +51,7 @@ export const uploadAsset = async (
     const downloadURL = await getDownloadURL(snapshot.ref);
     return downloadURL;
   } catch (error) {
-    console.error("Error uploading asset:", error);
+    logger.error("Error uploading asset:", error);
     throw error;
   }
 };
@@ -65,7 +67,7 @@ export const createTemplateWithAssets = async (templateData: any) => {
     });
     return docRef.id;
   } catch (error) {
-    console.error("Error creating template:", error);
+    logger.error("Error creating template:", error);
     throw error;
   }
 };
@@ -100,7 +102,7 @@ export const saveUserTemplateAssets = async (
     });
     return docRef.id;
   } catch (error) {
-    console.error("Error saving user template assets:", error);
+    logger.error("Error saving user template assets:", error);
     throw error;
   }
 };
@@ -116,7 +118,7 @@ export const saveUserProp = async (userId: string, propData: any) => {
     });
     return docRef.id;
   } catch (error) {
-    console.error("Error saving user prop:", error);
+    logger.error("Error saving user prop:", error);
     throw error;
   }
 };
@@ -137,7 +139,7 @@ export const savePropWithImage = async (
     });
     return docRef.id;
   } catch (error) {
-    console.error("Error saving prop with image:", error);
+    logger.error("Error saving prop with image:", error);
     throw error;
   }
 };
@@ -155,7 +157,7 @@ export const updatePropWithImage = async (
       updatedAt: new Date(),
     });
   } catch (error) {
-    console.error("Error updating prop with image:", error);
+    logger.error("Error updating prop with image:", error);
     throw error;
   }
 };
@@ -172,7 +174,7 @@ export const savePublicProp = async (propId: string, propData: any) => {
     });
     return propId;
   } catch (error) {
-    console.error("Error saving public prop:", error);
+    logger.error("Error saving public prop:", error);
     throw error;
   }
 };

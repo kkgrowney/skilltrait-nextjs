@@ -1,4 +1,8 @@
+import { logger } from "@/lib/logger";
+
 // Cloudinary configuration and utilities
+import { authenticatedFetch } from "@/lib/authenticatedFetch";
+
 export const CLOUDINARY_CONFIG = {
   cloudName: "produckapp",
   folder: "sendProps",
@@ -20,7 +24,7 @@ export const uploadToCloudinary = async (
     formData.append("file", blob, "prop-image.png");
 
     // Upload via our API route
-    const response = await fetch("/api/cloudinary-upload", {
+    const response = await authenticatedFetch("/api/cloudinary-upload", {
       method: "POST",
       body: formData,
     });
@@ -32,7 +36,7 @@ export const uploadToCloudinary = async (
     const result = await response.json();
     return result.url;
   } catch (error) {
-    console.error("Error uploading to Cloudinary:", error);
+    logger.error("Error uploading to Cloudinary:", error);
     throw error;
   }
 };

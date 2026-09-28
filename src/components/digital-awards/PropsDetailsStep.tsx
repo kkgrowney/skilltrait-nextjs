@@ -1,5 +1,7 @@
 "use client";
 
+import { logger } from "@/lib/logger";
+
 import { useEffect, useState } from "react";
 
 interface PropsDetailsStepProps {
@@ -35,7 +37,7 @@ export default function PropsDetailsStep({
   fromMessage,
   setFromMessage,
 }: PropsDetailsStepProps) {
-  
+
   const [title, setTitle] = useState(propsTitle || "");
   const [showTitleInput, setShowTitleInput] = useState(false);
   const [recipients, setRecipients] = useState<string[]>(propsRecipients || []);
@@ -88,7 +90,7 @@ export default function PropsDetailsStep({
       setTimeout(() => setShowValidationError(false), 3000);
       return;
     }
-    
+
     if (setPropsTitle) setPropsTitle(title);
     if (setFromName) setFromName(name);
     if (setFromDate) setFromDate(date);
@@ -110,7 +112,7 @@ export default function PropsDetailsStep({
       {/* Validation Error Notification */}
       {showValidationError ? (
         <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50">
-          <div 
+          <div
             className="px-4 py-2 rounded-md text-white text-sm font-medium"
             style={{ backgroundColor: "#ED6568" }}
           >
@@ -118,7 +120,7 @@ export default function PropsDetailsStep({
           </div>
         </div>
       ) : null}
-      
+
       <div className="text-center mb-6 flex-shrink-0" style={{ marginTop: "24px" }}>
         <h1 className="text-[30px] font-bold text-white mb-1">Details</h1>
         <p className="text-md text-gray-300 mb-[-2]">
@@ -282,7 +284,7 @@ export default function PropsDetailsStep({
                     onChange={(e) => {
                       // Ensure the date is stored exactly as selected, without timezone conversion
                       const selectedDate = e.target.value;
-                      console.log('Selected date:', selectedDate);
+                      logger.debug('Selected date:', selectedDate);
                       setDate(selectedDate);
                     }}
                     required
@@ -338,7 +340,7 @@ export default function PropsDetailsStep({
                   if (setFromName) setFromName(name);
                   if (setFromDate) setFromDate(date);
                   if (setFromMessage) setFromMessage(message);
-                  console.log("Adding From information to template:", {
+                  logger.debug("Adding From information to template:", {
                     name,
                     date,
                     message,

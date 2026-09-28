@@ -1,5 +1,7 @@
 "use client";
 
+import { logger } from "@/lib/logger";
+
 import { useEffect, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { db } from "@/lib/firebase";
@@ -29,9 +31,9 @@ interface PropsTemplatesViewProps {
   onPropClick?: (prop: any) => void;
 }
 
-export default function PropsTemplatesView({ 
-  showDeleteButtons = false, 
-  onPropClick 
+export default function PropsTemplatesView({
+  showDeleteButtons = false,
+  onPropClick
 }: PropsTemplatesViewProps) {
   const { user, loading } = useAuth();
   const [propsList, setPropsList] = useState<any[]>([]);
@@ -134,7 +136,7 @@ export default function PropsTemplatesView({
                 <div className="relative w-full h-full">
                   {/* Use the saved Cloudinary preview image if available, otherwise fallback to base64 */}
                   {prop.previewImageUrl ? (
-                    <img
+                    <img loading="lazy"
                       src={prop.previewImageUrl}
                       alt={prop.propsTitle || "Prop"}
                       className="relative z-20 w-full h-full"
@@ -146,7 +148,7 @@ export default function PropsTemplatesView({
                       }}
                     />
                   ) : prop.previewImageBase64 ? (
-                    <img
+                    <img loading="lazy"
                       src={prop.previewImageBase64}
                       alt={prop.propsTitle || "Prop"}
                       className="relative z-20 w-full h-full"
@@ -166,7 +168,7 @@ export default function PropsTemplatesView({
                         className="absolute inset-0 z-10 overflow-hidden"
                         style={{ borderRadius: "4px" }}
                       >
-                        <img
+                        <img loading="lazy"
                           src={getProxiedUrlForPreview(
                             prop.achievement?.backgroundImage || ""
                           )}
@@ -179,7 +181,7 @@ export default function PropsTemplatesView({
                         />
                       </div>
                       {/* Foreground props image */}
-                      <img
+                      <img loading="lazy"
                         src={getProxiedUrlForPreview(
                           prop.achievement?.props || ""
                         )}
@@ -211,7 +213,7 @@ export default function PropsTemplatesView({
                           }}
                         >
                           {prop.achievement?.logoImage ? (
-                            <img
+                            <img loading="lazy"
                               src={getProxiedUrlForPreview(
                                 prop.achievement.logoImage
                               )}
@@ -356,7 +358,7 @@ export default function PropsTemplatesView({
                       setSelectMode(false);
                       setShowConfirmModal(false);
                     } catch (e) {
-                      console.error("Bulk delete failed:", e);
+                      logger.error("Bulk delete failed:", e);
                       alert("Failed to delete some props. Please try again.");
                     } finally {
                       setIsDeleting(false);

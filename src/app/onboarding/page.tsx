@@ -1,5 +1,7 @@
 "use client";
 
+import { logger } from "@/lib/logger";
+
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { auth, db, storage } from "@/lib/firebase";
@@ -150,7 +152,7 @@ export default function OnboardingPage() {
         }
       }
     } catch (error) {
-      console.error("Error saving profile:", error);
+      logger.error("Error saving profile:", error);
       setErrors({
         general:
           "An error occurred while saving your profile. Please try again.",

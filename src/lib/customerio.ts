@@ -3,6 +3,8 @@
  * Handles secure communication with Customer.io API
  */
 
+import { fetchWithTimeout } from '@/lib/server/apiSecurity';
+
 interface CustomerData {
   email: string;
   [key: string]: any; // Allow additional properties
@@ -22,14 +24,7 @@ class CustomerIOClient {
   constructor() {
     this.apiKey = process.env.CUSTOMER_IO_API_KEY || '';
     this.siteId = process.env.CUSTOMER_IO_SITE_ID || '';
-    
-    if (!this.apiKey || !this.siteId) {
-      console.warn('Customer.io API credentials not configured');
-      console.warn('API Key present:', !!this.apiKey);
-      console.warn('Site ID present:', !!this.siteId);
-    } else {
-      console.log('Customer.io API credentials loaded successfully');
-    }
+
   }
 
   /**
@@ -48,53 +43,26 @@ class CustomerIOClient {
 
     try {
       const url = `${this.baseUrl}/customers/${encodeURIComponent(email)}`;
-      
+
       // Customer.io uses Basic Auth with Site ID and API Key
       const credentials = Buffer.from(`${this.siteId}:${this.apiKey}`).toString('base64');
-      
-      // Debug logging for Customer.io data
-      console.log('Customer.io API Request Data:', {
-        url,
-        dataKeys: Object.keys(data),
-        propImageValue: data.propImage,
-        propImageBytes: data.propImage ? new TextEncoder().encode(data.propImage).length : 0,
-        propShareUrlValue: data.propShareUrl,
-        propShareUrlBytes: data.propShareUrl ? new TextEncoder().encode(data.propShareUrl).length : 0,
-        totalDataSize: new TextEncoder().encode(JSON.stringify(data)).length
-      });
 
-      // Additional validation - check if any field exceeds 2000 bytes
-      Object.keys(data).forEach(key => {
-        const value = data[key];
-        if (typeof value === 'string') {
-          const bytes = new TextEncoder().encode(value).length;
-          if (bytes > 2000) {
-            console.error(`Field '${key}' exceeds 2000 bytes:`, {
-              key,
-              value: value.substring(0, 100) + '...',
-              bytes
-            });
-          }
-        }
-      });
+      if (Object.values(data).some((value) =>
+        typeof value === 'string' && new TextEncoder().encode(value).length > 2000
+      )) {
+        return { success: false, error: 'Customer field exceeds the 2000-byte limit' };
+      }
 
-      const response = await fetch(url, {
+      const response = await fetchWithTimeout(url, {
         method: 'PUT',
         headers: {
           'Authorization': `Basic ${credentials}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(data)
-      });
+      }, 8_000);
 
       if (!response.ok) {
-        const errorText = await response.text();
-        console.error('Customer.io API Error:', {
-          status: response.status,
-          statusText: response.statusText,
-          error: errorText
-        });
-        
         return {
           success: false,
           error: `API Error: ${response.status} - ${response.statusText}`
@@ -102,14 +70,13 @@ class CustomerIOClient {
       }
 
       const responseData = await response.json();
-      
+
       return {
         success: true,
         data: responseData
       };
 
     } catch (error) {
-      console.error('Customer.io API Request Failed:', error);
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Unknown error occurred'
@@ -150,11 +117,11 @@ class CustomerIOClient {
 
     try {
       const url = `${this.baseUrl}/customers/${encodeURIComponent(email)}/events`;
-      
+
       // Customer.io uses Basic Auth with Site ID and API Key
       const credentials = Buffer.from(`${this.siteId}:${this.apiKey}`).toString('base64');
-      
-      const response = await fetch(url, {
+
+      const response = await fetchWithTimeout(url, {
         method: 'POST',
         headers: {
           'Authorization': `Basic ${credentials}`,
@@ -164,16 +131,9 @@ class CustomerIOClient {
           name: eventName,
           data: eventData
         })
-      });
+      }, 8_000);
 
       if (!response.ok) {
-        const errorText = await response.text();
-        console.error('Customer.io Event Tracking Error:', {
-          status: response.status,
-          statusText: response.statusText,
-          error: errorText
-        });
-        
         return {
           success: false,
           error: `API Error: ${response.status} - ${response.statusText}`
@@ -186,7 +146,6 @@ class CustomerIOClient {
       };
 
     } catch (error) {
-      console.error('Customer.io Event Tracking Failed:', error);
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Unknown error occurred'

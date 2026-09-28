@@ -1,5 +1,7 @@
 "use client";
 
+import { logger } from "@/lib/logger";
+
 import { useState, useEffect } from "react";
 import {
   createUserWithEmailAndPassword,
@@ -67,7 +69,7 @@ export default function AuthModal({ isOpen, setIsOpen, onSuccess }: AuthModalPro
       } else {
         await signInWithEmailAndPassword(auth, email, password);
       }
-      
+
       // Success - close modal and call onSuccess callback
       setIsOpen(false);
       resetForm();
@@ -77,7 +79,7 @@ export default function AuthModal({ isOpen, setIsOpen, onSuccess }: AuthModalPro
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : "An error occurred";
       setError(errorMessage);
-      console.error("Auth error:", errorMessage);
+      logger.error("Auth error:", errorMessage);
     } finally {
       setLoading(false);
     }
@@ -90,7 +92,7 @@ export default function AuthModal({ isOpen, setIsOpen, onSuccess }: AuthModalPro
     try {
       const provider = new GoogleAuthProvider();
       await signInWithPopup(auth, provider);
-      
+
       // Success - close modal and call onSuccess callback
       setIsOpen(false);
       resetForm();
@@ -100,7 +102,7 @@ export default function AuthModal({ isOpen, setIsOpen, onSuccess }: AuthModalPro
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : "An error occurred";
       setError(errorMessage);
-      console.error("Google auth error:", errorMessage);
+      logger.error("Google auth error:", errorMessage);
     } finally {
       setLoading(false);
     }
@@ -138,7 +140,7 @@ export default function AuthModal({ isOpen, setIsOpen, onSuccess }: AuthModalPro
               {isSignUp ? "Sign up" : "Sign in"}
             </h2>
             <p className="text-gray-300 text-sm mt-1">
-              {isSignUp 
+              {isSignUp
                 ? "Create your account to get started with SkillTrait."
                 : "Sign in to your account to continue."
               }

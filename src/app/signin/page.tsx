@@ -1,5 +1,7 @@
 "use client";
 
+import { logger } from "@/lib/logger";
+
 import { useState, useEffect } from "react";
 import {
   signInWithEmailAndPassword,
@@ -24,21 +26,21 @@ export default function SignInPage() {
 
   // Test Firebase configuration
   useEffect(() => {
-    console.log("Firebase auth object:", auth);
-    console.log("Firebase config:", {
+    logger.debug("Firebase auth object:", auth);
+    logger.debug("Firebase config:", {
       apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY ? "Set" : "Not set",
       authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN ? "Set" : "Not set",
       projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID ? "Set" : "Not set",
     });
-    
+
     // Check current auth state
     const unsubscribe = onAuthStateChanged(auth, (user) => {
-      console.log("Current auth state:", user ? "Logged in" : "Not logged in");
+      logger.debug("Current auth state:", user ? "Logged in" : "Not logged in");
       if (user) {
-        console.log("User email:", user.email);
+        logger.debug("User email:", user.email);
       }
     });
-    
+
     return () => unsubscribe();
   }, []);
 
@@ -48,8 +50,8 @@ export default function SignInPage() {
       try {
         const result = await getRedirectResult(auth);
         if (result) {
-          console.log("Redirect sign-in successful:", result.user.email);
-          
+          logger.debug("Redirect sign-in successful:", result.user.email);
+
           // Check if user has a profile
           const userDoc = await getDoc(doc(db, "users", result.user.uid));
           if (!userDoc.exists()) {
@@ -69,7 +71,7 @@ export default function SignInPage() {
           }
         }
       } catch (error) {
-        console.error("Redirect result error:", error);
+        logger.error("Redirect result error:", error);
       }
     };
 
@@ -85,7 +87,7 @@ export default function SignInPage() {
       }
       return false;
     } catch (error) {
-      console.error("Error checking user profile:", error);
+      logger.error("Error checking user profile:", error);
       return false;
     }
   };
@@ -105,7 +107,7 @@ export default function SignInPage() {
     } catch (error: unknown) {
       const errorMessage =
         error instanceof Error ? error.message : "An error occurred";
-      console.error("Sign in error:", errorMessage);
+      logger.error("Sign in error:", errorMessage);
     } finally {
       setLoading(false);
     }
@@ -115,32 +117,32 @@ export default function SignInPage() {
     setLoading(true);
 
     try {
-      console.log("Starting Google sign-in process...");
+      logger.debug("Starting Google sign-in process...");
       const provider = new GoogleAuthProvider();
-      
+
       // Add scopes if needed
       provider.addScope('email');
       provider.addScope('profile');
-      
-      console.log("Calling signInWithPopup...");
+
+      logger.debug("Calling signInWithPopup...");
       let result;
-      
+
       try {
         result = await signInWithPopup(auth, provider);
       } catch (popupError) {
-        console.log("Popup failed, trying redirect:", popupError);
+        logger.debug("Popup failed, trying redirect:", popupError);
         // Fallback to redirect if popup is blocked
         await signInWithRedirect(auth, provider);
         return; // Redirect will handle the rest
       }
-      
-      console.log("Google sign-in successful:", result.user.email);
+
+      logger.debug("Google sign-in successful:", result.user.email);
 
       // Check if user has a profile
-      console.log("Checking user profile...");
+      logger.debug("Checking user profile...");
       const userDoc = await getDoc(doc(db, "users", result.user.uid));
       if (!userDoc.exists()) {
-        console.log("Creating new user profile...");
+        logger.debug("Creating new user profile...");
         // Create basic profile for Google user
         await setDoc(doc(db, "users", result.user.uid), {
           display_name: result.user.displayName || "",
@@ -149,22 +151,22 @@ export default function SignInPage() {
           created_time: new Date(),
           didInitProfile: false,
         });
-        console.log("User profile created, redirecting to onboarding");
+        logger.debug("User profile created, redirecting to onboarding");
         router.push("/onboarding");
       } else {
-        console.log("User profile exists, checking if initialized...");
+        logger.debug("User profile exists, checking if initialized...");
         const userData = userDoc.data();
         const hasProfile = userData.didInitProfile === true;
-        console.log("User has profile:", hasProfile);
+        logger.debug("User has profile:", hasProfile);
         router.push(hasProfile ? "/profile" : "/onboarding");
       }
     } catch (error: unknown) {
-      console.error("Google sign in error details:", error);
-      
+      logger.error("Google sign in error details:", error);
+
       if (error instanceof Error) {
         const errorMessage = error.message;
-        console.error("Error message:", errorMessage);
-        
+        logger.error("Error message:", errorMessage);
+
         // Handle specific Firebase auth errors
         if (errorMessage.includes('popup-closed-by-user')) {
           alert("Sign-in was cancelled. Please try again.");

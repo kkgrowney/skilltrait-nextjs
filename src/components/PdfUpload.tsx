@@ -1,7 +1,10 @@
 'use client';
 
+import { logger } from "@/lib/logger";
+
 import { useState, useCallback } from 'react';
 import { useDropzone } from 'react-dropzone';
+import { authenticatedFetch } from '@/lib/authenticatedFetch';
 
 interface PdfUploadProps {
   onTextExtracted: (text: string) => void;
@@ -26,7 +29,7 @@ export default function PdfUpload({ onTextExtracted, onError, onFileUploaded }: 
       const formData = new FormData();
       formData.append('file', file);
 
-      const response = await fetch('/api/upload-pdf', {
+      const response = await authenticatedFetch('/api/upload-pdf', {
         method: 'POST',
         body: formData,
       });
@@ -50,7 +53,7 @@ export default function PdfUpload({ onTextExtracted, onError, onFileUploaded }: 
         setUploadedFileName(null);
       }
     } catch (error) {
-      console.error('Error uploading PDF:', error);
+      logger.error('Error uploading PDF:', error);
       onError('Failed to upload PDF file. Please try again.');
       setUploadedFileName(null);
     } finally {
@@ -79,24 +82,24 @@ export default function PdfUpload({ onTextExtracted, onError, onFileUploaded }: 
         <div
           {...getRootProps()}
           className={`border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-colors ${
-            isDragActive 
-              ? 'border-[var(--primary-dark)] bg-[#1B1D21]' 
+            isDragActive
+              ? 'border-[var(--primary-dark)] bg-[#1B1D21]'
               : 'border-[#454446] hover:border-gray-400'
           }`}
         >
           <input {...getInputProps()} />
           <div className="space-y-2">
-            <svg 
-              className="mx-auto h-8 w-8 text-gray-400" 
-              fill="none" 
-              stroke="currentColor" 
+            <svg
+              className="mx-auto h-8 w-8 text-gray-400"
+              fill="none"
+              stroke="currentColor"
               viewBox="0 0 24 24"
             >
-              <path 
-                strokeLinecap="round" 
-                strokeLinejoin="round" 
-                strokeWidth={2} 
-                d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" 
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
               />
             </svg>
             <div className="text-sm text-gray-300">
@@ -117,17 +120,17 @@ export default function PdfUpload({ onTextExtracted, onError, onFileUploaded }: 
         <div className="space-y-3">
         <div className="flex items-center justify-between p-3 bg-[#1B1D21] border border-[#454446] rounded-lg">
           <div className="flex items-center space-x-3">
-            <svg 
-              className="h-5 w-5 text-green-400" 
-              fill="none" 
-              stroke="currentColor" 
+            <svg
+              className="h-5 w-5 text-green-400"
+              fill="none"
+              stroke="currentColor"
               viewBox="0 0 24 24"
             >
-              <path 
-                strokeLinecap="round" 
-                strokeLinejoin="round" 
-                strokeWidth={2} 
-                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" 
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
               />
             </svg>
             <span className="text-sm text-white">{uploadedFileName}</span>
@@ -150,7 +153,7 @@ export default function PdfUpload({ onTextExtracted, onError, onFileUploaded }: 
             </svg>
           </button>
           </div>
-          
+
           {extractionSuccess && (
             <div className="p-3 bg-green-900/20 border border-green-500/30 rounded text-green-300 text-sm">
               <div className="flex items-start space-x-2">
@@ -170,4 +173,4 @@ export default function PdfUpload({ onTextExtracted, onError, onFileUploaded }: 
       )}
     </div>
   );
-} 
+}

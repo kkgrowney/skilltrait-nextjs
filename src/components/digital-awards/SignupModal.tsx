@@ -1,5 +1,7 @@
 "use client";
 
+import { logger } from "@/lib/logger";
+
 import { useState, useEffect } from "react";
 import {
   createUserWithEmailAndPassword,
@@ -82,7 +84,7 @@ export default function AuthModal({
       const errorMessage =
         error instanceof Error ? error.message : "An error occurred";
       setError(errorMessage);
-      console.error("Auth error:", errorMessage);
+      logger.error("Auth error:", errorMessage);
     } finally {
       setLoading(false);
     }
@@ -106,7 +108,7 @@ export default function AuthModal({
       const errorMessage =
         error instanceof Error ? error.message : "An error occurred";
       setError(errorMessage);
-      console.error("Google auth error:", errorMessage);
+      logger.error("Google auth error:", errorMessage);
     } finally {
       setLoading(false);
     }
