@@ -1,98 +1,77 @@
+import { logger } from "@/lib/logger";
+
 import { NextRequest, NextResponse } from "next/server";
 
-export async function GET(request: NextRequest) {
-  // Add a test endpoint
-  const { searchParams } = new URL(request.url);
-  const test = searchParams.get("test");
+import { admitRequest, fetchWithTimeout } from "@/lib/server/apiSecurity";
 
-  if (test === "ping") {
-    return NextResponse.json({
-      message: "Proxy is working!",
-      timestamp: new Date().toISOString(),
-    });
-  }
+const MAX_IMAGE_BYTES = 10 * 1024 * 1024;
+const DEFAULT_ALLOWED_HOSTS = [
+  "firebasestorage.googleapis.com",
+  "storage.googleapis.com",
+  "res.cloudinary.com",
+];
+
+function allowedHosts() {
+  return new Set([
+    ...DEFAULT_ALLOWED_HOSTS,
+    ...(process.env.IMAGE_PROXY_ALLOWED_HOSTS || "")
+      .split(",")
+      .map((host) => host.trim().toLowerCase())
+      .filter(Boolean),
+  ]);
+}
+
+function safeImageUrl(raw: string): URL | null {
   try {
-    const { searchParams } = new URL(request.url);
-    const imageUrl = searchParams.get("url");
+    const url = new URL(raw);
+    if (
+      url.protocol !== "https:" || url.username || url.password || url.port ||
+      !allowedHosts().has(url.hostname.toLowerCase())
+    ) return null;
+    return url;
+  } catch {
+    return null;
+  }
+}
 
-    if (!imageUrl) {
-      return NextResponse.json(
-        { error: "Missing image URL parameter" },
-        { status: 400 }
-      );
+export async function GET(request: NextRequest) {
+  const admission = admitRequest(request, {
+    route: "proxy-image",
+    maxRequests: 120,
+    windowMs: 60_000,
+    maxConcurrent: 10,
+  });
+  if (admission instanceof NextResponse) return admission;
+  try {
+    const rawUrl = request.nextUrl.searchParams.get("url");
+    const imageUrl = rawUrl ? safeImageUrl(rawUrl) : null;
+    if (!imageUrl) return NextResponse.json({ error: "Image host is not allowed" }, { status: 400 });
+    const response = await fetchWithTimeout(
+      imageUrl,
+      { headers: { Accept: "image/*" }, redirect: "error" },
+      8_000,
+    );
+    if (!response.ok) return NextResponse.json({ error: "Image fetch failed" }, { status: 502 });
+    const contentType = response.headers.get("content-type") || "";
+    const contentLength = Number(response.headers.get("content-length") || "0");
+    if (!contentType.startsWith("image/") || contentLength > MAX_IMAGE_BYTES) {
+      return NextResponse.json({ error: "Invalid image response" }, { status: 415 });
     }
-
-    // Handle local files - these should not be proxied (mainly Custom template assets)
-    if (imageUrl.startsWith('/')) {
-      return NextResponse.json(
-        { error: "Local files should not be proxied" },
-        { status: 400 }
-      );
+    const bytes = await response.arrayBuffer();
+    if (!bytes.byteLength || bytes.byteLength > MAX_IMAGE_BYTES) {
+      return NextResponse.json({ error: "Invalid image size" }, { status: 413 });
     }
-
-    // Handle non-URL strings (like text content) - this shouldn't happen in normal operation
-    if (!imageUrl.startsWith('http://') && !imageUrl.startsWith('https://')) {
-      console.warn("Invalid URL format detected:", imageUrl);
-      return NextResponse.json(
-        { error: "Invalid URL format" },
-        { status: 400 }
-      );
-    }
-
-    console.log("Proxying image from:", imageUrl);
-
-    // Fetch the image from Firebase Storage
-    const response = await fetch(imageUrl, {
-      method: "GET",
+    return new NextResponse(bytes, {
       headers: {
-        Accept: "image/*",
-        "User-Agent": "Mozilla/5.0 (compatible; SkillTrait-Proxy/1.0)",
-      },
-      redirect: "follow", // Follow redirects
-    });
-
-    if (!response.ok) {
-      console.error(
-        "Failed to fetch image:",
-        response.status,
-        response.statusText
-      );
-      return NextResponse.json(
-        {
-          error: `Failed to fetch image: ${response.status} - ${response.statusText}`,
-        },
-        { status: response.status }
-      );
-    }
-
-    // Get the image as blob
-    const imageBlob = await response.blob();
-
-    // Verify the blob is not empty
-    if (imageBlob.size === 0) {
-      console.error("Empty image blob received from:", imageUrl);
-      return NextResponse.json(
-        { error: "Empty image received" },
-        { status: 400 }
-      );
-    }
-
-    // Return the image with proper headers
-    return new NextResponse(imageBlob, {
-      status: 200,
-      headers: {
-        "Content-Type": response.headers.get("content-type") || "image/png",
+        "Content-Type": contentType,
         "Cache-Control": "public, max-age=3600",
-        "Access-Control-Allow-Origin": "*", // Ensure CORS works
-        "Access-Control-Allow-Methods": "GET",
-        "Access-Control-Allow-Headers": "Accept, Content-Type",
+        "X-Content-Type-Options": "nosniff",
       },
     });
   } catch (error) {
-    console.error("Error in proxy-image API route:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
+    logger.error("Image proxy failed", { error: error instanceof Error ? error.message : "unknown" });
+    return NextResponse.json({ error: "Image fetch failed" }, { status: 502 });
+  } finally {
+    admission.release();
   }
 }

@@ -1,5 +1,7 @@
 "use client";
 
+import { logger } from "@/lib/logger";
+
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
@@ -100,7 +102,7 @@ export default function TemplateDetailPage() {
 
       backgroundImg.src = template.backgroundUrl || "/liquid_death_props.png";
     } catch (error) {
-      console.error("Error downloading template:", error);
+      logger.error("Error downloading template:", error);
       alert("Failed to download template. Please try again.");
     }
   };
@@ -166,7 +168,7 @@ export default function TemplateDetailPage() {
                 >
                   {/* Use the saved preview image if available, otherwise reconstruct from template data */}
                   {template.previewImageBase64 ? (
-                    <img
+                    <img loading="lazy"
                       src={template.previewImageBase64}
                       alt={template.achievement?.company || "Template"}
                       className="relative z-20 w-full h-full"
@@ -187,7 +189,7 @@ export default function TemplateDetailPage() {
                         className="absolute inset-0 z-10 overflow-hidden"
                         style={{ borderRadius: "4px" }}
                       >
-                        <img
+                        <img loading="lazy"
                           src={getProxiedUrlForPreview(
                             template.achievement?.backgroundImage || ""
                           )}
@@ -200,7 +202,7 @@ export default function TemplateDetailPage() {
                         />
                       </div>
                       {/* Foreground props image */}
-                      <img
+                      <img loading="lazy"
                         src={getProxiedUrlForPreview(
                           template.achievement?.props || ""
                         )}
@@ -232,7 +234,7 @@ export default function TemplateDetailPage() {
                           }}
                         >
                           {template.achievement?.logoImage ? (
-                            <img
+                            <img loading="lazy"
                               src={getProxiedUrlForPreview(
                                 template.achievement.logoImage
                               )}
@@ -396,7 +398,7 @@ export default function TemplateDetailPage() {
                               setShowDeleteModal(false);
                               router.push("/templates");
                             } catch (e) {
-                              console.error("Failed to delete template:", e);
+                              logger.error("Failed to delete template:", e);
                               setIsDeleting(false);
                               alert(
                                 "Failed to delete template. Please try again."

@@ -1,5 +1,7 @@
 'use client';
 
+import { logger } from "@/lib/logger";
+
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
@@ -41,7 +43,7 @@ export default function ProfileEdit() {
     try {
       const userDocRef = doc(db, 'users', uid);
       const userDoc = await getDoc(userDocRef);
-      
+
       if (userDoc.exists()) {
         const data = userDoc.data();
         setName(data.display_name || data.name || '');
@@ -52,7 +54,7 @@ export default function ProfileEdit() {
         setAvatarPreview(data.photo_url || data.photoURL || data.photo || '');
       }
     } catch (error) {
-      console.error('Error fetching user profile:', error);
+      logger.error('Error fetching user profile:', error);
     }
   };
 
@@ -98,7 +100,7 @@ export default function ProfileEdit() {
     try {
       // Validate LinkedIn URL
       if (!validateLinkedInUrl(linkedin)) {
-        console.error('LinkedIn URL must include www.linkedin.com/in/');
+        logger.error('LinkedIn URL must include www.linkedin.com/in/');
         setIsUpdating(false);
         return;
       }
@@ -124,11 +126,11 @@ export default function ProfileEdit() {
         updated_time: new Date(),
       });
 
-      console.log("Profile updated successfully");
+      logger.debug("Profile updated successfully");
       // Redirect to profile page after successful update
       router.push('/profile');
     } catch (error) {
-      console.error('Error updating profile:', error);
+      logger.error('Error updating profile:', error);
     } finally {
       setIsUpdating(false);
     }
@@ -300,4 +302,4 @@ export default function ProfileEdit() {
       )}
     </div>
   );
-} 
+}

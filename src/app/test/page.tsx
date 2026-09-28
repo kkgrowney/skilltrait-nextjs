@@ -1,5 +1,7 @@
 "use client";
 
+import { logger } from "@/lib/logger";
+
 import { useState } from "react";
 
 export default function TestPage() {
@@ -9,10 +11,10 @@ export default function TestPage() {
     <div style={{ padding: '50px', backgroundColor: '#1A1D21', minHeight: '100vh', color: 'white' }}>
       <h1>Test Page</h1>
       <p>Click count: {clickCount}</p>
-      
-      <button 
+
+      <button
         onClick={() => {
-          console.log("Test button clicked!");
+          logger.debug("Test button clicked!");
           setClickCount(prev => prev + 1);
           alert("Test button works! Click count: " + (clickCount + 1));
         }}
@@ -29,10 +31,10 @@ export default function TestPage() {
       >
         TEST BUTTON
       </button>
-      
-      <button 
+
+      <button
         onClick={() => {
-          console.log("Simple button clicked!");
+          logger.debug("Simple button clicked!");
           alert("Simple button works!");
         }}
         style={{
@@ -48,7 +50,7 @@ export default function TestPage() {
       >
         SIMPLE BUTTON
       </button>
-      
+
       <div style={{ marginTop: '50px' }}>
         <h2>Debug Info:</h2>
         <p>Component rendered at: {new Date().toLocaleTimeString()}</p>
@@ -56,4 +58,4 @@ export default function TestPage() {
       </div>
     </div>
   );
-} 
+}

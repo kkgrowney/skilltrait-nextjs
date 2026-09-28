@@ -1,5 +1,7 @@
 "use client";
 
+import { logger } from "@/lib/logger";
+
 import { useState } from "react";
 
 export default function HomeSimple() {
@@ -22,11 +24,11 @@ export default function HomeSimple() {
         <div className="font-semibold text-[#ffffff] text-[18px] whitespace-nowrap md:ml-0 ml-9 flex items-center">
           Home (Simple)
         </div>
-        
+
         {/* Test Button */}
         <button
           onClick={() => {
-            console.log("Test button clicked!");
+            logger.debug("Test button clicked!");
             setClickCount(prev => prev + 1);
             alert("Test button works! Click count: " + (clickCount + 1));
           }}
@@ -42,10 +44,10 @@ export default function HomeSimple() {
           <h1 className="text-white text-2xl mb-4">Simple Home Page</h1>
           <p className="text-gray-300 mb-4">This is a simplified version without authentication context.</p>
           <p className="text-gray-300">Click count: {clickCount}</p>
-          
+
           <button
             onClick={() => {
-              console.log("Content button clicked!");
+              logger.debug("Content button clicked!");
               alert("Content button works!");
             }}
             className="mt-4 px-4 py-2 bg-green-600 text-white rounded hover:bg-green-500"
@@ -56,4 +58,4 @@ export default function HomeSimple() {
       </div>
     </div>
   );
-} 
+}

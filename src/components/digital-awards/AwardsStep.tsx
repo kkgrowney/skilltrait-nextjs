@@ -1,5 +1,7 @@
 "use client";
 
+import { logger } from "@/lib/logger";
+
 import { db } from "@/lib/firebase";
 import { collection, getDocs, query } from "firebase/firestore";
 import { useEffect, useState } from "react";
@@ -54,7 +56,6 @@ export default function AwardsStep({
     const fetchTemplates = async () => {
       try {
         const q = query(collection(db, "template"));
-        // @ts-ignore
         const snapshot = await getDocs(q);
         const templates: any[] = [];
 
@@ -82,14 +83,14 @@ export default function AwardsStep({
           filtersObj[tag] = false;
         });
 
-        console.log({
+        logger.debug({
           totalTemplates: templates.length,
           templates: templates,
           filtersObj,
         });
         setFilters(filtersObj);
       } catch (error) {
-        console.error("Error fetching templates:", error);
+        logger.error("Error fetching templates:", error);
       }
     };
 
@@ -203,7 +204,7 @@ export default function AwardsStep({
             onClick={() => {
               // This will trigger the award generation process
               // You can add your logic here or pass a callback prop
-              console.log("Generate Award clicked");
+              logger.debug("Generate Award clicked");
             }}
             className="px-4 py-2 bg-[#00DF71] text-[#212327] rounded-md font-medium hover:bg-opacity-90 transition-colors"
           >

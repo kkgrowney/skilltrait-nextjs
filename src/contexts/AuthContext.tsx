@@ -1,5 +1,7 @@
 'use client';
 
+import { logger } from "@/lib/logger";
+
 import { createContext, useContext, useEffect, useState } from 'react';
 import { User, onAuthStateChanged, signOut } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
@@ -41,22 +43,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const logout = async (): Promise<boolean> => {
-    console.log("AuthContext logout called");
+    logger.debug("AuthContext logout called");
     try {
       setIsLoggingOut(true);
-      console.log("Signing out from Firebase...");
+      logger.debug("Signing out from Firebase...");
       await signOut(auth);
-      console.log("Firebase signOut successful");
+      logger.debug("Firebase signOut successful");
       // Clear any local state if needed
       setUser(null);
-      console.log("User state cleared");
+      logger.debug("User state cleared");
       return true;
     } catch (error) {
-      console.error("Logout error:", error);
+      logger.error("Logout error:", error);
       return false;
     } finally {
       setIsLoggingOut(false);
-      console.log("Logout process finished");
+      logger.debug("Logout process finished");
     }
   };
 
@@ -65,4 +67,4 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       {children}
     </AuthContext.Provider>
   );
-} 
+}

@@ -1,5 +1,7 @@
 'use client';
 
+import { logger } from "@/lib/logger";
+
 import React, { useState, useEffect } from 'react';
 import { collection, getDocs, query, where, doc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
@@ -20,7 +22,7 @@ export default function SkillsSection({ userId }: SkillsSectionProps) {
     if (typeof proficiency === 'number') {
       return proficiency;
     }
-    
+
     const proficiencyMap: { [key: string]: number } = {
       'Beginner': 1,
       'Intermediate': 2,
@@ -37,7 +39,7 @@ export default function SkillsSection({ userId }: SkillsSectionProps) {
     if (typeof motivation === 'number') {
       return motivation;
     }
-    
+
     const motivationMap: { [key: string]: number } = {
       'Very Low': 1,
       'Low': 2,
@@ -53,7 +55,7 @@ export default function SkillsSection({ userId }: SkillsSectionProps) {
     if (typeof proficiency === 'string') {
       return proficiency;
     }
-    
+
     const proficiencyTextMap: { [key: number]: string } = {
       1: 'Beginner',
       2: 'Intermediate',
@@ -69,7 +71,7 @@ export default function SkillsSection({ userId }: SkillsSectionProps) {
     if (typeof motivation === 'string') {
       return motivation;
     }
-    
+
     const motivationTextMap: { [key: number]: string } = {
       1: 'Very Low',
       2: 'Low',
@@ -83,7 +85,7 @@ export default function SkillsSection({ userId }: SkillsSectionProps) {
   // Fetch skills from top-level skills collection
   const fetchUserSkills = async (userId: string) => {
     if (!userId) return;
-    
+
     setSkillsLoading(true);
     try {
       // Query skills collection where userRef matches the user ID
@@ -91,17 +93,17 @@ export default function SkillsSection({ userId }: SkillsSectionProps) {
         collection(db, 'skills'),
         where('userRef', '==', doc(db, 'users', userId))
       );
-      
+
       const skillsSnapshot = await getDocs(skillsQuery);
       const skillsData = skillsSnapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data()
       }));
-      
-      console.log('Fetched skills for user:', userId, skillsData);
+
+      logger.debug('Fetched skills for user:', userId, skillsData);
       setUserSkills(skillsData);
     } catch (error) {
-      console.error('Error fetching skills:', error);
+      logger.error('Error fetching skills:', error);
     } finally {
       setSkillsLoading(false);
     }
@@ -132,7 +134,7 @@ export default function SkillsSection({ userId }: SkillsSectionProps) {
       <h3 className="text-sm font-semibold text-white uppercase tracking-wide mb-2">
         Skills
       </h3>
-      
+
       {skillsLoading ? (
         <div className="text-gray-400 text-sm">
           Loading skills...
@@ -147,13 +149,13 @@ export default function SkillsSection({ userId }: SkillsSectionProps) {
               const skillName = skill.name || skill.skill || 'Unknown Skill';
               const hasAnyExpanded = expandedSkills.size > 0;
               const shouldDim = hasAnyExpanded && !isExpanded;
-              
+
               // Check if skill has detail information (proficiency, motivation, or description)
               const hasDetails = skill.proficiency || skill.motivation || skill.description;
-              
+
               // Special case for "scrum" skill - always show as stroke button
               const isScrumSkill = skillName.toLowerCase().includes('scrum');
-              
+
               if (!hasDetails || isScrumSkill) {
                 // Green stroke button for skills without details
                 return (
@@ -167,7 +169,7 @@ export default function SkillsSection({ userId }: SkillsSectionProps) {
                     >
                       <span>{skillName}</span>
                     </button>
-                    
+
                     {/* Custom tooltip */}
                     {hoveredSkill === skillId && (
                       <div className="absolute right-full top-1/2 transform -translate-y-1/2 mr-2 px-2 py-1 bg-gray-800 text-white text-xs rounded shadow-lg whitespace-nowrap z-[9999]">
@@ -178,7 +180,7 @@ export default function SkillsSection({ userId }: SkillsSectionProps) {
                   </div>
                 );
               }
-              
+
               // Green filled button for skills with details
               return (
                 <button
@@ -189,10 +191,10 @@ export default function SkillsSection({ userId }: SkillsSectionProps) {
                   }`}
                 >
                   <span>{skillName}</span>
-                  <svg 
+                  <svg
                     className={`w-3 h-3 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`}
-                    fill="none" 
-                    stroke="currentColor" 
+                    fill="none"
+                    stroke="currentColor"
                     viewBox="0 0 24 24"
                   >
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
@@ -201,17 +203,17 @@ export default function SkillsSection({ userId }: SkillsSectionProps) {
               );
             })}
           </div>
-          
+
           {/* Expanded skill details - full width below skills */}
           {Array.from(expandedSkills).map(skillId => {
             const skill = userSkills.find(s => (s.id || `skill-${userSkills.indexOf(s)}`) === skillId);
             if (!skill) return null;
-            
+
             const skillName = skill.name || skill.skill || 'Unknown Skill';
-            
+
             return (
-              <div 
-                key={`${skillId}-${expandedSkills.size}`} 
+              <div
+                key={`${skillId}-${expandedSkills.size}`}
                 className="w-full mt-2 p-3 bg-[#1F2327] border border-[#454446] rounded-lg animate-in fade-in-0 slide-in-from-top-2 duration-300"
               >
                 <div className="space-y-2">

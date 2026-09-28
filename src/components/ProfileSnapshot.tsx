@@ -1,5 +1,7 @@
 'use client';
 
+import { logger } from "@/lib/logger";
+
 import React, { useState, useEffect } from 'react';
 import { collection, getDocs, query, where, doc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
@@ -54,15 +56,15 @@ export default function ProfileSnapshot({ employee }: ProfileSnapshotProps) {
   const [hoveredSkill, setHoveredSkill] = useState<string | null>(null);
 
   // Debug logging for employee data
-  console.log('ProfileSnapshot received employee:', employee);
+  logger.debug('ProfileSnapshot received employee:', employee);
   if (employee) {
-    console.log('Employee skills:', employee.skills);
+    logger.debug('Employee skills:', employee.skills);
   }
 
   // Fetch skills from top-level skills collection
   const fetchUserSkills = async (userId: string) => {
     if (!userId) return;
-    
+
     setSkillsLoading(true);
     try {
       // Query skills collection where userRef matches the user ID
@@ -70,17 +72,17 @@ export default function ProfileSnapshot({ employee }: ProfileSnapshotProps) {
         collection(db, 'skills'),
         where('userRef', '==', doc(db, 'users', userId))
       );
-      
+
       const skillsSnapshot = await getDocs(skillsQuery);
       const skills = skillsSnapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data()
       }));
-      
-      console.log('Fetched user skills:', skills);
+
+      logger.debug('Fetched user skills:', skills);
       setUserSkills(skills);
     } catch (error) {
-      console.error('Error fetching user skills:', error);
+      logger.error('Error fetching user skills:', error);
       setUserSkills([]);
     } finally {
       setSkillsLoading(false);
@@ -112,7 +114,7 @@ export default function ProfileSnapshot({ employee }: ProfileSnapshotProps) {
   // Helper function to format birthday without year
   const formatBirthday = (birthday: string): string => {
     if (!birthday || birthday === 'Unknown' || birthday === 'Invalid Date') return 'Unknown';
-    
+
     try {
       // If it's already in MM/DD/YYYY format, extract MM/DD
       if (birthday.includes('/')) {
@@ -121,7 +123,7 @@ export default function ProfileSnapshot({ employee }: ProfileSnapshotProps) {
           return `${parts[0]}/${parts[1]}`;
         }
       }
-      
+
       // Try to parse as a date
       const date = new Date(birthday);
       if (!isNaN(date.getTime())) {
@@ -129,7 +131,7 @@ export default function ProfileSnapshot({ employee }: ProfileSnapshotProps) {
         const day = date.getDate().toString().padStart(2, '0');
         return `${month}/${day}`;
       }
-      
+
       return birthday;
     } catch (error) {
       return birthday;
@@ -139,32 +141,32 @@ export default function ProfileSnapshot({ employee }: ProfileSnapshotProps) {
   // Helper function to format start date (Firestore datetime)
   const formatStartDate = (startDate: any): string => {
     if (!startDate) return 'Unknown';
-    
+
     try {
       // If it's a Firestore timestamp object
       if (startDate && typeof startDate === 'object' && startDate.seconds) {
         const date = new Date(startDate.seconds * 1000);
-        return date.toLocaleDateString('en-US', { 
-          month: 'long', 
-          day: 'numeric', 
-          year: 'numeric' 
+        return date.toLocaleDateString('en-US', {
+          month: 'long',
+          day: 'numeric',
+          year: 'numeric'
         });
       }
-      
+
       // If it's already a string, return as is
       if (typeof startDate === 'string') {
         return startDate;
       }
-      
+
       // If it's a Date object
       if (startDate instanceof Date) {
-        return startDate.toLocaleDateString('en-US', { 
-          month: 'long', 
-          day: 'numeric', 
-          year: 'numeric' 
+        return startDate.toLocaleDateString('en-US', {
+          month: 'long',
+          day: 'numeric',
+          year: 'numeric'
         });
       }
-      
+
       return 'Unknown';
     } catch (error) {
       return 'Unknown';
@@ -272,7 +274,7 @@ export default function ProfileSnapshot({ employee }: ProfileSnapshotProps) {
                           size: 8
                         },
                         callback: function(value) {
-                          return `${(value * 100).toFixed(0)}%`;
+                          return `${(Number(value) * 100).toFixed(0)}%`;
                         },
                         backdropColor: 'transparent',
                         backdropPadding: 0,
@@ -318,7 +320,7 @@ export default function ProfileSnapshot({ employee }: ProfileSnapshotProps) {
         <div className="box-border content-stretch flex flex-row gap-3 items-center justify-center overflow-clip px-3 py-[18px] relative shrink-0 w-full">
           <div className="h-[211px] rounded-xl shrink-0 w-[218px] overflow-hidden">
             {employee.photo ? (
-              <img 
+              <img loading="lazy"
                 src={employee.photo}
                 alt={`${employee.name}'s profile photo`}
                 className="w-full h-full object-cover"
@@ -399,13 +401,13 @@ export default function ProfileSnapshot({ employee }: ProfileSnapshotProps) {
                     const skillName = skill.name || skill.skill || 'Unknown Skill';
                     const hasAnyExpanded = expandedSkills.size > 0;
                     const shouldDim = hasAnyExpanded && !isExpanded;
-                    
+
                     // Check if skill has detail information (proficiency, motivation, or description)
                     const hasDetails = skill.proficiency || skill.motivation || skill.description;
-                    
+
                     // Special case for "scrum" skill - always show as stroke button
                     const isScrumSkill = skillName.toLowerCase().includes('scrum');
-                    
+
                     if (!hasDetails || isScrumSkill) {
                       // Green stroke button for skills without details
                       return (
@@ -419,7 +421,7 @@ export default function ProfileSnapshot({ employee }: ProfileSnapshotProps) {
                           >
                             <span>{skillName}</span>
                           </button>
-                          
+
                           {/* Custom tooltip */}
                           {hoveredSkill === skillId && (
                             <div className="absolute right-full top-1/2 transform -translate-y-1/2 mr-2 px-2 py-1 bg-gray-800 text-white text-xs rounded shadow-lg whitespace-nowrap z-[9999]">
@@ -430,7 +432,7 @@ export default function ProfileSnapshot({ employee }: ProfileSnapshotProps) {
                         </div>
                       );
                     }
-                    
+
                     // Green filled button for skills with details
                     return (
                       <button
@@ -441,10 +443,10 @@ export default function ProfileSnapshot({ employee }: ProfileSnapshotProps) {
                         }`}
                       >
                         <span>{skillName}</span>
-                        <svg 
+                        <svg
                           className={`w-3 h-3 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`}
-                          fill="none" 
-                          stroke="currentColor" 
+                          fill="none"
+                          stroke="currentColor"
                           viewBox="0 0 24 24"
                         >
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
@@ -453,17 +455,17 @@ export default function ProfileSnapshot({ employee }: ProfileSnapshotProps) {
                     );
                   })}
                 </div>
-                
+
                 {/* Expanded skill details - full width below skills */}
                 {Array.from(expandedSkills).map(skillId => {
                   const skill = userSkills.find(s => (s.id || `skill-${userSkills.indexOf(s)}`) === skillId);
                   if (!skill) return null;
-                  
+
                   const skillName = skill.name || skill.skill || 'Unknown Skill';
-                  
+
                   return (
-                    <div 
-                      key={`${skillId}-${expandedSkills.size}`} 
+                    <div
+                      key={`${skillId}-${expandedSkills.size}`}
                       className="w-full mt-2 p-3 bg-[#1F2327] border border-[#454446] rounded-lg animate-in fade-in-0 slide-in-from-top-2 duration-300"
                     >
                       <div className="space-y-2">
@@ -541,4 +543,4 @@ export default function ProfileSnapshot({ employee }: ProfileSnapshotProps) {
       </div>
     </div>
   );
-} 
+}

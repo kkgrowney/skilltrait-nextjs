@@ -1,11 +1,26 @@
+import { logger } from "@/lib/logger";
+
 import { NextRequest, NextResponse } from 'next/server';
+import { admitRequest, requireFirebaseUser } from '@/lib/server/apiSecurity';
+
+const MAX_PDF_BYTES = 10 * 1024 * 1024;
 
 export async function GET() {
   return NextResponse.json({ error: 'Method not allowed' }, { status: 405 });
 }
 
 export async function POST(request: NextRequest) {
+  const admission = admitRequest(request, {
+    route: 'upload-pdf',
+    maxRequests: 10,
+    windowMs: 60_000,
+    maxConcurrent: 2,
+    maxBodyBytes: MAX_PDF_BYTES + 256 * 1024,
+  });
+  if (admission instanceof NextResponse) return admission;
   try {
+    const user = await requireFirebaseUser(request);
+    if (user instanceof NextResponse) return user;
     const formData = await request.formData();
     const file = formData.get('file') as File;
 
@@ -19,10 +34,9 @@ export async function POST(request: NextRequest) {
     }
 
     // Check file size (limit to 10MB)
-    const maxSize = 10 * 1024 * 1024; // 10MB
-    if (file.size > maxSize) {
-      return NextResponse.json({ 
-        error: 'File size too large. Please upload a PDF smaller than 10MB.' 
+    if (file.size > MAX_PDF_BYTES) {
+      return NextResponse.json({
+        error: 'File size too large. Please upload a PDF smaller than 10MB.'
       }, { status: 400 });
     }
 
@@ -33,13 +47,12 @@ export async function POST(request: NextRequest) {
     // Try to extract text from PDF
     try {
       // Dynamic import to avoid initialization issues
-      // @ts-expect-error - pdf-parse doesn't have proper TypeScript definitions
       const pdfParse = (await import('pdf-parse')).default;
       const data = await pdfParse(buffer);
       const extractedText = data.text;
 
       if (!extractedText || extractedText.trim().length === 0) {
-        return NextResponse.json({ 
+        return NextResponse.json({
           success: true,
           message: 'PDF validated successfully! Please copy the text from your PDF and paste it in the text area below.',
           fileName: file.name,
@@ -49,8 +62,8 @@ export async function POST(request: NextRequest) {
         });
       }
 
-    return NextResponse.json({ 
-      success: true, 
+    return NextResponse.json({
+      success: true,
         message: 'PDF text extracted successfully!',
       fileName: file.name,
         fileSize: file.size,
@@ -58,10 +71,10 @@ export async function POST(request: NextRequest) {
       });
 
     } catch (parseError) {
-      console.error('PDF parsing error:', parseError);
-      
+      logger.error('PDF parsing error:', parseError);
+
       // If parsing fails, still validate the PDF and provide guidance
-      return NextResponse.json({ 
+      return NextResponse.json({
         success: true,
         message: 'PDF validated successfully! Please copy the text from your PDF and paste it in the text area below.',
         fileName: file.name,
@@ -72,10 +85,12 @@ export async function POST(request: NextRequest) {
     }
 
   } catch (error) {
-    console.error('Error processing PDF:', error);
+    logger.error('Error processing PDF:', error);
     return NextResponse.json(
-      { error: 'Failed to process PDF file. Please ensure the file is a valid PDF.' }, 
+      { error: 'Failed to process PDF file. Please ensure the file is a valid PDF.' },
       { status: 500 }
     );
+  } finally {
+    admission.release();
   }
-} 
+}

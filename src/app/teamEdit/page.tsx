@@ -1,5 +1,7 @@
 "use client";
 
+import { logger } from "@/lib/logger";
+
 import { useAuth } from "@/contexts/AuthContext";
 import { useRouter } from "next/navigation";
 import SideNavigation from "@/components/SideNavigation";
@@ -41,7 +43,7 @@ export default function TeamEdit() {
         setExistingTeam(false);
       }
     } catch (error) {
-      console.error("Error fetching team data:", error);
+      logger.error("Error fetching team data:", error);
       setExistingTeam(false);
     }
   };
@@ -103,10 +105,10 @@ export default function TeamEdit() {
         { merge: true }
       );
 
-      console.log(existingTeam ? "Team updated successfully" : "Team created successfully");
+      logger.debug(existingTeam ? "Team updated successfully" : "Team created successfully");
       router.push("/team");
     } catch (error) {
-      console.error("Error saving team:", error);
+      logger.error("Error saving team:", error);
     } finally {
       setIsUpdating(false);
     }
@@ -129,11 +131,11 @@ export default function TeamEdit() {
   }
 
   const pageTitle = existingTeam ? "Edit Team" : "Create Team";
-  const submitButtonText = isUpdating 
-    ? (existingTeam ? "Updating..." : "Creating...") 
+  const submitButtonText = isUpdating
+    ? (existingTeam ? "Updating..." : "Creating...")
     : (existingTeam ? "Save Changes" : "Create Team");
-  const description = existingTeam 
-    ? "Update your team information" 
+  const description = existingTeam
+    ? "Update your team information"
     : "Set up your team profile to get started";
 
   return (

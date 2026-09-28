@@ -55,11 +55,13 @@ export default function SideNavAuth({
         {/* Main Navigation */}
         <nav className="flex flex-col gap-2">
           {/* Home - Active/Inactive State */}
-          <div
-            className={`flex items-center p-2 rounded-lg cursor-pointer transition-colors ${
+          <button
+            type="button"
+            className={`flex w-full items-center p-2 rounded-lg cursor-pointer transition-colors ${
               currentView === "home" ? "bg-[#181d21]" : "hover:bg-[#2a2e32]"
             }`}
             onClick={() => handleNavigationClick("home")}
+            aria-current={currentView === "home" ? "page" : undefined}
           >
             <div className="flex items-center gap-3 pl-2">
               {/* Home Icon */}
@@ -82,14 +84,16 @@ export default function SideNavAuth({
                 Profile
               </span>
             </div>
-          </div>
+          </button>
 
           {/* Skills - Active/Inactive State */}
-          <div
-            className={`flex items-center p-2 rounded-lg cursor-pointer transition-colors ${
+          <button
+            type="button"
+            className={`flex w-full items-center p-2 rounded-lg cursor-pointer transition-colors ${
               currentView === "skills" ? "bg-[#181d21]" : "hover:bg-[#2a2e32]"
             }`}
             onClick={() => handleNavigationClick("skills")}
+            aria-current={currentView === "skills" ? "page" : undefined}
           >
             <div className="flex items-center gap-3 pl-2">
               {/* Skills Icon */}
@@ -112,16 +116,18 @@ export default function SideNavAuth({
                 Skills
               </span>
             </div>
-          </div>
+          </button>
 
           {/* Digital Awards - Active/Inactive State */}
-          <div
-            className={`flex items-center p-2 rounded-lg cursor-pointer transition-colors ${
+          <button
+            type="button"
+            className={`flex w-full items-center p-2 rounded-lg cursor-pointer transition-colors ${
               currentView === "digital-awards"
                 ? "bg-[#181d21]"
                 : "hover:bg-[#2a2e32]"
             }`}
             onClick={() => handleNavigationClick("digital-awards")}
+            aria-current={currentView === "digital-awards" ? "page" : undefined}
           >
             <div className="flex items-center gap-3 pl-2">
               {/* Trophy Icon - Digital Awards */}
@@ -146,14 +152,16 @@ export default function SideNavAuth({
                 Digital Awards
               </span>
             </div>
-          </div>
+          </button>
 
           {/* Team - Active/Inactive State */}
-          <div
-            className={`flex items-center p-2 rounded-lg cursor-pointer transition-colors ${
+          <button
+            type="button"
+            className={`flex w-full items-center p-2 rounded-lg cursor-pointer transition-colors ${
               currentView === "team" ? "bg-[#181d21]" : "hover:bg-[#2a2e32]"
             }`}
             onClick={() => handleNavigationClick("team")}
+            aria-current={currentView === "team" ? "page" : undefined}
           >
             <div className="flex items-center gap-3 pl-2">
               {/* Team Icon */}
@@ -176,10 +184,11 @@ export default function SideNavAuth({
                 Team
               </span>
             </div>
-          </div>
+          </button>
 
           {/* Verifications - Hidden but functional */}
-          <div
+          <button
+            type="button"
             className="hidden"
             onClick={() => handleNavigationClick("verifications")}
           >
@@ -204,7 +213,7 @@ export default function SideNavAuth({
                 Verifications
               </span>
             </div>
-          </div>
+          </button>
 
         </nav>
       </div>

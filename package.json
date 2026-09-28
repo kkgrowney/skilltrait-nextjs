@@ -2,36 +2,35 @@
   "name": "skilltrait-nextjs",
   "version": "0.1.0",
   "private": true,
+  "packageManager": "npm@11.6.1",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "eslint src",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@heroicons/react": "^2.2.0",
     "@radix-ui/react-select": "^2.2.5",
-    "@types/multer": "^2.0.0",
     "chart.js": "^4.5.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "csv-parser": "^3.2.0",
     "firebase": "^12.0.0",
-    "firebase-admin": "^13.5.0",
     "html2canvas": "^1.4.1",
     "lucide-react": "^0.525.0",
-    "mammoth": "^1.10.0",
-    "multer": "^2.0.2",
-    "next": "15.4.1",
+    "mammoth": "^1.13.0",
+    "next": "^16.3.6",
     "pdf-parse": "^1.1.1",
     "react": "19.1.0",
     "react-chartjs-2": "^5.3.0",
     "react-dom": "19.1.0",
     "react-dropzone": "^14.3.8",
     "react-hot-toast": "^2.6.0",
+    "read-excel-file": "^9.3.10",
     "recharts": "^2.15.4",
-    "tailwind-merge": "^3.3.1",
-    "xlsx": "^0.18.5"
+    "tailwind-merge": "^3.3.1"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
@@ -40,7 +39,7 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
-    "eslint-config-next": "15.4.1",
+    "eslint-config-next": "^16.3.6",
     "tailwindcss": "^4",
     "tw-animate-css": "^1.3.5",
     "typescript": "^5"

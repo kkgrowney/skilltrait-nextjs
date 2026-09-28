@@ -1,5 +1,7 @@
 "use client";
 
+import { logger } from "@/lib/logger";
+
 import { useState, useEffect } from "react";
 
 interface CompanyStepProps {
@@ -149,7 +151,7 @@ export default function CompanyStep({
             {!logoDeleted &&
               (uploadedFile ? (
                 <div className="relative w-[250px] h-[40px] rounded-none flex items-center justify-start">
-                  <img
+                  <img loading="lazy"
                     src={URL.createObjectURL(uploadedFile)}
                     alt="Uploaded logo"
                     className="max-w-[250px] max-h-[40px] w-auto h-auto object-contain mr-6"
@@ -163,7 +165,7 @@ export default function CompanyStep({
                 </div>
               ) : uploadedLogoFile ? (
                 <div className="relative w-[250px] h-[40px] rounded-none flex items-center justify-start">
-                  <img
+                  <img loading="lazy"
                     src={URL.createObjectURL(uploadedLogoFile)}
                     alt="Uploaded logo"
                     className="max-w-[250px] max-h-[40px] w-auto h-auto object-contain mr-6"
@@ -177,7 +179,7 @@ export default function CompanyStep({
                 </div>
               ) : defaultLogoUrl ? (
                 <div className="relative w-[250px] h-[40px] rounded-none flex items-center justify-start">
-                  <img
+                  <img loading="lazy"
                     src={defaultLogoUrl}
                     alt="Default logo"
                     className="max-w-[250px] max-h-[40px] w-auto h-auto object-contain mr-6"
@@ -192,7 +194,7 @@ export default function CompanyStep({
               ) : (
                 <div className="flex items-center space-x-4">
                   <div className="w-12 h-12 rounded-none flex items-center justify-center">
-                    <img
+                    <img loading="lazy"
                       src="/template_icon.png"
                       alt="Upload icon"
                       className="w-10 h-10 object-contain"
@@ -256,7 +258,7 @@ export default function CompanyStep({
               <button
                 onClick={() => {
                   if (setCompanyNameText) {
-                    console.log("Setting company name text:", companyName);
+                    logger.debug("Setting company name text:", companyName);
                     setCompanyNameText(companyName);
                     setHasConfirmedModal(false);
                   }

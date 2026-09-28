@@ -36,7 +36,7 @@ export default function Navigation() {
             </svg>
           </div>
         </Link>
-        
+
         <nav role="navigation" className={`navbar1_menu-2 is-page-height-tablet w-nav-menu ${isMenuOpen ? 'is-open' : ''}`}>
           <Link href="/" className="navbar-link is-alternate achievement w-nav-link">
             Home
@@ -53,7 +53,7 @@ export default function Navigation() {
           <Link href="#help" className="navbar-link is-alternate w-nav-link">
             Help
           </Link>
-          
+
           <div className="navbar1_menu-buttons">
             <a href="#help" className="button-r_light is-small is-alternate round w-button">
               Download app
@@ -69,13 +69,19 @@ export default function Navigation() {
             )}
           </div>
         </nav>
-        
-        <div className="menu-btn w-nav-button" onClick={toggleMenu}>
+
+        <button
+          type="button"
+          className="menu-btn w-nav-button"
+          onClick={toggleMenu}
+          aria-label={isMenuOpen ? "Close navigation menu" : "Open navigation menu"}
+          aria-expanded={isMenuOpen}
+        >
           <div className={`nav-span is-1 ${isMenuOpen ? 'is-active' : ''}`}></div>
           <div className={`nav-span is-2 ${isMenuOpen ? 'is-active' : ''}`}></div>
           <div className={`nav-span is-3 ${isMenuOpen ? 'is-active' : ''}`}></div>
-        </div>
+        </button>
       </div>
     </div>
   );
-} 
+}

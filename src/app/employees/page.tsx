@@ -133,8 +133,8 @@ export default function EmployeesPage() {
                         </thead>
                         <tbody className="divide-y divide-[#3D3C3E]">
                           {filteredEmployees.map((employee) => (
-                            <tr 
-                              key={employee.id} 
+                            <tr
+                              key={employee.id}
                               className={`bg-[#191D21] hover:bg-[#202327] cursor-pointer transition-colors ${
                                 selectedEmployee?.id === employee.id ? 'bg-[#202327]' : ''
                               }`}
@@ -189,11 +189,23 @@ export default function EmployeesPage() {
 
             {/* Profile Snapshot */}
             <div className="lg:col-span-1 flex flex-col min-h-0 h-full overflow-hidden">
-              <ProfileSnapshot employee={selectedEmployee} />
+              <ProfileSnapshot
+                employee={selectedEmployee ? {
+                  id: selectedEmployee.id,
+                  employeeId: selectedEmployee.id,
+                  name: selectedEmployee.name,
+                  title: selectedEmployee.title,
+                  startDate: selectedEmployee.start,
+                  birthday: selectedEmployee.birthday,
+                  location: '',
+                  fullTime: true,
+                  isAdmin: false,
+                } : null}
+              />
             </div>
           </div>
         </div>
       </div>
     </div>
   );
-} 
+}

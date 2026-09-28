@@ -1,19 +1,59 @@
+import { logger } from "@/lib/logger";
+
 import { NextRequest, NextResponse } from "next/server";
+import { createHash } from "node:crypto";
+
+import {
+  admitRequest,
+  fetchWithTimeout,
+  requireFirebaseUser,
+} from "@/lib/server/apiSecurity";
 
 const CLOUDINARY_CONFIG = {
-  cloudName: "produckapp",
-  apiKey: "192645388792962",
-  apiSecret: "eV-GdhkoAW-dsiSFbGY9ep1bPZw",
-  folder: "sendProps",
+  cloudName: process.env.CLOUDINARY_CLOUD_NAME,
+  apiKey: process.env.CLOUDINARY_API_KEY,
+  apiSecret: process.env.CLOUDINARY_API_SECRET,
+  folder: process.env.CLOUDINARY_UPLOAD_FOLDER || "sendProps",
 };
 
-export async function POST(request: NextRequest) {
-  try {
-    const formData = await request.formData();
-    const file = formData.get("file") as File;
+const MAX_UPLOAD_BYTES = 5 * 1024 * 1024;
+const ALLOWED_IMAGE_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
 
-    if (!file) {
+export async function POST(request: NextRequest) {
+  const admission = admitRequest(request, {
+    route: "cloudinary-upload",
+    maxRequests: 10,
+    windowMs: 60_000,
+    maxConcurrent: 3,
+    maxBodyBytes: MAX_UPLOAD_BYTES + 256 * 1024,
+  });
+  if (admission instanceof NextResponse) return admission;
+
+  try {
+    const user = await requireFirebaseUser(request);
+    if (user instanceof NextResponse) return user;
+    if (
+      !CLOUDINARY_CONFIG.cloudName ||
+      !CLOUDINARY_CONFIG.apiKey ||
+      !CLOUDINARY_CONFIG.apiSecret
+    ) {
+      return NextResponse.json(
+        { error: "Image uploads are not configured" },
+        { status: 503 },
+      );
+    }
+
+    const formData = await request.formData();
+    const file = formData.get("file");
+
+    if (!(file instanceof File)) {
       return NextResponse.json({ error: "No file provided" }, { status: 400 });
+    }
+    if (file.size > MAX_UPLOAD_BYTES) {
+      return NextResponse.json({ error: "Image exceeds the 5MB limit" }, { status: 413 });
+    }
+    if (!ALLOWED_IMAGE_TYPES.has(file.type)) {
+      return NextResponse.json({ error: "Unsupported image type" }, { status: 415 });
     }
 
     // Convert file to base64 for Cloudinary
@@ -35,18 +75,17 @@ export async function POST(request: NextRequest) {
     uploadData.append("folder", CLOUDINARY_CONFIG.folder);
 
     // Upload to Cloudinary
-    const response = await fetch(
+    const response = await fetchWithTimeout(
       `https://api.cloudinary.com/v1_1/${CLOUDINARY_CONFIG.cloudName}/image/upload`,
       {
         method: "POST",
         body: uploadData,
-      }
+      },
+      15_000,
     );
 
     if (!response.ok) {
-      const error = await response.text();
-      console.error("Cloudinary upload failed:", error);
-      return NextResponse.json({ error: "Upload failed" }, { status: 500 });
+      return NextResponse.json({ error: "Upload failed" }, { status: 502 });
     }
 
     const result = await response.json();
@@ -57,16 +96,19 @@ export async function POST(request: NextRequest) {
       publicId: result.public_id,
     });
   } catch (error) {
-    console.error("Error in cloudinary upload:", error);
+    logger.error("Cloudinary upload failed", {
+      error: error instanceof Error ? error.message : "unknown",
+    });
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }
     );
+  } finally {
+    admission.release();
   }
 }
 
 function generateSignature(timestamp: number): string {
-  const crypto = require("crypto");
   const params = {
     folder: CLOUDINARY_CONFIG.folder,
     timestamp: timestamp,
@@ -77,8 +119,8 @@ function generateSignature(timestamp: number): string {
     Object.keys(params)
       .sort()
       .map((key) => `${key}=${params[key as keyof typeof params]}`)
-      .join("&") + CLOUDINARY_CONFIG.apiSecret;
+    .join("&") + CLOUDINARY_CONFIG.apiSecret!;
 
   // Generate SHA1 hash
-  return crypto.createHash("sha1").update(signString).digest("hex");
+  return createHash("sha1").update(signString).digest("hex");
 }

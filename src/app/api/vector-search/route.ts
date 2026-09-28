@@ -1,104 +1,47 @@
+import { logger } from "@/lib/logger";
+
 import { NextRequest, NextResponse } from "next/server";
 
+import {
+  admitRequest,
+  fetchWithTimeout,
+  readJsonBody,
+  requireFirebaseUser,
+} from "@/lib/server/apiSecurity";
+
+type VectorSearchBody = { query?: unknown; comp?: unknown; mot?: unknown; prof?: unknown };
+
 export async function POST(request: NextRequest) {
+  const admission = admitRequest(request, {
+    route: "vector-search",
+    maxRequests: 20,
+    windowMs: 60_000,
+    maxConcurrent: 4,
+    maxBodyBytes: 16 * 1024,
+  });
+  if (admission instanceof NextResponse) return admission;
   try {
-    // Get the request body
-    const requestBody = await request.json();
-    
-    console.log("Vector search API route received request:", requestBody);
-    
-    // Validate required fields
-    const { query, comp, mot, prof } = requestBody;
-    
-    if (!query || !comp) {
-      return NextResponse.json(
-        {
-          error: "Missing required parameters: query, comp",
-          received: { query, comp, mot, prof }
-        },
-        { status: 400 }
-      );
+    const user = await requireFirebaseUser(request);
+    if (user instanceof NextResponse) return user;
+    const body = await readJsonBody<VectorSearchBody>(request, 16 * 1024);
+    if (body instanceof NextResponse) return body;
+    if (typeof body.query !== "string" || typeof body.comp !== "string" || body.query.length > 2_000 || body.comp.length > 500) {
+      return NextResponse.json({ error: "Invalid search parameters" }, { status: 400 });
     }
-    
-    // Proxy the request to the cloud function
-    const cloudFunctionUrl = 'https://us-central1-skill-trait-rwubkx.cloudfunctions.net/vectorSearch';
-    
-    console.log("Proxying vector search request to:", cloudFunctionUrl);
-    console.log("Request body:", requestBody);
-    console.log("Request body type:", typeof requestBody);
-    console.log("JSON stringified body:", JSON.stringify(requestBody));
-    console.log("JSON stringified body type:", typeof JSON.stringify(requestBody));
-    
-    console.log("About to make fetch request to cloud function...");
-    
-    // Convert JSON to form-encoded data (like Postman)
-    const urlencoded = new URLSearchParams();
-    urlencoded.append("query", requestBody.query);
-    urlencoded.append("comp", requestBody.comp);
-    
-    // Only append mot and prof if they exist (for single skill requests)
-    if (mot !== undefined) {
-      urlencoded.append("mot", mot.toString());
-    }
-    if (prof !== undefined) {
-      urlencoded.append("prof", prof.toString());
-    }
-    
-    console.log("Form-encoded body:", urlencoded.toString());
-    
-    const response = await fetch(cloudFunctionUrl, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/x-www-form-urlencoded",
-      },
-      body: urlencoded
-    });
-    
-    console.log("Fetch response received:", response.status, response.statusText);
-    
-    if (!response.ok) {
-      console.error(
-        "Cloud function response:",
-        response.status,
-        response.statusText
-      );
-      
-      // Try to get error details from response
-      let errorDetails = "";
-      try {
-        errorDetails = await response.text();
-      } catch (e) {
-        errorDetails = "Could not read error details";
-      }
-      
-      return NextResponse.json(
-        {
-          error: `Cloud function failed: ${response.status} - ${response.statusText}`,
-          details: errorDetails
-        },
-        { status: response.status }
-      );
-    }
-    
-    // Get the response data
-    const responseData = await response.json();
-    
-    console.log("Successfully received response from cloud function:", responseData);
-    
-    // Return the response with proper headers
-    return NextResponse.json(responseData, {
-      status: 200,
-      headers: {
-        "Content-Type": "application/json",
-        "Cache-Control": "no-cache",
-      },
-    });
-    
-  } catch (error) {
-    console.error("Error in vector-search API route:", error);
-    return NextResponse.json(
-      { error: "Internal server error", details: error instanceof Error ? error.message : "Unknown error" },
-      { status: 500 }
+    const payload = new URLSearchParams({ query: body.query, comp: body.comp });
+    if (body.mot !== undefined) payload.set("mot", String(body.mot));
+    if (body.prof !== undefined) payload.set("prof", String(body.prof));
+    const response = await fetchWithTimeout(
+      "https://us-central1-skill-trait-rwubkx.cloudfunctions.net/vectorSearch",
+      { method: "POST", headers: { "Content-Type": "application/x-www-form-urlencoded" }, body: payload },
+      10_000,
     );
+    if (!response.ok) return NextResponse.json({ error: "Search failed" }, { status: 502 });
+    return NextResponse.json(await response.json(), { headers: { "Cache-Control": "no-store" } });
+  } catch (error) {
+    logger.error("Vector-search request failed", { error: error instanceof Error ? error.message : "unknown" });
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+  } finally {
+    admission.release();
   }
 }

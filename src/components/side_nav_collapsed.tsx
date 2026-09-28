@@ -9,7 +9,7 @@ export default function SideNavCollapsed() {
   const [isHovered, setIsHovered] = useState(false);
 
   return (
-    <div 
+    <div
       className="relative"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
@@ -20,7 +20,7 @@ export default function SideNavCollapsed() {
           <SideNavAuth />
         </div>
       )}
-      
+
       {/* Collapsed Navigation */}
       <aside className="bg-[#1F2327] w-[64px] h-screen fixed left-0 top-0 flex flex-col justify-between border-r border-[#454446]">
       {/* Top Section */}
@@ -39,10 +39,13 @@ export default function SideNavCollapsed() {
         {/* Main Navigation */}
         <nav className="flex flex-col gap-2">
           {/* Home - Active/Inactive State */}
-          <div
+          <button
+            type="button"
+            aria-label="Profile"
+            aria-current={currentView === "home" ? "page" : undefined}
             className={`flex items-center justify-center w-11 h-11 rounded-lg cursor-pointer transition-colors ${
-              currentView === "home" 
-                ? "bg-[#181d21]" 
+              currentView === "home"
+                ? "bg-[#181d21]"
                 : "hover:bg-[#181d21] hover:bg-opacity-50"
             }`}
             onClick={() => setCurrentView("home")}
@@ -54,19 +57,22 @@ export default function SideNavCollapsed() {
                 alt="Profile"
                 className="h-7 w-7"
                 style={{
-                  filter: currentView === "home" 
+                  filter: currentView === "home"
                     ? "brightness(0) saturate(100%) invert(84%) sepia(11%) saturate(6382%) hue-rotate(86deg) brightness(101%) contrast(107%)" // #00DF71
                     : "brightness(0) saturate(100%) invert(52%) sepia(8%) saturate(1234%) hue-rotate(202deg) brightness(94%) contrast(86%)" // #79828A
                 }}
               />
             </div>
-          </div>
+          </button>
 
           {/* Skills - Active/Inactive State */}
-          <div
+          <button
+            type="button"
+            aria-label="Skills"
+            aria-current={currentView === "skills" ? "page" : undefined}
             className={`flex items-center justify-center w-11 h-11 rounded-lg cursor-pointer transition-colors ${
-              currentView === "skills" 
-                ? "bg-[#181d21]" 
+              currentView === "skills"
+                ? "bg-[#181d21]"
                 : "hover:bg-[#181d21] hover:bg-opacity-50"
             }`}
             onClick={() => setCurrentView("skills")}
@@ -78,16 +84,19 @@ export default function SideNavCollapsed() {
                 alt="Skills"
                 className="h-7 w-7 flex-shrink-0"
                 style={{
-                  filter: currentView === "skills" 
+                  filter: currentView === "skills"
                     ? "brightness(0) saturate(100%) invert(84%) sepia(11%) saturate(6382%) hue-rotate(86deg) brightness(101%) contrast(107%)" // #00DF71
                     : "brightness(0) saturate(100%) invert(52%) sepia(8%) saturate(1234%) hue-rotate(202deg) brightness(94%) contrast(86%)" // #79828A
                 }}
               />
             </div>
-          </div>
+          </button>
 
           {/* Digital Awards - Active/Inactive State */}
-          <div
+          <button
+            type="button"
+            aria-label="Digital Awards"
+            aria-current={currentView === "digital-awards" ? "page" : undefined}
             className={`flex items-center justify-center w-11 h-11 rounded-lg cursor-pointer transition-colors ${
               currentView === "digital-awards"
                 ? "bg-[#181d21]"
@@ -102,16 +111,19 @@ export default function SideNavCollapsed() {
                 alt="Digital Awards"
                 className="h-7 w-7 flex-shrink-0"
                 style={{
-                  filter: currentView === "digital-awards" 
+                  filter: currentView === "digital-awards"
                     ? "brightness(0) saturate(100%) invert(84%) sepia(11%) saturate(6382%) hue-rotate(86deg) brightness(101%) contrast(107%)" // #00DF71
                     : "brightness(0) saturate(100%) invert(52%) sepia(8%) saturate(1234%) hue-rotate(202deg) brightness(94%) contrast(86%)" // #79828A
                 }}
               />
             </div>
-          </div>
+          </button>
 
           {/* Team - Active/Inactive State */}
-          <div
+          <button
+            type="button"
+            aria-label="Team"
+            aria-current={currentView === "team" ? "page" : undefined}
             className={`flex items-center justify-center w-11 h-11 rounded-lg cursor-pointer transition-colors ${
               currentView === "team"
                 ? "bg-[#181d21]"
@@ -126,16 +138,18 @@ export default function SideNavCollapsed() {
                 alt="Team"
                 className="h-7 w-7 flex-shrink-0"
                 style={{
-                  filter: currentView === "team" 
+                  filter: currentView === "team"
                     ? "brightness(0) saturate(100%) invert(84%) sepia(11%) saturate(6382%) hue-rotate(86deg) brightness(101%) contrast(107%)" // #00DF71
                     : "brightness(0) saturate(100%) invert(52%) sepia(8%) saturate(1234%) hue-rotate(202deg) brightness(94%) contrast(86%)" // #79828A
                 }}
               />
             </div>
-          </div>
+          </button>
 
           {/* Verifications - Hidden but functional */}
-          <div
+          <button
+            type="button"
+            aria-label="Verifications"
             className="hidden"
             onClick={() => setCurrentView("verifications")}
           >
@@ -146,13 +160,13 @@ export default function SideNavCollapsed() {
                 alt="Verifications"
                 className="h-7 w-7 flex-shrink-0"
                 style={{
-                  filter: currentView === "verifications" 
+                  filter: currentView === "verifications"
                     ? "brightness(0) saturate(100%) invert(84%) sepia(11%) saturate(6382%) hue-rotate(86deg) brightness(101%) contrast(107%)" // #00DF71
                     : "brightness(0) saturate(100%) invert(52%) sepia(8%) saturate(1234%) hue-rotate(202deg) brightness(94%) contrast(86%)" // #79828A
                 }}
               />
             </div>
-          </div>
+          </button>
 
         </nav>
       </div>

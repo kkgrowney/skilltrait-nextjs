@@ -5,13 +5,20 @@ This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-
 First, run the development server:
 
 ```bash
+npm ci
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+```
+
+This repository uses npm and `package-lock.json` as its single dependency
+source of truth.
+
+Before opening a pull request, run:
+
+```bash
+npm run lint
+npm run typecheck
+npm run build
+npm audit
 ```
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.

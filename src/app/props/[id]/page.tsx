@@ -1,5 +1,7 @@
 "use client";
 
+import { logger } from "@/lib/logger";
+
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
@@ -41,7 +43,7 @@ const generateTemplatePreviewImage = async (template: any): Promise<string> => {
       backgroundImg.crossOrigin = "anonymous";
 
       backgroundImg.onload = () => {
-        console.log("Background image loaded successfully");
+        logger.debug("Background image loaded successfully");
         // Draw background with object-fit: cover behavior
         const canvasAspectRatio = canvas.width / canvas.height;
         const imageAspectRatio = backgroundImg.width / backgroundImg.height;
@@ -69,7 +71,7 @@ const generateTemplatePreviewImage = async (template: any): Promise<string> => {
         propsImg.crossOrigin = "anonymous";
 
         propsImg.onload = () => {
-          console.log("Props image loaded successfully");
+          logger.debug("Props image loaded successfully");
           // Draw props image on top of background
           const propsAspectRatio = propsImg.width / propsImg.height;
           let propsDrawWidth, propsDrawHeight, propsDrawX, propsDrawY;
@@ -92,25 +94,25 @@ const generateTemplatePreviewImage = async (template: any): Promise<string> => {
 
           // Convert canvas to base64
           const previewDataUrl = canvas.toDataURL("image/png");
-          
+
           // Upload to Cloudinary
           try {
-            console.log("Uploading generated preview to Cloudinary...");
+            logger.debug("Uploading generated preview to Cloudinary...");
             uploadToCloudinary(previewDataUrl).then((cloudinaryUrl) => {
-              console.log("Successfully uploaded to Cloudinary:", cloudinaryUrl);
+              logger.debug("Successfully uploaded to Cloudinary:", cloudinaryUrl);
               resolve(cloudinaryUrl);
             }).catch((error) => {
-              console.error("Cloudinary upload failed, using base64:", error);
+              logger.error("Cloudinary upload failed, using base64:", error);
               resolve(previewDataUrl);
             });
           } catch (error) {
-            console.error("Error uploading to Cloudinary:", error);
+            logger.error("Error uploading to Cloudinary:", error);
             resolve(previewDataUrl);
           }
         };
 
         propsImg.onerror = () => {
-          console.error("Failed to load props image");
+          logger.error("Failed to load props image");
           resolve("");
         };
 
@@ -118,23 +120,23 @@ const generateTemplatePreviewImage = async (template: any): Promise<string> => {
       };
 
       backgroundImg.onerror = () => {
-        console.error("Failed to load background image");
+        logger.error("Failed to load background image");
         resolve("");
       };
 
       const backgroundUrl = getProxiedUrlForPreview(template.achievement?.backgroundImage || "");
       const propsUrl = getProxiedUrlForPreview(template.achievement?.props || "");
-      
-      console.log("Generated URLs for template preview:", {
+
+      logger.debug("Generated URLs for template preview:", {
         backgroundUrl,
         propsUrl,
         originalBackground: template.achievement?.backgroundImage,
         originalProps: template.achievement?.props
       });
-      
+
       backgroundImg.src = backgroundUrl;
     } catch (error) {
-      console.error("Error generating template preview:", error);
+      logger.error("Error generating template preview:", error);
       reject(error);
     }
   });
@@ -200,7 +202,7 @@ function EmailRecipients({ propId, prop }: { propId: string; prop: any }) {
           const imageUrl = prop?.previewImageUrl || prop?.fullPropImage || `${window.location.origin}/share/${propId}`;
 
           // Log image URL for debugging
-          console.log(`Image URL for Customer.io:`, {
+          logger.debug(`Image URL for Customer.io:`, {
             url: imageUrl,
             bytes: new TextEncoder().encode(imageUrl).length,
             isCloudinary: imageUrl.includes('cloudinary.com'),
@@ -224,7 +226,7 @@ function EmailRecipients({ propId, prop }: { propId: string; prop: any }) {
           // Final validation - ensure propImage is within limits
           const finalPropImageBytes = new TextEncoder().encode(customerData.propImage).length;
           if (finalPropImageBytes > 2000) {
-            console.error('ERROR: propImage exceeds 2000 bytes!', {
+            logger.error('ERROR: propImage exceeds 2000 bytes!', {
               value: customerData.propImage,
               bytes: finalPropImageBytes
             });
@@ -232,13 +234,13 @@ function EmailRecipients({ propId, prop }: { propId: string; prop: any }) {
             customerData.propImage = 'Image URL too large';
           }
 
-          console.log(`Sending to Customer.io for ${recipientEmail}:`, customerData);
-          console.log(`propImage field details:`, {
+          logger.debug(`Sending to Customer.io for ${recipientEmail}:`, customerData);
+          logger.debug(`propImage field details:`, {
             value: customerData.propImage,
             bytes: new TextEncoder().encode(customerData.propImage).length,
             type: typeof customerData.propImage
           });
-          console.log(`propShareUrl field details:`, {
+          logger.debug(`propShareUrl field details:`, {
             value: customerData.propShareUrl,
             bytes: new TextEncoder().encode(customerData.propShareUrl).length,
             type: typeof customerData.propShareUrl
@@ -251,11 +253,11 @@ function EmailRecipients({ propId, prop }: { propId: string; prop: any }) {
             successCount++;
           } else {
             errorCount++;
-            console.error(`Failed to send to ${recipientEmail}`);
+            logger.error(`Failed to send to ${recipientEmail}`);
           }
         } catch (err) {
           errorCount++;
-          console.error(`Error sending to ${recipientEmail}:`, err);
+          logger.error(`Error sending to ${recipientEmail}:`, err);
         }
       }
 
@@ -273,7 +275,7 @@ function EmailRecipients({ propId, prop }: { propId: string; prop: any }) {
         setError("Failed to send props to any recipients. Please try again.");
       }
     } catch (err) {
-      console.error("Error sending props:", err);
+      logger.error("Error sending props:", err);
       setError("An error occurred while sending props. Please try again.");
     } finally {
       setIsSending(false);
@@ -383,7 +385,7 @@ export default function PropDetailPage() {
       "/liquid_death_props.png";
     const filename = `${prop.propsTitle || "prop"}-${Date.now()}.png`;
 
-    console.log("Attempting to download:", { imageUrl, filename });
+    logger.debug("Attempting to download:", { imageUrl, filename });
 
     try {
       // For Cloudinary URLs, use fetch and blob download
@@ -391,7 +393,7 @@ export default function PropDetailPage() {
         imageUrl.includes("cloudinary.com") ||
         imageUrl.includes("res.cloudinary.com")
       ) {
-        console.log("Using Cloudinary download method");
+        logger.debug("Using Cloudinary download method");
 
         try {
           // Fetch the image as a blob
@@ -416,14 +418,14 @@ export default function PropDetailPage() {
 
           return;
         } catch (error) {
-          console.error("Cloudinary download failed:", error);
+          logger.error("Cloudinary download failed:", error);
           // Fall through to other methods
         }
       }
 
       // For Firebase Storage URLs, use the optimized download
       if (imageUrl.includes("firebasestorage.googleapis.com")) {
-        console.log("Using Firebase download method");
+        logger.debug("Using Firebase download method");
         await downloadFirebaseImage(imageUrl, filename);
 
         // Show user instructions for the new tab approach
@@ -438,23 +440,23 @@ export default function PropDetailPage() {
 
       // For base64 images, try direct download
       if (imageUrl.startsWith("data:image")) {
-        console.log("Using base64 download method");
+        logger.debug("Using base64 download method");
         await downloadImageDirectly(imageUrl, filename);
         return;
       }
 
       // Try high-resolution canvas download for other URLs
-      console.log("Using canvas download method");
+      logger.debug("Using canvas download method");
       await downloadPropAsPNG(imageUrl, prop.propsTitle);
     } catch (error) {
-      console.error("Primary download failed, trying fallback:", error);
+      logger.error("Primary download failed, trying fallback:", error);
 
       try {
         // Fallback to direct download
-        console.log("Using fallback download method");
+        logger.debug("Using fallback download method");
         await downloadImageDirectly(imageUrl, filename);
       } catch (fallbackError) {
-        console.error("Fallback download also failed:", fallbackError);
+        logger.error("Fallback download also failed:", fallbackError);
         alert("Failed to download prop. Please try again.");
       }
     }
@@ -469,27 +471,27 @@ export default function PropDetailPage() {
       if (snap.exists()) {
         const propData = { id: snap.id, ...snap.data() };
         setProp(propData);
-        
+
         // Generate preview image for free templates that don't have previewImageUrl
-        console.log("Prop data for preview generation:", {
+        logger.debug("Prop data for preview generation:", {
           hasPreviewImageUrl: !!(propData as any).previewImageUrl,
           hasPreviewImageBase64: !!(propData as any).previewImageBase64,
           hasBackgroundImage: !!(propData as any).achievement?.backgroundImage,
           hasProps: !!(propData as any).achievement?.props
         });
-        
-        if (!(propData as any).previewImageUrl && !(propData as any).previewImageBase64 && 
+
+        if (!(propData as any).previewImageUrl && !(propData as any).previewImageBase64 &&
             (propData as any).achievement?.backgroundImage && (propData as any).achievement?.props) {
-          console.log("Generating template preview image...");
+          logger.debug("Generating template preview image...");
           try {
             const previewUrl = await generateTemplatePreviewImage(propData);
-            console.log("Generated preview URL:", previewUrl);
+            logger.debug("Generated preview URL:", previewUrl);
             setGeneratedPreviewUrl(previewUrl);
           } catch (error) {
-            console.error("Failed to generate template preview:", error);
+            logger.error("Failed to generate template preview:", error);
           }
         } else {
-          console.log("Skipping preview generation - conditions not met");
+          logger.debug("Skipping preview generation - conditions not met");
         }
       }
       setLoading(false);
@@ -545,7 +547,7 @@ export default function PropDetailPage() {
                   >
                     {/* Use the saved Cloudinary preview image - this should match exactly what was generated in ShareStep */}
                     {(() => {
-                      console.log("Image rendering decision:", {
+                      logger.debug("Image rendering decision:", {
                         hasPropPreviewImageUrl: !!prop.previewImageUrl,
                         hasGeneratedPreviewUrl: !!generatedPreviewUrl,
                         hasPropPreviewImageBase64: !!prop.previewImageBase64,
@@ -554,7 +556,7 @@ export default function PropDetailPage() {
                       });
                       return prop.previewImageUrl || generatedPreviewUrl;
                     })() ? (
-                      <img
+                      <img loading="lazy"
                         src={prop.previewImageUrl || generatedPreviewUrl}
                         alt={prop.propsTitle || "Prop"}
                         className="relative z-20 w-full h-full"
@@ -567,7 +569,7 @@ export default function PropDetailPage() {
                         }}
                       />
                     ) : prop.previewImageBase64 ? (
-                      <img
+                      <img loading="lazy"
                         src={prop.previewImageBase64}
                         alt={prop.propsTitle || "Prop"}
                         className="relative z-20 w-full h-full"
@@ -588,7 +590,7 @@ export default function PropDetailPage() {
                           className="absolute inset-0 z-10 overflow-hidden"
                           style={{ borderRadius: "4px" }}
                         >
-                          <img
+                          <img loading="lazy"
                             src={getProxiedUrlForPreview(
                               prop.achievement?.backgroundImage || ""
                             )}
@@ -602,7 +604,7 @@ export default function PropDetailPage() {
                           />
                         </div>
                         {/* Foreground props image */}
-                        <img
+                        <img loading="lazy"
                           src={getProxiedUrlForPreview(
                             prop.achievement?.props || ""
                           )}
@@ -634,7 +636,7 @@ export default function PropDetailPage() {
                             }}
                           >
                             {prop.achievement?.logoImage ? (
-                              <img
+                              <img loading="lazy"
                                 src={getProxiedUrlForPreview(
                                   prop.achievement.logoImage
                                 )}

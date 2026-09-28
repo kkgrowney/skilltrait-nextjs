@@ -9,12 +9,16 @@ This project now uses Cloudinary for image storage instead of base64 encoding, w
 
 ## Configuration
 
-The Cloudinary integration is configured with:
+Configure the integration through server-only environment variables:
 
-- **Cloud Name**: `produckapp`
-- **API Key**: `192645388792962`
-- **API Secret**: `eV-GdhkoAW-dsiSFbGY9ep1bPZw`
-- **Folder**: `sendProps`
+- `CLOUDINARY_CLOUD_NAME`
+- `CLOUDINARY_API_KEY`
+- `CLOUDINARY_API_SECRET`
+- `CLOUDINARY_UPLOAD_FOLDER` (defaults to `sendProps`)
+
+The credential previously committed to this repository must be revoked before
+the integration is used again. Removing a secret from the current source tree
+does not remove it from Git history.
 
 ## How It Works
 
@@ -91,7 +95,8 @@ const optimizedUrl = getOptimizedCloudinaryUrl(url, {
 - API keys are stored server-side only
 - Uploads are signed and authenticated
 - Folder structure prevents unauthorized access
-- Rate limiting can be added if needed
+- Uploads enforce authentication, type and size validation, rate limits,
+  concurrency limits, and an outbound timeout
 
 ## Future Enhancements
 

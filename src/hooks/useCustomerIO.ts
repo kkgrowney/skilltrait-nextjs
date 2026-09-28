@@ -1,5 +1,8 @@
+import { logger } from "@/lib/logger";
+
 import { useState, useCallback } from 'react';
 import { CustomerData } from '@/lib/customerio';
+import { authenticatedFetch } from '@/lib/authenticatedFetch';
 
 interface UseCustomerIOReturn {
   updateCustomer: (email: string, data: CustomerData) => Promise<boolean>;
@@ -17,11 +20,9 @@ export const useCustomerIO = (): UseCustomerIOReturn => {
     setError(null);
 
     try {
-      const response = await fetch('/api/customerio', {
+      const response = await authenticatedFetch('/api/customerio', {
         method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, data })
       });
 
@@ -35,7 +36,7 @@ export const useCustomerIO = (): UseCustomerIOReturn => {
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Unknown error occurred';
       setError(errorMessage);
-      console.error('Customer.io Update Error:', errorMessage);
+      logger.error('Customer.io Update Error:', errorMessage);
       return false;
     } finally {
       setIsLoading(false);
@@ -47,11 +48,9 @@ export const useCustomerIO = (): UseCustomerIOReturn => {
     setError(null);
 
     try {
-      const response = await fetch('/api/customerio', {
+      const response = await authenticatedFetch('/api/customerio', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, eventName, eventData })
       });
 
@@ -65,7 +64,7 @@ export const useCustomerIO = (): UseCustomerIOReturn => {
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Unknown error occurred';
       setError(errorMessage);
-      console.error('Customer.io Event Tracking Error:', errorMessage);
+      logger.error('Customer.io Event Tracking Error:', errorMessage);
       return false;
     } finally {
       setIsLoading(false);

@@ -1,32 +1,18 @@
+import { logger } from "@/lib/logger";
+
 import { NextRequest, NextResponse } from "next/server";
-import * as XLSX from "xlsx";
 import mammoth from "mammoth";
 import csv from "csv-parser";
 import { Readable } from "stream";
+import readXlsxFile from "read-excel-file/node";
+
+import { admitRequest, requireFirebaseUser } from "@/lib/server/apiSecurity";
 
 // Prevent this API route from being prerendered
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-// Get Firebase config from environment variables
-const firebaseConfig = {
-  apiKey:
-    process.env.NEXT_PUBLIC_FIREBASE_API_KEY ||
-    "AIzaSyDg7eFD9bFN4-D4vONrsCybG4L1TTwhrvs",
-  authDomain:
-    process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN ||
-    "skill-trait-rwubkx.firebaseapp.com",
-  projectId:
-    process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || "skill-trait-rwubkx",
-  storageBucket:
-    process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET ||
-    "skill-trait-rwubkx.appspot.com",
-  messagingSenderId:
-    process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID || "758643500464",
-  appId:
-    process.env.NEXT_PUBLIC_FIREBASE_APP_ID ||
-    "1:758643500464:web:834dcc4973420aad3c2275",
-};
+const MAX_FILE_BYTES = 10 * 1024 * 1024;
 
 // Helper function to extract text from CSV
 const extractCSVText = (buffer: Buffer): Promise<string> => {
@@ -61,72 +47,31 @@ const extractDOCXText = async (buffer: Buffer): Promise<string> => {
 };
 
 // Helper function to extract text from XLSX
-const extractXLSXText = (buffer: Buffer): string => {
+const extractXLSXText = async (buffer: Buffer): Promise<string> => {
   try {
-    const workbook = XLSX.read(buffer, { type: "buffer" });
-    const results: string[] = [];
-
-    // Process all sheets
-    workbook.SheetNames.forEach((sheetName) => {
-      const worksheet = workbook.Sheets[sheetName];
-      const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
-
-      // Convert each row to text
-      jsonData.forEach((row: any) => {
-        if (Array.isArray(row)) {
-          const rowText = row
-            .filter((cell) => cell !== null && cell !== undefined)
-            .join(" ");
-          if (rowText.trim()) {
-            results.push(rowText);
-          }
-        }
-      });
-    });
-
-    return results.join("\n");
+    const sheets = await readXlsxFile(buffer);
+    return sheets
+      .flatMap((sheet) => sheet.data)
+      .map((row) => row.filter((cell) => cell !== null).join(" ").trim())
+      .filter(Boolean)
+      .join("\n");
   } catch (error) {
     throw new Error("Failed to parse XLSX file");
   }
 };
 
 export async function POST(request: NextRequest) {
+  const admission = admitRequest(request, {
+    route: "parse-file",
+    maxRequests: 10,
+    windowMs: 60_000,
+    maxConcurrent: 2,
+    maxBodyBytes: MAX_FILE_BYTES + 256 * 1024,
+  });
+  if (admission instanceof NextResponse) return admission;
   try {
-    // Check authentication
-    const authHeader = request.headers.get("authorization");
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      return NextResponse.json(
-        { error: "Authentication required" },
-        { status: 401 }
-      );
-    }
-
-    const token = authHeader.split("Bearer ")[1];
-    try {
-      // Verify the token using Firebase client SDK
-      const response = await fetch(
-        `https://identitytoolkit.googleapis.com/v1/accounts:lookup?key=${firebaseConfig.apiKey}`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            idToken: token,
-          }),
-        }
-      );
-
-      const data = await response.json();
-      if (!response.ok || data.error) {
-        throw new Error("Invalid token");
-      }
-    } catch (error) {
-      return NextResponse.json(
-        { error: "Invalid authentication token" },
-        { status: 401 }
-      );
-    }
+    const user = await requireFirebaseUser(request);
+    if (user instanceof NextResponse) return user;
 
     // Parse the multipart form data
     const formData = await request.formData();
@@ -137,7 +82,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Check file size
-    if (file.size > 10 * 1024 * 1024) {
+    if (file.size > MAX_FILE_BYTES) {
       return NextResponse.json(
         { error: "File too large. Maximum size is 10MB." },
         { status: 400 }
@@ -149,7 +94,6 @@ export async function POST(request: NextRequest) {
       "text/csv",
       "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
       "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-      "application/vnd.ms-excel",
     ];
 
     if (!allowedTypes.includes(file.type)) {
@@ -176,16 +120,15 @@ export async function POST(request: NextRequest) {
       extractedText = await extractDOCXText(buffer);
     } else if (
       file.type ===
-        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" ||
-      file.type === "application/vnd.ms-excel"
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
     ) {
-      extractedText = extractXLSXText(buffer);
+      extractedText = await extractXLSXText(buffer);
     }
 
     // Return the extracted text
     return NextResponse.json({ text: extractedText });
   } catch (error) {
-    console.error("Error parsing file:", error);
+    logger.error("Error parsing file:", error);
 
     if (error instanceof Error) {
       return NextResponse.json({ error: error.message }, { status: 400 });
@@ -195,5 +138,7 @@ export async function POST(request: NextRequest) {
       { error: "Failed to parse file" },
       { status: 500 }
     );
+  } finally {
+    admission.release();
   }
 }

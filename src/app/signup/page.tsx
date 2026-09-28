@@ -1,5 +1,7 @@
 "use client";
 
+import { logger } from "@/lib/logger";
+
 import { useState, useEffect } from "react";
 import {
   createUserWithEmailAndPassword,
@@ -36,7 +38,7 @@ export default function SignUpPage() {
       try {
         const result = await getRedirectResult(auth);
         if (result) {
-          console.log("Redirect sign-up successful:", result.user.email);
+          logger.debug("Redirect sign-up successful:", result.user.email);
 
           // Check if user already has a profile
           const userDoc = await getDoc(doc(db, "users", result.user.uid));
@@ -53,7 +55,7 @@ export default function SignUpPage() {
           router.push("/onboarding");
         }
       } catch (error) {
-        console.error("Redirect result error:", error);
+        logger.error("Redirect result error:", error);
       }
     };
 
@@ -130,7 +132,7 @@ export default function SignUpPage() {
     } catch (error: unknown) {
       const errorMessage =
         error instanceof Error ? error.message : "An error occurred";
-      console.error("Sign up error:", errorMessage);
+      logger.error("Sign up error:", errorMessage);
 
       // Handle specific Firebase auth errors
       if (error instanceof Error) {
@@ -164,32 +166,32 @@ export default function SignUpPage() {
     setLoading(true);
 
     try {
-      console.log("Starting Google sign-up process...");
+      logger.debug("Starting Google sign-up process...");
       const provider = new GoogleAuthProvider();
 
       // Add scopes if needed
       provider.addScope("email");
       provider.addScope("profile");
 
-      console.log("Calling signInWithPopup...");
+      logger.debug("Calling signInWithPopup...");
       let result;
 
       try {
         result = await signInWithPopup(auth, provider);
       } catch (popupError) {
-        console.log("Popup failed, trying redirect:", popupError);
+        logger.debug("Popup failed, trying redirect:", popupError);
         // Fallback to redirect if popup is blocked
         await signInWithRedirect(auth, provider);
         return; // Redirect will handle the rest
       }
 
-      console.log("Google sign-up successful:", result.user.email);
+      logger.debug("Google sign-up successful:", result.user.email);
 
       // Check if user already has a profile
-      console.log("Checking if user profile exists...");
+      logger.debug("Checking if user profile exists...");
       const userDoc = await getDoc(doc(db, "users", result.user.uid));
       if (!userDoc.exists()) {
-        console.log("Creating new user profile...");
+        logger.debug("Creating new user profile...");
         // Create basic profile for Google user
         await setDoc(doc(db, "users", result.user.uid), {
           display_name: result.user.displayName || "",
@@ -198,18 +200,18 @@ export default function SignUpPage() {
           created_time: new Date(),
           didInitProfile: false,
         });
-        console.log("User profile created, redirecting to onboarding");
+        logger.debug("User profile created, redirecting to onboarding");
       } else {
-        console.log("User profile already exists");
+        logger.debug("User profile already exists");
       }
 
       router.push("/onboarding");
     } catch (error: unknown) {
-      console.error("Google sign up error details:", error);
+      logger.error("Google sign up error details:", error);
 
       if (error instanceof Error) {
         const errorMessage = error.message;
-        console.error("Error message:", errorMessage);
+        logger.error("Error message:", errorMessage);
 
         // Handle specific Firebase auth errors
         if (errorMessage.includes("popup-closed-by-user")) {

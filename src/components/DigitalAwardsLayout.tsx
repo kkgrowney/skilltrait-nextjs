@@ -1,5 +1,7 @@
 "use client";
 
+import { logger } from "@/lib/logger";
+
 import React, { ReactNode } from "react";
 import DigitalAwardsSideNav, {
   StepType,
@@ -37,22 +39,22 @@ export default function DigitalAwardsLayout({
   const containerHeight = user ? "100vh" : "calc(100vh - var(--nav-height))";
 
   const handleLogout = async () => {
-    console.log("Digital awards layout logout button clicked");
+    logger.debug("Digital awards layout logout button clicked");
 
     const confirmed = window.confirm("Are you sure you want to sign out?");
-    console.log("User confirmed:", confirmed);
+    logger.debug("User confirmed:", confirmed);
 
     if (!confirmed) return;
 
-    console.log("Calling logout function...");
+    logger.debug("Calling logout function...");
     const success = await logout();
-    console.log("Logout result:", success);
+    logger.debug("Logout result:", success);
 
     if (success) {
-      console.log("Successfully signed out");
+      logger.debug("Successfully signed out");
       router.push("/signin");
     } else {
-      console.error("Failed to sign out");
+      logger.error("Failed to sign out");
       alert("Failed to sign out. Please try again.");
     }
   };

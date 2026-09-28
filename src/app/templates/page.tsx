@@ -1,5 +1,7 @@
 "use client";
 
+import { logger } from "@/lib/logger";
+
 import { useEffect, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { db } from "@/lib/firebase";
@@ -141,7 +143,7 @@ export default function TemplatesListPage() {
                     <div className="relative w-full h-full">
                       {/* Use the saved preview image if available, otherwise reconstruct from template data */}
                       {template.previewImageBase64 ? (
-                        <img
+                        <img loading="lazy"
                           src={template.previewImageBase64}
                           alt={template.achievement?.company || "Template"}
                           className="relative z-20 w-full h-full"
@@ -162,7 +164,7 @@ export default function TemplatesListPage() {
                             className="absolute inset-0 z-10 overflow-hidden"
                             style={{ borderRadius: "4px" }}
                           >
-                            <img
+                            <img loading="lazy"
                               src={getProxiedUrlForPreview(
                                 template.achievement?.backgroundImage || ""
                               )}
@@ -175,7 +177,7 @@ export default function TemplatesListPage() {
                             />
                           </div>
                           {/* Foreground props image */}
-                          <img
+                          <img loading="lazy"
                             src={getProxiedUrlForPreview(
                               template.achievement?.props || ""
                             )}
@@ -208,7 +210,7 @@ export default function TemplatesListPage() {
                               }}
                             >
                               {template.achievement?.logoImage ? (
-                                <img
+                                <img loading="lazy"
                                   src={getProxiedUrlForPreview(
                                     template.achievement.logoImage
                                   )}
@@ -308,7 +310,7 @@ export default function TemplatesListPage() {
                       setSelectMode(false);
                       setShowConfirmModal(false);
                     } catch (e) {
-                      console.error("Bulk delete failed:", e);
+                      logger.error("Bulk delete failed:", e);
                       alert(
                         "Failed to delete some templates. Please try again."
                       );

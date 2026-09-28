@@ -69,11 +69,11 @@ export default function DragDropUpload({
           />
         </label>
       </div>
-      
+
       <div
         className={`w-full bg-[#121417] rounded-lg p-6 transition-colors ${
-          isDragOver 
-            ? 'border-2 border-[#00DF71] bg-[#1B1D21]' 
+          isDragOver
+            ? 'border-2 border-[#00DF71] bg-[#1B1D21]'
             : 'border-2 border-transparent'
         }`}
         onDragOver={handleDragOver}
@@ -92,9 +92,9 @@ export default function DragDropUpload({
                 Remove file
               </button>
             </div>
-            
+
             <div className={`${title === "Logo" ? "w-[294px] h-20" : previewWidth + " " + previewHeight} bg-white rounded-none flex items-center justify-start overflow-hidden ml-5 mr-5 my-5 pl-5`}>
-              <img
+              <img loading="lazy"
                 src={URL.createObjectURL(uploadedFile)}
                 alt="Uploaded file"
                 className={`${title === "Background Image" ? "w-full h-full object-cover" : "h-10 w-[250px] object-contain"}`}
@@ -117,7 +117,7 @@ export default function DragDropUpload({
               </label>
               <p className="text-gray-400 text-xs mt-1">Max Dimensions: {maxDimensions}</p>
             </div>
-            
+
             <div className={`${previewWidth} ${previewHeight} bg-white border-2 border-dashed border-[#454446] rounded-[8px] flex items-center justify-center`}>
               <div className="text-gray-400 text-xs">{maxDimensions}</div>
             </div>
@@ -126,4 +126,4 @@ export default function DragDropUpload({
       </div>
     </div>
   );
-} 
+}
